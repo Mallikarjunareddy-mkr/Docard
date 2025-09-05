@@ -2,41 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MyData</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <h1>📂 MyData</h1>
 
-  <!-- Mode Selection -->
-  <div id="modeSelect">
-    <button onclick="initDevice()">📱 Store in Device</button>
-    <button onclick="initGoogle()">☁️ Continue with Google</button>
+  <div class="toolbar">
+    <button onclick="createCard('folder')">+ Folder</button>
+    <button onclick="createCard('note')">+ Note</button>
+    <input type="file" id="fileInput" onchange="uploadFile(event)" hidden>
+    <button onclick="document.getElementById('fileInput').click()">+ Upload File</button>
   </div>
 
-  <!-- Toolbar -->
-  <div id="toolbar" style="display:none;">
-    <button onclick="goBack()">🔙 Back</button>
-    <button onclick="createFolder()">+ Folder</button>
-    <button onclick="createNote()">+ Note</button>
-    <button onclick="uploadFile()">+ Upload File</button>
-  </div>
-
-  <!-- Card container -->
-  <div id="cardContainer"></div>
-
-  <!-- Note Modal -->
-  <div id="noteModal" class="modal">
-    <div class="modal-content">
-      <span id="closeNoteModal">&times;</span>
-      <h3>Edit Note</h3>
-      <textarea id="noteText"></textarea>
-      <button id="saveNoteBtn">Save</button>
-    </div>
-  </div>
+  <div id="path"></div>
+  <div id="cards" class="cards"></div>
 
   <script src="script.js"></script>
 </body>

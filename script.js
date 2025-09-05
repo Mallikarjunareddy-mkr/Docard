@@ -1,122 +1,194 @@
-const deviceBtn = document.getElementById("deviceBtn");
-const googleBtn = document.getElementById("googleBtn");
-const app = document.getElementById("app");
-const welcome = document.querySelector(".welcome");
-const storageTypeEl = document.getElementById("storageType");
-const cardContainer = document.getElementById("cardContainer");
-const addCardBtn = document.getElementById("addCardBtn");
-const searchBox = document.getElementById("searchBox");
+// Device storage
+let data = JSON.parse(localStorage.getItem("mydata")) || { folders: {}, notes: [], files: [] };
+let currentPath = [];
 
-let mode = null;
-let cards = [];
-let DRIVE_FOLDER_ID = null;
+// Note modal
+const noteModal = document.getElementById("noteModal");
+const closeNoteModal = document.getElementById("closeNoteModal");
+const noteText = document.getElementById("noteText");
+const saveNoteBtn = document.getElementById("saveNoteBtn");
 
-// ========= LOCAL STORAGE MODE =========
-deviceBtn.onclick = () => {
-  mode = "device";
-  welcome.style.display = "none";
-  app.style.display = "block";
-  storageTypeEl.innerText = "📂 Stored in Device";
-  loadDeviceData();
-  renderCards();
-};
+let editingNoteIndex = null;
 
-function loadDeviceData() {
-  cards = JSON.parse(localStorage.getItem("MyData")) || [];
-}
 function saveDeviceData() {
-  localStorage.setItem("MyData", JSON.stringify(cards));
+  localStorage.setItem("mydata", JSON.stringify(data));
 }
 
-// ========= GOOGLE DRIVE MODE =========
-googleBtn.onclick = () => {
-  mode = "google";
-  gapi.load("client:auth2", initGoogle);
-};
-
-function initGoogle() {
-  gapi.client.init({
-    apiKey: "YOUR_API_KEY",
-    clientId: "YOUR_CLIENT_ID.apps.googleusercontent.com",
-    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-    scope: "https://www.googleapis.com/auth/drive.file"
-  }).then(() => {
-    return gapi.auth2.getAuthInstance().signIn();
-  }).then(() => {
-    welcome.style.display = "none";
-    app.style.display = "block";
-    storageTypeEl.innerText = "☁️ Google Drive";
-    findOrCreateDriveFolder();
-  });
+function getCurrentDeviceFolder() {
+  let folder = data;
+  for (const f of currentPath) folder = folder.folders[f];
+  return folder;
 }
 
-function findOrCreateDriveFolder() {
-  gapi.client.drive.files.list({
-    q: "name='MyData' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-    fields: "files(id, name)"
-  }).then(res => {
-    if (res.result.files && res.result.files.length > 0) {
-      DRIVE_FOLDER_ID = res.result.files[0].id;
-      listDriveFiles();
-    } else {
-      gapi.client.drive.files.create({
-        resource: { name: "MyData", mimeType: "application/vnd.google-apps.folder" },
-        fields: "id"
-      }).then(resp => {
-        DRIVE_FOLDER_ID = resp.result.id;
-        listDriveFiles();
-      });
-    }
-  });
-}
-
-function listDriveFiles() {
-  gapi.client.drive.files.list({
-    q: `'${DRIVE_FOLDER_ID}' in parents and trashed=false`,
-    fields: "files(id, name)"
-  }).then(res => {
-    cards = res.result.files.map(f => ({ id: f.id, name: f.name }));
-    renderCards();
-  });
-}
-
-function createDriveCard(name) {
-  gapi.client.drive.files.create({
-    resource: { name, mimeType: "application/vnd.google-apps.folder", parents: [DRIVE_FOLDER_ID] },
-    fields: "id, name"
-  }).then(res => {
-    cards.push({ id: res.result.id, name: res.result.name });
-    renderCards();
-  });
-}
-
-// ========= COMMON UI =========
+// Render cards
 function renderCards() {
-  cardContainer.innerHTML = "";
-  cards.forEach((c, i) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerText = c.name;
-    cardContainer.appendChild(card);
+  const container = document.getElementById("cardContainer");
+  container.innerHTML = "";
+
+  const folder = getCurrentDeviceFolder();
+
+  // Folders
+  Object.keys(folder.folders).forEach(name => {
+    const card = createCard("📁 " + name, () => openFolder(name));
+    addMenu(card, name, "folder");
+    container.appendChild(card);
+  });
+
+  // Notes
+  folder.notes.forEach((note, i) => {
+    const card = createCard("📝 " + (note.slice(0, 15) + (note.length > 15 ? "..." : "")), () => openNote(i));
+    addMenu(card, i, "note");
+    container.appendChild(card);
+  });
+
+  // Files
+  folder.files.forEach((f, i) => {
+    const card = createCard("📂 " + f, null);
+    addMenu(card, i, "file");
+    container.appendChild(card);
   });
 }
 
-addCardBtn.onclick = () => {
-  const name = prompt("Enter new card name:");
-  if (!name) return;
+function createCard(text, onclick) {
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerText = text;
+  if (onclick) div.onclick = onclick;
+  return div;
+}
 
-  if (mode === "device") {
-    cards.push({ name, files: [] });
+function addMenu(card, id, type) {
+  const menuBtn = document.createElement("span");
+  menuBtn.className = "menuBtn";
+  menuBtn.innerText = "⋮";
+
+  const menu = document.createElement("div");
+  menu.className = "menu";
+
+  ["Rename", "Delete", "Copy", "Move"].forEach(action => {
+    const btn = document.createElement("button");
+    btn.innerText = action;
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      handleAction(action, id, type);
+      menu.style.display = "none";
+    };
+    menu.appendChild(btn);
+  });
+
+  menuBtn.onclick = (e) => {
+    e.stopPropagation();
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+  };
+
+  card.appendChild(menuBtn);
+  card.appendChild(menu);
+}
+
+function handleAction(action, id, type) {
+  const folder = getCurrentDeviceFolder();
+
+  if (action === "Rename") {
+    const newName = prompt("New name:");
+    if (!newName) return;
+
+    if (type === "folder") {
+      folder.folders[newName] = folder.folders[id];
+      delete folder.folders[id];
+    } else if (type === "note") {
+      folder.notes[id] = newName;
+    } else if (type === "file") {
+      folder.files[id] = newName;
+    }
+  }
+
+  if (action === "Delete") {
+    if (type === "folder") delete folder.folders[id];
+    else if (type === "note") folder.notes.splice(id, 1);
+    else if (type === "file") folder.files.splice(id, 1);
+  }
+
+  if (action === "Copy") {
+    if (type === "folder") folder.folders[id + "_copy"] = JSON.parse(JSON.stringify(folder.folders[id]));
+    else if (type === "note") folder.notes.push(folder.notes[id] + " (copy)");
+    else if (type === "file") folder.files.push(folder.files[id] + "_copy");
+  }
+
+  if (action === "Move") {
+    const target = prompt("Move to folder name:");
+    if (target && folder.folders[target]) {
+      if (type === "folder") {
+        folder.folders[target].folders[id] = folder.folders[id];
+        delete folder.folders[id];
+      } else if (type === "note") {
+        folder.folders[target].notes.push(folder.notes[id]);
+        folder.notes.splice(id, 1);
+      } else if (type === "file") {
+        folder.folders[target].files.push(folder.files[id]);
+        folder.files.splice(id, 1);
+      }
+    } else {
+      alert("Target folder not found!");
+    }
+  }
+
+  saveDeviceData();
+  renderCards();
+}
+
+// Create
+function createFolder() {
+  const name = prompt("Folder name:");
+  if (!name) return;
+  getCurrentDeviceFolder().folders[name] = { folders: {}, notes: [], files: [] };
+  saveDeviceData();
+  renderCards();
+}
+
+function createNote() {
+  const text = prompt("Note text:");
+  if (!text) return;
+  getCurrentDeviceFolder().notes.push(text);
+  saveDeviceData();
+  renderCards();
+}
+
+function uploadFile() {
+  const name = prompt("File name:");
+  if (!name) return;
+  getCurrentDeviceFolder().files.push(name);
+  saveDeviceData();
+  renderCards();
+}
+
+// Folder navigation
+function openFolder(name) {
+  currentPath.push(name);
+  renderCards();
+}
+
+// Notes
+function openNote(index) {
+  editingNoteIndex = index;
+  noteText.value = getCurrentDeviceFolder().notes[index];
+  noteModal.style.display = "block";
+}
+
+saveNoteBtn.onclick = () => {
+  if (editingNoteIndex !== null) {
+    getCurrentDeviceFolder().notes[editingNoteIndex] = noteText.value;
     saveDeviceData();
     renderCards();
-  } else if (mode === "google") {
-    createDriveCard(name);
   }
+  closeNote();
 };
 
-searchBox.oninput = e => {
-  const term = e.target.value.toLowerCase();
-  document.querySelectorAll(".card").forEach((el, i) => {
-    el.style.display = cards[i].name.toLowerCase().includes(term) ? "block" : "none";
-  });
-};
+function closeNote() {
+  noteModal.style.display = "none";
+  editingNoteIndex = null;
+}
+
+closeNoteModal.onclick = closeNote;
+
+// Initial render
+renderCards();

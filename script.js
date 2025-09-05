@@ -1,56 +1,62 @@
-// ---------- Data Structure ----------
-// Each folder = { type:"folder", name:"...", children:[] }
-// Each note   = { type:"note", name:"...", content:"..." }
-// Each file   = { type:"file", name:"...", content:"base64string" }
-
 let rootKey = "MyData";
 let path = [rootKey];
+let editingNote = null;
 
-// Initialize
+// Init MyData root
 if (!localStorage.getItem(rootKey)) {
   localStorage.setItem(rootKey, JSON.stringify({type:"folder", name:"MyData", children:[]}));
 }
 
 render();
 
-function getCurrentFolder() {
-  let folder = JSON.parse(localStorage.getItem(rootKey));
-  for (let i=1;i<path.length;i++) {
-    folder = folder.children.find(c => c.name === path[i]);
-  }
-  return folder;
+function getRoot() {
+  return JSON.parse(localStorage.getItem(rootKey));
 }
 
 function saveRoot(root) {
   localStorage.setItem(rootKey, JSON.stringify(root));
 }
 
+function getCurrentFolder() {
+  let folder = getRoot();
+  for (let i=1;i<path.length;i++) {
+    folder = folder.children.find(c => c.name === path[i]);
+  }
+  return folder;
+}
+
+// Render UI
 function render() {
   let folder = getCurrentFolder();
-  document.getElementById("path").innerText = path.join(" / ");
+  let searchQuery = document.getElementById("searchBox").value.toLowerCase();
+  document.getElementById("path").innerHTML = path.map((p, i) =>
+    `<span onclick="goTo(${i})">${p}</span>`
+  ).join(" / ");
+
   let cardsDiv = document.getElementById("cards");
   cardsDiv.innerHTML = "";
 
-  folder.children.forEach((c,i) => {
-    let div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `<div class="menu" onclick="showMenu(${i}, event)">⋮</div>
-                     <span>${c.type==="folder"?"📁":c.type==="note"?"📝":"📄"}</span>
-                     <span>${c.name}</span>`;
-    div.onclick = (e) => {
-      if (e.target.className==="menu") return;
-      if (c.type==="folder") {
-        path.push(c.name);
-        render();
-      } else if (c.type==="note") {
-        let newText = prompt("Edit Note:", c.content);
-        if (newText!==null) { c.content=newText; saveRoot(JSON.parse(localStorage.getItem(rootKey))); render(); }
-      } else if (c.type==="file") {
-        alert("File: "+c.name);
-      }
-    };
-    cardsDiv.appendChild(div);
-  });
+  folder.children
+    .filter(c => c.name.toLowerCase().includes(searchQuery))
+    .forEach((c,i) => {
+      let div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `<div class="menu" onclick="showMenu(${i}, event)">⋮</div>
+                       <span>${c.type==="folder"?"📁":c.type==="note"?"📝":"📄"}</span>
+                       <span>${c.name}</span>`;
+      div.onclick = (e) => {
+        if (e.target.className==="menu") return;
+        if (c.type==="folder") {
+          path.push(c.name);
+          render();
+        } else if (c.type==="note") {
+          openNoteEditor(c);
+        } else if (c.type==="file") {
+          openFilePreview(c);
+        }
+      };
+      cardsDiv.appendChild(div);
+    });
 }
 
 // Create Folder/Note
@@ -58,15 +64,13 @@ function createCard(type) {
   let name = prompt("Enter name:");
   if (!name) return;
   let folder = getCurrentFolder();
-
   if (folder.children.find(c=>c.name===name)) {
     alert("Name already exists!"); return;
   }
 
   if (type==="folder") folder.children.push({type:"folder", name, children:[]});
   if (type==="note") folder.children.push({type:"note", name, content:""});
-  
-  saveRoot(JSON.parse(localStorage.getItem(rootKey)));
+  saveRoot(getRoot());
   render();
 }
 
@@ -76,11 +80,44 @@ function uploadFile(e) {
   let reader = new FileReader();
   reader.onload = function() {
     let folder = getCurrentFolder();
-    folder.children.push({type:"file", name:file.name, content:reader.result});
-    saveRoot(JSON.parse(localStorage.getItem(rootKey)));
+    folder.children.push({type:"file", name:file.name, content:reader.result, size:file.size});
+    saveRoot(getRoot());
     render();
   };
   reader.readAsDataURL(file);
+}
+
+// Note Editor
+function openNoteEditor(note) {
+  editingNote = note;
+  document.getElementById("noteText").value = note.content;
+  document.getElementById("notePopup").style.display = "flex";
+}
+function saveNote() {
+  editingNote.content = document.getElementById("noteText").value;
+  saveRoot(getRoot());
+  closeNote();
+  render();
+}
+function closeNote() {
+  document.getElementById("notePopup").style.display = "none";
+}
+
+// File Preview
+function openFilePreview(file) {
+  let preview = document.getElementById("filePreview");
+  if (file.content.startsWith("data:image")) {
+    preview.innerHTML = `<img src="${file.content}" style="max-width:100%;">`;
+  } else if (file.name.endsWith(".txt")) {
+    let text = atob(file.content.split(",")[1]);
+    preview.innerHTML = `<pre>${text}</pre>`;
+  } else {
+    preview.innerHTML = `<a href="${file.content}" download="${file.name}">Download ${file.name}</a>`;
+  }
+  document.getElementById("filePopup").style.display = "flex";
+}
+function closeFile() {
+  document.getElementById("filePopup").style.display = "none";
 }
 
 // Menu (Rename/Delete/Copy/Move/Share)
@@ -89,7 +126,7 @@ function showMenu(index, e) {
   let action = prompt("Choose action: rename, delete, copy, move, share");
   if (!action) return;
 
-  let root = JSON.parse(localStorage.getItem(rootKey));
+  let root = getRoot();
   let folder = getCurrentFolder();
   let item = folder.children[index];
 
@@ -131,4 +168,16 @@ function findFolder(folder, name) {
     }
   }
   return null;
+}
+
+// Navigation
+function goBack() {
+  if (path.length>1) {
+    path.pop();
+    render();
+  }
+}
+function goTo(index) {
+  path = path.slice(0,index+1);
+  render();
 }

@@ -2,43 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>MyData</title>
+  <title>MyData - File Manager</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>📂 MyData</h1>
-
-  <div class="toolbar">
-    <button onclick="createCard('folder')">+ Folder</button>
-    <button onclick="createCard('note')">+ Note</button>
-    <input type="file" id="fileInput" onchange="uploadFile(event)" hidden>
-    <button onclick="document.getElementById('fileInput').click()">+ Upload File</button>
+  <header>
+    <h1>MyData</h1>
     <input type="text" id="searchBox" placeholder="🔍 Search..." oninput="render()">
-    <button onclick="goBack()">⬅ Back</button>
-  </div>
+  </header>
 
-  <div id="path" class="path"></div>
-  <div id="cards" class="cards"></div>
+  <nav id="path" class="path"></nav>
 
-  <!-- Note Editor Popup -->
+  <main id="cards" class="cards"></main>
+
+  <!-- Note Editor -->
   <div id="notePopup" class="popup">
     <div class="popup-content">
       <h3>Edit Note</h3>
       <textarea id="noteText"></textarea>
-      <br>
-      <button onclick="saveNote()">Save</button>
-      <button onclick="closeNote()">Cancel</button>
+      <div class="popup-actions">
+        <button onclick="saveNote()">Save</button>
+        <button onclick="closeNote()">Cancel</button>
+      </div>
     </div>
   </div>
 
-  <!-- File Preview Popup -->
+  <!-- File Preview -->
   <div id="filePopup" class="popup">
     <div class="popup-content">
-      <h3>File Preview</h3>
+      <h3>Preview</h3>
       <div id="filePreview"></div>
-      <br>
-      <button onclick="closeFile()">Close</button>
+      <div class="popup-actions">
+        <button onclick="closeFile()">Close</button>
+      </div>
     </div>
+  </div>
+
+  <!-- Floating Add Button -->
+  <div class="fab" onclick="toggleAddMenu()">＋</div>
+  <div id="addMenu" class="fab-menu">
+    <button onclick="createCard('folder')">📂 New Folder</button>
+    <button onclick="createCard('note')">📝 New Note</button>
+    <input type="file" id="fileInput" onchange="uploadFile(event)" hidden>
+    <button onclick="document.getElementById('fileInput').click()">📄 Upload File</button>
   </div>
 
   <script src="script.js"></script>

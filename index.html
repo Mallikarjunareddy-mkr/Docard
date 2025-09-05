@@ -1,33 +1,29 @@
-<html>
-  <head>
-  <style>
-    body {
-background-color:black;
-    }
-    .card-search {
-      border:none;
-      borderf-bottom:2px solid white;
-      outline:none;
-      backgrounf-color:#0000;
-      width:100%;
-      height:10%;
-    
-    }
-  </style>
-  </head>
-  <body>
-    <div>
-      <input type="text" placeholder="search card" class="card-search">
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyData</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="welcome">
+    <h1>MyData</h1>
+    <button id="deviceBtn">📂 Store in Device</button>
+    <button id="googleBtn">☁️ Continue with Google</button>
+  </div>
 
-    <div> 
-    <a href="">educational card</a>
-      <a href="">educational card</a>
-      <a href="">educational card</a>
-      <a href="">educational card</a>
-      <a href="">educational card</a>
-      <a href="">educational card</a>
-      <a href="">educational card</a>
-    </div>
-  </body>
+  <main id="app" style="display:none;">
+    <header>
+      <h2 id="storageType"></h2>
+      <input type="text" id="searchBox" placeholder="Search...">
+    </header>
+    <section id="cardContainer"></section>
+    <button id="addCardBtn">+</button>
+  </main>
+
+  <!-- Google API -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="script.js"></script>
+</body>
 </html>

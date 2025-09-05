@@ -13,10 +13,33 @@
     <button onclick="createCard('note')">+ Note</button>
     <input type="file" id="fileInput" onchange="uploadFile(event)" hidden>
     <button onclick="document.getElementById('fileInput').click()">+ Upload File</button>
+    <input type="text" id="searchBox" placeholder="🔍 Search..." oninput="render()">
+    <button onclick="goBack()">⬅ Back</button>
   </div>
 
-  <div id="path"></div>
+  <div id="path" class="path"></div>
   <div id="cards" class="cards"></div>
+
+  <!-- Note Editor Popup -->
+  <div id="notePopup" class="popup">
+    <div class="popup-content">
+      <h3>Edit Note</h3>
+      <textarea id="noteText"></textarea>
+      <br>
+      <button onclick="saveNote()">Save</button>
+      <button onclick="closeNote()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- File Preview Popup -->
+  <div id="filePopup" class="popup">
+    <div class="popup-content">
+      <h3>File Preview</h3>
+      <div id="filePreview"></div>
+      <br>
+      <button onclick="closeFile()">Close</button>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

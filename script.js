@@ -1,246 +1,134 @@
-let mode = null; // "device" or "google"
-let data = null;
-let currentPath = [];
-let drivePath = [];
-let DRIVE_FOLDER_ID = null;
-let cards = [];
+// ---------- Data Structure ----------
+// Each folder = { type:"folder", name:"...", children:[] }
+// Each note   = { type:"note", name:"...", content:"..." }
+// Each file   = { type:"file", name:"...", content:"base64string" }
 
-const CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
-const API_KEY = "YOUR_API_KEY";
-const SCOPES = "https://www.googleapis.com/auth/drive.file";
+let rootKey = "MyData";
+let path = [rootKey];
 
-// Note modal
-const noteModal = document.getElementById("noteModal");
-const closeNoteModal = document.getElementById("closeNoteModal");
-const noteText = document.getElementById("noteText");
-const saveNoteBtn = document.getElementById("saveNoteBtn");
-let editingNoteIndex = null;
-
-// ---------- INIT MODES ----------
-function initDevice() {
-  mode = "device";
-  document.getElementById("modeSelect").style.display = "none";
-  document.getElementById("toolbar").style.display = "block";
-  data = JSON.parse(localStorage.getItem("mydata")) || { folders: {}, notes: [], files: [] };
-  renderCards();
+// Initialize
+if (!localStorage.getItem(rootKey)) {
+  localStorage.setItem(rootKey, JSON.stringify({type:"folder", name:"MyData", children:[]}));
 }
 
-function initGoogle() {
-  mode = "google";
-  document.getElementById("modeSelect").style.display = "none";
-  document.getElementById("toolbar").style.display = "block";
-  gapi.load("client:auth2", initClient);
-}
+render();
 
-function initClient() {
-  gapi.client.init({
-    apiKey: API_KEY,
-    clientId: CLIENT_ID,
-    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-    scope: SCOPES
-  }).then(() => {
-    gapi.auth2.getAuthInstance().signIn().then(user => {
-      console.log("Signed in as " + user.getBasicProfile().getEmail());
-      ensureMyDataFolder();
-    });
-  });
-}
-
-function ensureMyDataFolder() {
-  gapi.client.drive.files.list({
-    q: "name='MyData' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-    fields: "files(id, name)"
-  }).then(res => {
-    if (res.result.files.length > 0) {
-      DRIVE_FOLDER_ID = res.result.files[0].id;
-      listDriveFiles(DRIVE_FOLDER_ID);
-    } else {
-      gapi.client.drive.files.create({
-        resource: { name: "MyData", mimeType: "application/vnd.google-apps.folder" }
-      }).then(res => {
-        DRIVE_FOLDER_ID = res.result.id;
-        listDriveFiles(DRIVE_FOLDER_ID);
-      });
-    }
-  });
-}
-
-// ---------- DEVICE MODE ----------
-function saveDeviceData() {
-  localStorage.setItem("mydata", JSON.stringify(data));
-}
-
-function getCurrentDeviceFolder() {
-  let folder = data;
-  for (const f of currentPath) folder = folder.folders[f];
+function getCurrentFolder() {
+  let folder = JSON.parse(localStorage.getItem(rootKey));
+  for (let i=1;i<path.length;i++) {
+    folder = folder.children.find(c => c.name === path[i]);
+  }
   return folder;
 }
 
-// ---------- RENDER ----------
-function renderCards() {
-  const container = document.getElementById("cardContainer");
-  container.innerHTML = "";
-
-  if (mode === "device") {
-    const folder = getCurrentDeviceFolder();
-
-    Object.keys(folder.folders).forEach(name => {
-      const card = createCard("📁 " + name, () => openFolder(name));
-      addMenu(card, name, "folder");
-      container.appendChild(card);
-    });
-
-    folder.notes.forEach((note, i) => {
-      const card = createCard("📝 " + (note.slice(0, 15) + (note.length > 15 ? "..." : "")), () => openNote(i));
-      addMenu(card, i, "note");
-      container.appendChild(card);
-    });
-
-    folder.files.forEach((f, i) => {
-      const card = createCard("📂 " + f, null);
-      addMenu(card, i, "file");
-      container.appendChild(card);
-    });
-  }
-
-  if (mode === "google") {
-    cards.forEach(item => {
-      const icon = item.mimeType === "application/vnd.google-apps.folder" ? "📁" :
-                   item.mimeType === "text/plain" ? "📝" : "📂";
-      const card = createCard(icon + " " + item.name, () => {
-        if (item.mimeType === "application/vnd.google-apps.folder") {
-          listDriveFiles(item.id);
-        } else if (item.mimeType === "text/plain") {
-          openDriveNote(item.id);
-        }
-      });
-      container.appendChild(card);
-    });
-  }
+function saveRoot(root) {
+  localStorage.setItem(rootKey, JSON.stringify(root));
 }
 
-function createCard(text, onclick) {
-  const div = document.createElement("div");
-  div.className = "card";
-  div.innerText = text;
-  if (onclick) div.onclick = onclick;
-  return div;
-}
+function render() {
+  let folder = getCurrentFolder();
+  document.getElementById("path").innerText = path.join(" / ");
+  let cardsDiv = document.getElementById("cards");
+  cardsDiv.innerHTML = "";
 
-// ---------- DEVICE ACTIONS ----------
-function createFolder() {
-  if (mode === "device") {
-    const name = prompt("Folder name:");
-    if (!name) return;
-    getCurrentDeviceFolder().folders[name] = { folders: {}, notes: [], files: [] };
-    saveDeviceData();
-    renderCards();
-  }
-}
-
-function createNote() {
-  if (mode === "device") {
-    const text = prompt("Note text:");
-    if (!text) return;
-    getCurrentDeviceFolder().notes.push(text);
-    saveDeviceData();
-    renderCards();
-  }
-}
-
-function uploadFile() {
-  if (mode === "device") {
-    const name = prompt("File name:");
-    if (!name) return;
-    getCurrentDeviceFolder().files.push(name);
-    saveDeviceData();
-    renderCards();
-  }
-}
-
-function openFolder(name) {
-  currentPath.push(name);
-  renderCards();
-}
-
-function openNote(index) {
-  editingNoteIndex = index;
-  noteText.value = getCurrentDeviceFolder().notes[index];
-  noteModal.style.display = "block";
-}
-
-saveNoteBtn.onclick = () => {
-  if (mode === "device" && editingNoteIndex !== null) {
-    getCurrentDeviceFolder().notes[editingNoteIndex] = noteText.value;
-    saveDeviceData();
-    renderCards();
-  }
-  closeNote();
-};
-
-function closeNote() {
-  noteModal.style.display = "none";
-  editingNoteIndex = null;
-}
-
-closeNoteModal.onclick = closeNote;
-
-// ---------- DRIVE ----------
-function listDriveFiles(parentId) {
-  if (!drivePath.includes(parentId)) drivePath.push(parentId);
-
-  gapi.client.drive.files.list({
-    q: `'${parentId}' in parents and trashed=false`,
-    fields: "files(id, name, mimeType, parents)"
-  }).then(res => {
-    cards = res.result.files;
-    renderCards();
+  folder.children.forEach((c,i) => {
+    let div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<div class="menu" onclick="showMenu(${i}, event)">⋮</div>
+                     <span>${c.type==="folder"?"📁":c.type==="note"?"📝":"📄"}</span>
+                     <span>${c.name}</span>`;
+    div.onclick = (e) => {
+      if (e.target.className==="menu") return;
+      if (c.type==="folder") {
+        path.push(c.name);
+        render();
+      } else if (c.type==="note") {
+        let newText = prompt("Edit Note:", c.content);
+        if (newText!==null) { c.content=newText; saveRoot(JSON.parse(localStorage.getItem(rootKey))); render(); }
+      } else if (c.type==="file") {
+        alert("File: "+c.name);
+      }
+    };
+    cardsDiv.appendChild(div);
   });
 }
 
-function openDriveNote(fileId) {
-  gapi.client.drive.files.get({
-    fileId: fileId,
-    alt: "media"
-  }).then(res => {
-    noteText.value = res.body;
-    noteModal.style.display = "block";
-    editingNoteIndex = fileId;
-  });
+// Create Folder/Note
+function createCard(type) {
+  let name = prompt("Enter name:");
+  if (!name) return;
+  let folder = getCurrentFolder();
+
+  if (folder.children.find(c=>c.name===name)) {
+    alert("Name already exists!"); return;
+  }
+
+  if (type==="folder") folder.children.push({type:"folder", name, children:[]});
+  if (type==="note") folder.children.push({type:"note", name, content:""});
+  
+  saveRoot(JSON.parse(localStorage.getItem(rootKey)));
+  render();
 }
 
-saveNoteBtn.onclick = () => {
-  if (mode === "device" && editingNoteIndex !== null) {
-    getCurrentDeviceFolder().notes[editingNoteIndex] = noteText.value;
-    saveDeviceData();
-    renderCards();
-  } else if (mode === "google" && editingNoteIndex) {
-    gapi.client.request({
-      path: `/upload/drive/v3/files/${editingNoteIndex}`,
-      method: "PATCH",
-      params: { uploadType: "media" },
-      body: noteText.value
-    }).then(() => {
-      console.log("Note updated in Drive");
-      listDriveFiles(drivePath[drivePath.length - 1]);
-    });
-  }
-  closeNote();
-};
+// Upload File
+function uploadFile(e) {
+  let file = e.target.files[0];
+  let reader = new FileReader();
+  reader.onload = function() {
+    let folder = getCurrentFolder();
+    folder.children.push({type:"file", name:file.name, content:reader.result});
+    saveRoot(JSON.parse(localStorage.getItem(rootKey)));
+    render();
+  };
+  reader.readAsDataURL(file);
+}
 
-// ---------- NAVIGATION ----------
-function goBack() {
-  if (mode === "device") {
-    if (currentPath.length > 0) {
-      currentPath.pop();
-      renderCards();
-    }
-  } else if (mode === "google") {
-    if (drivePath.length > 1) {
-      drivePath.pop();
-      listDriveFiles(drivePath[drivePath.length - 1]);
-    } else {
-      listDriveFiles(DRIVE_FOLDER_ID);
+// Menu (Rename/Delete/Copy/Move/Share)
+function showMenu(index, e) {
+  e.stopPropagation();
+  let action = prompt("Choose action: rename, delete, copy, move, share");
+  if (!action) return;
+
+  let root = JSON.parse(localStorage.getItem(rootKey));
+  let folder = getCurrentFolder();
+  let item = folder.children[index];
+
+  switch(action.toLowerCase()) {
+    case "rename":
+      let newName = prompt("New name:", item.name);
+      if (newName) item.name=newName;
+      break;
+    case "delete":
+      folder.children.splice(index,1);
+      break;
+    case "copy":
+      let copy = JSON.parse(JSON.stringify(item));
+      copy.name += "_copy";
+      folder.children.push(copy);
+      break;
+    case "move":
+      let target = prompt("Enter folder name to move into:");
+      let targetFolder = findFolder(root, target);
+      if (targetFolder) {
+        targetFolder.children.push(item);
+        folder.children.splice(index,1);
+      } else alert("Folder not found!");
+      break;
+    case "share":
+      alert("Share JSON:\n"+JSON.stringify(item));
+      break;
+  }
+  saveRoot(root);
+  render();
+}
+
+function findFolder(folder, name) {
+  if (folder.name===name && folder.type==="folder") return folder;
+  for (let c of folder.children) {
+    if (c.type==="folder") {
+      let f = findFolder(c, name);
+      if (f) return f;
     }
   }
-                                              }
+  return null;
+}

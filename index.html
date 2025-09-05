@@ -7,23 +7,26 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="welcome">
-    <h1>MyData</h1>
-    <button id="deviceBtn">📂 Store in Device</button>
-    <button id="googleBtn">☁️ Continue with Google</button>
+  <h1>📂 MyData</h1>
+
+  <div id="toolbar">
+    <button onclick="createFolder()">+ Folder</button>
+    <button onclick="createNote()">+ Note</button>
+    <button onclick="uploadFile()">+ Upload File</button>
   </div>
 
-  <main id="app" style="display:none;">
-    <header>
-      <h2 id="storageType"></h2>
-      <input type="text" id="searchBox" placeholder="Search...">
-    </header>
-    <section id="cardContainer"></section>
-    <button id="addCardBtn">+</button>
-  </main>
+  <div id="cardContainer"></div>
 
-  <!-- Google API -->
-  <script src="https://apis.google.com/js/api.js"></script>
+  <!-- Note Modal -->
+  <div id="noteModal" class="modal">
+    <div class="modal-content">
+      <span id="closeNoteModal">&times;</span>
+      <h3>Edit Note</h3>
+      <textarea id="noteText"></textarea>
+      <button id="saveNoteBtn">Save</button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

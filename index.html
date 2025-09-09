@@ -1,214 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web File Manager</title>
-  <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f8f9fa; transition: background 0.3s, color 0.3s; }
-    header { background: #343a40; color: #fff; padding: 12px; text-align: center; }
-    .layout { display: flex; height: calc(100vh - 50px); }
-
-    /* Sidebar */
-    .sidebar { width: 220px; background: #212529; color: white; padding: 15px; display: flex; flex-direction: column; }
-    .nav-btn { background: none; border: none; color: white; text-align: left; padding: 10px; margin: 2px 0; cursor: pointer; border-radius: 6px; }
-    .nav-btn:hover { background: #495057; }
-
-    /* Tabs */
-    .tabs { display: flex; background: #e9ecef; border-bottom: 1px solid #ccc; }
-    .tab { padding: 10px 15px; cursor: pointer; border-right: 1px solid #ccc; background: #dee2e6; }
-    .tab.active { background: #fff; font-weight: bold; }
-
-    /* Explorer */
-    .explorer-container { flex: 1; display: flex; }
-    .explorer { flex: 3; padding: 15px; display: flex; flex-direction: column; }
-    .toolbar { margin-bottom: 10px; }
-    .toolbar button { margin-right: 10px; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; background: #007bff; color: white; }
-    .toolbar button:hover { background: #0056b3; }
-
-    .file-area { flex: 1; background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, 120px); gap: 15px; overflow-y: auto; }
-    .file-item { text-align: center; cursor: pointer; position: relative; }
-    .file-checkbox { position: absolute; top: 5px; left: 5px; }
-    .file-icon { font-size: 40px; margin-bottom: 5px; color: #6c757d; }
-    .file-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* Preview */
-    .preview { flex: 1; border-left: 1px solid #dee2e6; padding: 15px; background: #fff; overflow-y: auto; display: none; }
-    .preview.active { display: block; }
-    .preview h3 { margin-top: 0; }
-    .preview-content { border: 1px solid #ccc; padding: 10px; border-radius: 6px; background: #f8f9fa; max-height: 300px; overflow: auto; }
-
-    /* Context Menu */
-    .context-menu { position: absolute; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: none; z-index: 1000; }
-    .context-menu button { display: block; width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; cursor: pointer; }
-    .context-menu button:hover { background: #f1f1f1; }
-
-    /* Dark Theme */
-    body.dark { background: #181a1b; color: #eee; }
-    body.dark .sidebar { background: #111; }
-    body.dark .file-area { background: #222; color: #eee; }
-    body.dark .preview { background: #222; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web File Manager</title>
+<style>
+body { margin:0; font-family: Arial,sans-serif; background:#f8f9fa; transition: background 0.3s, color 0.3s; }
+header { background:#343a40; color:white; padding:12px; text-align:center; }
+.layout { display:flex; height:calc(100vh-50px); }
+/* Sidebar */
+.sidebar { width:220px; background:#212529; color:white; padding:15px; display:flex; flex-direction:column; }
+.nav-btn { background:none; border:none; color:white; text-align:left; padding:10px; margin:2px 0; cursor:pointer; border-radius:6px; }
+.nav-btn:hover { background:#495057; }
+/* Tabs */
+.tabs { display:flex; background:#e9ecef; border-bottom:1px solid #ccc; }
+.tab { padding:10px 15px; cursor:pointer; border-right:1px solid #ccc; background:#dee2e6; }
+.tab.active { background:#fff; font-weight:bold; }
+/* Explorer */
+.explorer-container { flex:1; display:flex; }
+.explorer { flex:3; padding:15px; display:flex; flex-direction:column; }
+.file-area { flex:1; background:white; border:1px solid #dee2e6; border-radius:6px; padding:10px; display:grid; grid-template-columns:repeat(auto-fill,120px); gap:15px; overflow-y:auto; }
+.file-item { text-align:center; cursor:pointer; position:relative; padding:5px; border-radius:5px; }
+.file-item.selected { background: #cce5ff; }
+.file-checkbox { position:absolute; top:5px; left:5px; }
+.file-icon { font-size:40px; margin-bottom:5px; color:#6c757d; }
+.file-name { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* Preview */
+.preview { flex:1; border-left:1px solid #dee2e6; padding:15px; background:#fff; overflow-y:auto; display:none; }
+.preview.active { display:block; }
+.preview h3 { margin-top:0; }
+.preview-content { border:1px solid #ccc; padding:10px; border-radius:6px; background:#f8f9fa; max-height:300px; overflow:auto; }
+/* Context Menu */
+.context-menu { position:absolute; background:white; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.2); display:none; z-index:1000; }
+.context-menu button { display:block; width:100%; padding:8px 12px; border:none; background:none; text-align:left; cursor:pointer; }
+.context-menu button:hover { background:#f1f1f1; }
+/* Dark Theme */
+body.dark { background:#181a1b; color:#eee; }
+body.dark .sidebar { background:#111; }
+body.dark .file-area { background:#222; color:#eee; }
+body.dark .preview { background:#222; }
+</style>
 </head>
 <body>
-  <header><h1>Web File Manager</h1></header>
-
-  <div class="layout">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-      <button class="nav-btn" onclick="goHome()">🏠 Home</button>
-      <button class="nav-btn" onclick="showSection('local')">💻 Local Storage</button>
-      <button class="nav-btn" onclick="showSection('cloud')">☁️ Cloud Storage</button>
-      <button class="nav-btn" onclick="UI.openFolder('/recycle/')">🗑 Recycle Bin</button>
-      <button class="nav-btn" onclick="openCloud('drive')">📂 Google Drive</button>
-      <button class="nav-btn" onclick="openCloud('dropbox')">📂 Dropbox</button>
-      <button class="nav-btn" onclick="openCloud('onedrive')">📂 OneDrive</button>
-      <hr>
-      <button class="nav-btn" onclick="Preview.togglePreview()">👁 Toggle Preview</button>
-      <button class="nav-btn" onclick="toggleTheme()">🎨 Toggle Theme</button>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main">
-      <div class="tabs" id="tabs"></div>
-      <div class="explorer-container">
-        <div class="explorer" id="explorer"></div>
-        <div class="preview" id="previewPanel">
-          <h3>Preview</h3>
-          <div class="preview-content" id="previewContent">Select a file to preview</div>
-          <div class="metadata" id="metadata"></div>
-        </div>
+<header><h1>Web File Manager</h1></header>
+<div class="layout">
+  <div class="sidebar">
+    <button class="nav-btn" onclick="goHome()">🏠 Home</button>
+    <button class="nav-btn" onclick="uploadFiles()">⬆️ Upload</button>
+    <button class="nav-btn" onclick="createFolder()">📁 New Folder</button>
+    <button class="nav-btn" onclick="Preview.togglePreview()">👁 Toggle Preview</button>
+    <button class="nav-btn" onclick="toggleTheme()">🎨 Dark/Light</button>
+    <button class="nav-btn" onclick="openRecycleBin()">🗑 Recycle Bin</button>
+  </div>
+  <div class="main">
+    <div class="tabs" id="tabs"></div>
+    <div class="explorer-container">
+      <div class="explorer">
+        <div class="file-area" id="fileArea">Loading files...</div>
+      </div>
+      <div class="preview" id="previewPanel">
+        <h3>Preview</h3>
+        <div class="preview-content" id="previewContent">Select a file to preview</div>
       </div>
     </div>
   </div>
+</div>
+<div class="context-menu" id="contextMenu">
+  <button onclick="renameFile()">✏️ Rename</button>
+  <button onclick="deleteFiles()">🗑️ Delete</button>
+  <button onclick="restoreFiles()">♻️ Restore</button>
+</div>
 
-  <div class="context-menu" id="contextMenu">
-    <button onclick="renameFile()">✏️ Rename</button>
-    <button onclick="deleteFile()">🗑️ Delete</button>
-    <button onclick="downloadFile()">⬇️ Download</button>
-    <button onclick="cutFile()">✂️ Cut</button>
-    <button onclick="copyFile()">📋 Copy</button>
-    <button onclick="pasteFile()">📥 Paste</button>
-    <button onclick="restoreFile()">♻️ Restore</button>
-  </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script>
+// ---------------- IndexedDB ----------------
+const DB = (() => {
+  let db;
+  function init(callback){
+    const request=indexedDB.open('FileManagerDB',8);
+    request.onupgradeneeded=e=>{
+      db=e.target.result;
+      if(!db.objectStoreNames.contains('files'))
+        db.createObjectStore('files',{keyPath:'id'});
+    };
+    request.onsuccess=e=>{ db=e.target.result; if(callback) callback(); };
+  }
+  function store(storeName,mode){ return db.transaction([storeName],mode).objectStore(storeName); }
+  return {init,store};
+})();
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-  <script>
-    // --------------------- DB Section ---------------------
-    const DB = (() => {
-      let db;
-      function initDB(callback) {
-        const request = indexedDB.open('FileManagerDB', 6);
-        request.onupgradeneeded = e => {
-          db = e.target.result;
-          if (!db.objectStoreNames.contains('files')) {
-            db.createObjectStore('files', { keyPath: 'id' });
-          }
-        };
-        request.onsuccess = e => {
-          db = e.target.result;
-          if (callback) callback();
-        };
-      }
-      return { initDB, get db() { return db; } };
-    })();
+// ---------------- UI ----------------
+const UI = (()=>{
+  let path='/'; let tabs=[];
+  function addTab(p){ if(!tabs.includes(p)) tabs.push(p); renderTabs(); openFolder(p);}
+  function renderTabs(){
+    const tC=document.getElementById('tabs'); tC.innerHTML='';
+    tabs.forEach(p=>{
+      const t=document.createElement('div'); t.className='tab'+(p===path?' active':''); t.textContent=p==='/'?'Root':p;
+      t.onclick=()=>openFolder(p); tC.appendChild(t);
+    });
+  }
+  function openFolder(p){ path=p; renderFiles(); renderTabs(); }
+  function getPath(){ return path; }
+  return {addTab,renderTabs,openFolder,getPath};
+})();
 
-    // --------------------- UI Section ---------------------
-    const UI = (() => {
-      let currentPath = '/';
-      let openTabs = [];
+// ---------------- Preview ----------------
+const Preview=(()=>{
+  let visible=false;
+  function togglePreview(){ visible=!visible; document.getElementById('previewPanel').classList.toggle('active',visible);}
+  return {togglePreview,showFile:f=>{
+    document.getElementById('previewPanel').classList.add('active');
+    const c=document.getElementById('previewContent');
+    if(f.type==='file') c.innerHTML=`<p>${f.name}</p><iframe style="width:100%;height:200px;" src="${f.data}"></iframe>`;
+    else c.innerHTML=`<p>Folder: ${f.name}</p>`;
+  }};
+})();
 
-      function addTab(path) {
-        if (!openTabs.includes(path)) openTabs.push(path);
-        renderTabs();
-        openFolder(path);
-      }
-
-      function renderTabs() {
-        const tabs = document.getElementById('tabs');
-        tabs.innerHTML = '';
-        openTabs.forEach(path => {
-          const tab = document.createElement('div');
-          tab.className = 'tab' + (path === currentPath ? ' active' : '');
-          tab.textContent = path === '/' ? 'Root' : path;
-          tab.onclick = () => openFolder(path);
-          tabs.appendChild(tab);
-        });
-      }
-
-      function openFolder(path) {
-        currentPath = path;
-        renderFiles();
-        renderTabs();
-      }
-
-      return { addTab, renderTabs, openFolder, get currentPath() { return currentPath; }, set currentPath(v) { currentPath = v; } };
-    })();
-
-    // --------------------- Actions Section ---------------------
-    const Actions = (() => {
-      async function uploadFiles() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.onchange = async e => {
-          const files = e.target.files;
-          const tx = DB.db.transaction(['files'], 'readwrite');
-          const store = tx.objectStore('files');
-          for (let f of files) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-              store.put({ 
-                id: UI.currentPath + f.name, 
-                name: f.name, path: UI.currentPath, type: 'file', 
-                data: evt.target.result, size: f.size, modified: new Date() 
-              });
-            };
-            reader.readAsDataURL(f);
-          }
-          tx.oncomplete = () => renderFiles();
-        };
-        input.click();
-      }
-
-      async function createFolder() {
-        const folderName = prompt("Folder name:");
-        if (!folderName) return;
-        const tx = DB.db.transaction(['files'], 'readwrite');
-        const store = tx.objectStore('files');
-        store.put({ id: UI.currentPath + folderName + '/', name: folderName, path: UI.currentPath, type: 'folder', modified: new Date() });
-        tx.oncomplete = () => renderFiles();
-      }
-
-      async function deleteSelected() {
-        alert("Files moved to Recycle Bin (mockup).");
-      }
-
-      return { uploadFiles, createFolder, deleteSelected };
-    })();
-
-    // --------------------- Preview Section ---------------------
-    const Preview = (() => {
-      let visible = false;
-      function togglePreview() {
-        visible = !visible;
-        document.getElementById('previewPanel').classList.toggle('active', visible);
-      }
-
-      return { togglePreview };
-    })();
-
-    // --------------------- Main ---------------------
-    function renderFiles() {
-      const fileArea = document.getElementById('explorer');
-      fileArea.innerHTML = '<p>File area (files/folders will be listed here)</p>';
+// ---------------- File Actions ----------------
+function uploadFiles(){
+  const input=document.createElement('input'); input.type='file'; input.multiple=true;
+  input.onchange=e=>{
+    const files=e.target.files;
+    const store=DB.store('files','readwrite');
+    for(let f of files){
+      const reader=new FileReader();
+      reader.onload=(evt)=>{ store.put({id:UI.getPath()+f.name,name:f.name,path:UI.getPath(),type:'file',data:evt.target.result,deleted:false,modified:new Date()}); };
+      reader.readAsDataURL(f);
     }
+    setTimeout(renderFiles,200);
+  }; input.click();
+}
 
-    window.onload = () => { DB.initDB(() => UI.addTab('/')); };
-    function goHome() { UI.addTab('/'); }
-    function showSection(section) { if(section==='cloud') alert('Cloud coming soon!'); else goHome(); }
-    function openCloud(service) { alert(service+' mock integration'); }
-    function toggleTheme() { document.body.classList.toggle('dark'); }
-  </script>
+function createFolder(){
+  const name=prompt("Folder name"); if(!name) return;
+  const store=DB.store('files','readwrite');
+  store.put({id:UI.getPath()+name+'/',name:name,path:UI.getPath(),type:'folder',deleted:false,modified:new Date()});
+  setTimeout(renderFiles,200);
+}
+
+function deleteFiles(){
+  const checked=document.querySelectorAll('.file-checkbox:checked');
+  const store=DB.store('files','readwrite');
+  checked.forEach(cb=>store.get(cb.dataset.id).onsuccess=e=>{
+    const f=e.target.result; f.deleted=true; store.put(f);
+  }));
+  setTimeout(renderFiles,200);
+}
+
+function renameFile(){
+  const checked=document.querySelectorAll('.file-checkbox:checked'); 
+  if(checked.length!==1){ alert('Select 1 file/folder to rename'); return;}
+  const id=checked[0].dataset.id;
+  const store=DB.store('files','readwrite');
+  const req=store.get(id);
+  req.onsuccess=e=>{
+    const f=e.target.result;
+    const newName=prompt('Rename to:',f.name); if(!newName) return;
+    f.name=newName; f.id=f.path+newName+(f.type==='folder'?'/':''); store.put(f);
+    setTimeout(renderFiles,200);
+  };
+}
+
+function restoreFiles(){
+  const checked=document.querySelectorAll('.file-checkbox:checked');
+  const store=DB.store('files','readwrite');
+  checked.forEach(cb=>store.get(cb.dataset.id).onsuccess=e=>{
+    const f=e.target.result; f.deleted=false; store.put(f);
+  }));
+  setTimeout(renderFiles,200);
+}
+
+function openRecycleBin(){ UI.addTab('/recycle/'); }
+
+// ---------------- Render Files ----------------
+function renderFiles(){
+  const container=document.getElementById('fileArea'); container.innerHTML='';
+  const store=DB.store('files','readonly'); 
+  const req=store.getAll();
+  req.onsuccess=e=>{
+    const files=e.target.result.filter(f=>f.path===UI.getPath() && !f.deleted || (UI.getPath()==='/recycle/' && f.deleted));
+    files.forEach(f=>{
+      const div=document.createElement('div'); div.className='file-item';
+      div.onclick=()=>Preview.showFile(f);
+      const checkbox=document.createElement('input'); checkbox.type='checkbox'; checkbox.className='file-checkbox'; checkbox.dataset.id=f.id; div.appendChild(checkbox);
+      const icon=document.createElement('div'); icon.className='file-icon'; icon.textContent=f.type==='folder'?'📁':'📄'; div.appendChild(icon);
+      const name=document.createElement('div'); name.className='file-name'; name.textContent=f.name; div.appendChild(name);
+      container.appendChild(div);
+    });
+  };
+}
+
+// ---------------- Theme & Home ----------------
+function toggleTheme(){ document.body.classList.toggle('dark'); }
+function goHome(){ UI.addTab('/'); }
+
+// ---------------- Init ----------------
+window.onload=()=>{ DB.init(()=>UI.addTab('/')); };
+</script>
 </body>
 </html>

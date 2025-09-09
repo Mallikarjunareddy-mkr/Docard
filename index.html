@@ -3,200 +3,166 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web File Manager</title>
+<title>IndexedDB File Manager</title>
 <style>
-body { margin:0; font-family: Arial,sans-serif; background:#f8f9fa; transition: background 0.3s, color 0.3s; }
-header { background:#343a40; color:white; padding:12px; text-align:center; }
-.layout { display:flex; height:calc(100vh-50px); }
-/* Sidebar */
-.sidebar { width:220px; background:#212529; color:white; padding:15px; display:flex; flex-direction:column; }
-.nav-btn { background:none; border:none; color:white; text-align:left; padding:10px; margin:2px 0; cursor:pointer; border-radius:6px; }
-.nav-btn:hover { background:#495057; }
-/* Tabs */
-.tabs { display:flex; background:#e9ecef; border-bottom:1px solid #ccc; }
-.tab { padding:10px 15px; cursor:pointer; border-right:1px solid #ccc; background:#dee2e6; }
-.tab.active { background:#fff; font-weight:bold; }
-/* Explorer */
-.explorer-container { flex:1; display:flex; }
-.explorer { flex:3; padding:15px; display:flex; flex-direction:column; }
-.file-area { flex:1; background:white; border:1px solid #dee2e6; border-radius:6px; padding:10px; display:grid; grid-template-columns:repeat(auto-fill,120px); gap:15px; overflow-y:auto; }
-.file-item { text-align:center; cursor:pointer; position:relative; padding:5px; border-radius:5px; }
-.file-item.selected { background: #cce5ff; }
-.file-checkbox { position:absolute; top:5px; left:5px; }
-.file-icon { font-size:40px; margin-bottom:5px; color:#6c757d; }
-.file-name { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-/* Preview */
-.preview { flex:1; border-left:1px solid #dee2e6; padding:15px; background:#fff; overflow-y:auto; display:none; }
-.preview.active { display:block; }
-.preview h3 { margin-top:0; }
-.preview-content { border:1px solid #ccc; padding:10px; border-radius:6px; background:#f8f9fa; max-height:300px; overflow:auto; }
-/* Context Menu */
-.context-menu { position:absolute; background:white; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.2); display:none; z-index:1000; }
-.context-menu button { display:block; width:100%; padding:8px 12px; border:none; background:none; text-align:left; cursor:pointer; }
-.context-menu button:hover { background:#f1f1f1; }
-/* Dark Theme */
-body.dark { background:#181a1b; color:#eee; }
-body.dark .sidebar { background:#111; }
-body.dark .file-area { background:#222; color:#eee; }
-body.dark .preview { background:#222; }
+body { margin:0; font-family: Arial; background:#f5f5f5; }
+header { background:#333; color:white; padding:1rem; text-align:center; }
+button { padding:8px 15px; margin:5px; cursor:pointer; }
+.container { padding:15px; }
+#homePage, #fileManager { display:none; }
+#sidebar { float:left; width:200px; background:#ddd; padding:10px; min-height:400px; }
+#fileView { margin-left:220px; padding:10px; background:#fff; min-height:400px; overflow-y:auto; }
+.fileItem { border:1px solid #ccc; padding:5px; margin:5px 0; display:flex; justify-content:space-between; align-items:center; }
+.dark-mode { background:#222; color:#eee; }
+.dark-mode #sidebar { background:#444; }
+.dark-mode #fileView { background:#333; color:#eee; }
 </style>
 </head>
 <body>
-<header><h1>Web File Manager</h1></header>
-<div class="layout">
-  <div class="sidebar">
-    <button class="nav-btn" onclick="goHome()">🏠 Home</button>
-    <button class="nav-btn" onclick="uploadFiles()">⬆️ Upload</button>
-    <button class="nav-btn" onclick="createFolder()">📁 New Folder</button>
-    <button class="nav-btn" onclick="Preview.togglePreview()">👁 Toggle Preview</button>
-    <button class="nav-btn" onclick="toggleTheme()">🎨 Dark/Light</button>
-    <button class="nav-btn" onclick="openRecycleBin()">🗑 Recycle Bin</button>
-  </div>
-  <div class="main">
-    <div class="tabs" id="tabs"></div>
-    <div class="explorer-container">
-      <div class="explorer">
-        <div class="file-area" id="fileArea">Loading files...</div>
-      </div>
-      <div class="preview" id="previewPanel">
-        <h3>Preview</h3>
-        <div class="preview-content" id="previewContent">Select a file to preview</div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="context-menu" id="contextMenu">
-  <button onclick="renameFile()">✏️ Rename</button>
-  <button onclick="deleteFiles()">🗑️ Delete</button>
-  <button onclick="restoreFiles()">♻️ Restore</button>
+
+<header>
+<h1>IndexedDB File Manager</h1>
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+</header>
+
+<!-- Home Page -->
+<div class="container" id="homePage" style="display:block;">
+  <button onclick="openLocal()">Local Storage</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<!-- Local Storage Manager -->
+<div class="container" id="fileManager">
+  <button onclick="goHome()">Back</button>
+  <h2>Local Storage Manager (IndexedDB)</h2>
+  <div id="sidebar">
+    <button onclick="createFolder()">New Folder</button>
+    <button onclick="createFile()">New File</button>
+    <input type="text" id="searchBox" placeholder="Search..." oninput="searchFiles()">
+  </div>
+  <div id="fileView"></div>
+</div>
+
 <script>
-// ---------------- IndexedDB ----------------
-const DB = (() => {
-  let db;
-  function init(callback){
-    const request=indexedDB.open('FileManagerDB',8);
-    request.onupgradeneeded=e=>{
-      db=e.target.result;
-      if(!db.objectStoreNames.contains('files'))
-        db.createObjectStore('files',{keyPath:'id'});
-    };
-    request.onsuccess=e=>{ db=e.target.result; if(callback) callback(); };
-  }
-  function store(storeName,mode){ return db.transaction([storeName],mode).objectStore(storeName); }
-  return {init,store};
-})();
+// =================== Navigation ===================
+function openLocal() {
+  document.getElementById('homePage').style.display='none';
+  document.getElementById('fileManager').style.display='block';
+  initDB();
+}
+function goHome() {
+  document.getElementById('fileManager').style.display='none';
+  document.getElementById('homePage').style.display='block';
+}
 
-// ---------------- UI ----------------
-const UI = (()=>{
-  let path='/'; let tabs=[];
-  function addTab(p){ if(!tabs.includes(p)) tabs.push(p); renderTabs(); openFolder(p);}
-  function renderTabs(){
-    const tC=document.getElementById('tabs'); tC.innerHTML='';
-    tabs.forEach(p=>{
-      const t=document.createElement('div'); t.className='tab'+(p===path?' active':''); t.textContent=p==='/'?'Root':p;
-      t.onclick=()=>openFolder(p); tC.appendChild(t);
+// =================== Dark Mode ===================
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+}
+
+// =================== IndexedDB Setup ===================
+let db;
+function initDB(){
+  const request = indexedDB.open("FileManagerDB", 1);
+
+  request.onerror = (event) => { console.error("DB error:", event); };
+  request.onsuccess = (event) => {
+    db = event.target.result;
+    loadFiles();
+  };
+
+  request.onupgradeneeded = (event) => {
+    db = event.target.result;
+    const store = db.createObjectStore("files", { keyPath: "id", autoIncrement:true });
+    store.createIndex("name", "name", { unique: false });
+    store.createIndex("type", "type", { unique: false });
+    store.createIndex("parent", "parent", { unique: false });
+  };
+}
+
+// =================== File Operations ===================
+function addFileToDB(file){
+  const tx = db.transaction("files", "readwrite");
+  const store = tx.objectStore("files");
+  store.add(file);
+  tx.oncomplete = loadFiles;
+}
+
+function getAllFiles(callback){
+  const tx = db.transaction("files", "readonly");
+  const store = tx.objectStore("files");
+  const request = store.getAll();
+  request.onsuccess = () => callback(request.result);
+}
+
+// =================== UI & Actions ===================
+function loadFiles(filter=''){
+  getAllFiles(files=>{
+    const view = document.getElementById('fileView');
+    view.innerHTML = '';
+    files.forEach(f=>{
+      if(filter && !f.name.toLowerCase().includes(filter.toLowerCase())) return;
+      const div = document.createElement('div');
+      div.className='fileItem';
+      div.innerHTML=`<span>${f.name} (${f.type})</span>
+        <span>
+          <button onclick="renameFile(${f.id})">Rename</button>
+          <button onclick="deleteFile(${f.id})">Delete</button>
+          ${f.type==='file'?`<button onclick="previewFile(${f.id})">Preview</button>`:''}
+        </span>`;
+      view.appendChild(div);
     });
-  }
-  function openFolder(p){ path=p; renderFiles(); renderTabs(); }
-  function getPath(){ return path; }
-  return {addTab,renderTabs,openFolder,getPath};
-})();
-
-// ---------------- Preview ----------------
-const Preview=(()=>{
-  let visible=false;
-  function togglePreview(){ visible=!visible; document.getElementById('previewPanel').classList.toggle('active',visible);}
-  return {togglePreview,showFile:f=>{
-    document.getElementById('previewPanel').classList.add('active');
-    const c=document.getElementById('previewContent');
-    if(f.type==='file') c.innerHTML=`<p>${f.name}</p><iframe style="width:100%;height:200px;" src="${f.data}"></iframe>`;
-    else c.innerHTML=`<p>Folder: ${f.name}</p>`;
-  }};
-})();
-
-// ---------------- File Actions ----------------
-function uploadFiles(){
-  const input=document.createElement('input'); input.type='file'; input.multiple=true;
-  input.onchange=e=>{
-    const files=e.target.files;
-    const store=DB.store('files','readwrite');
-    for(let f of files){
-      const reader=new FileReader();
-      reader.onload=(evt)=>{ store.put({id:UI.getPath()+f.name,name:f.name,path:UI.getPath(),type:'file',data:evt.target.result,deleted:false,modified:new Date()}); };
-      reader.readAsDataURL(f);
-    }
-    setTimeout(renderFiles,200);
-  }; input.click();
+  });
 }
 
 function createFolder(){
-  const name=prompt("Folder name"); if(!name) return;
-  const store=DB.store('files','readwrite');
-  store.put({id:UI.getPath()+name+'/',name:name,path:UI.getPath(),type:'folder',deleted:false,modified:new Date()});
-  setTimeout(renderFiles,200);
+  const name = prompt("Folder name:");
+  if(name) addFileToDB({name, type:'folder', parent:null, children:[]});
 }
 
-function deleteFiles(){
-  const checked=document.querySelectorAll('.file-checkbox:checked');
-  const store=DB.store('files','readwrite');
-  checked.forEach(cb=>store.get(cb.dataset.id).onsuccess=e=>{
-    const f=e.target.result; f.deleted=true; store.put(f);
-  }));
-  setTimeout(renderFiles,200);
+function createFile(){
+  const name = prompt("File name:");
+  if(name){
+    const content = prompt("File content:");
+    addFileToDB({name, type:'file', content, parent:null});
+  }
 }
 
-function renameFile(){
-  const checked=document.querySelectorAll('.file-checkbox:checked'); 
-  if(checked.length!==1){ alert('Select 1 file/folder to rename'); return;}
-  const id=checked[0].dataset.id;
-  const store=DB.store('files','readwrite');
-  const req=store.get(id);
-  req.onsuccess=e=>{
-    const f=e.target.result;
-    const newName=prompt('Rename to:',f.name); if(!newName) return;
-    f.name=newName; f.id=f.path+newName+(f.type==='folder'?'/':''); store.put(f);
-    setTimeout(renderFiles,200);
+function renameFile(id){
+  const newName = prompt("New name:");
+  if(!newName) return;
+  const tx = db.transaction("files", "readwrite");
+  const store = tx.objectStore("files");
+  const req = store.get(id);
+  req.onsuccess = ()=>{
+    const file = req.result;
+    file.name = newName;
+    store.put(file);
+    tx.oncomplete = loadFiles;
   };
 }
 
-function restoreFiles(){
-  const checked=document.querySelectorAll('.file-checkbox:checked');
-  const store=DB.store('files','readwrite');
-  checked.forEach(cb=>store.get(cb.dataset.id).onsuccess=e=>{
-    const f=e.target.result; f.deleted=false; store.put(f);
-  }));
-  setTimeout(renderFiles,200);
+function deleteFile(id){
+  if(confirm("Delete this item?")){
+    const tx = db.transaction("files", "readwrite");
+    tx.objectStore("files").delete(id);
+    tx.oncomplete = loadFiles;
+  }
 }
 
-function openRecycleBin(){ UI.addTab('/recycle/'); }
-
-// ---------------- Render Files ----------------
-function renderFiles(){
-  const container=document.getElementById('fileArea'); container.innerHTML='';
-  const store=DB.store('files','readonly'); 
-  const req=store.getAll();
-  req.onsuccess=e=>{
-    const files=e.target.result.filter(f=>f.path===UI.getPath() && !f.deleted || (UI.getPath()==='/recycle/' && f.deleted));
-    files.forEach(f=>{
-      const div=document.createElement('div'); div.className='file-item';
-      div.onclick=()=>Preview.showFile(f);
-      const checkbox=document.createElement('input'); checkbox.type='checkbox'; checkbox.className='file-checkbox'; checkbox.dataset.id=f.id; div.appendChild(checkbox);
-      const icon=document.createElement('div'); icon.className='file-icon'; icon.textContent=f.type==='folder'?'📁':'📄'; div.appendChild(icon);
-      const name=document.createElement('div'); name.className='file-name'; name.textContent=f.name; div.appendChild(name);
-      container.appendChild(div);
-    });
+function previewFile(id){
+  const tx = db.transaction("files", "readonly");
+  const store = tx.objectStore("files");
+  const req = store.get(id);
+  req.onsuccess = ()=>{
+    alert(`Preview of ${req.result.name}:\n\n${req.result.content}`);
   };
 }
 
-// ---------------- Theme & Home ----------------
-function toggleTheme(){ document.body.classList.toggle('dark'); }
-function goHome(){ UI.addTab('/'); }
-
-// ---------------- Init ----------------
-window.onload=()=>{ DB.init(()=>UI.addTab('/')); };
+function searchFiles(){
+  const term = document.getElementById('searchBox').value;
+  loadFiles(term);
+}
 </script>
+
 </body>
 </html>

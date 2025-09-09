@@ -3,148 +3,187 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web File Manager</title>
+<title>Android-Style File Manager</title>
 <style>
     body { font-family: Arial, sans-serif; margin:0; padding:0; }
-    .home, .manager { display: none; padding: 20px; }
-    .home.active, .manager.active { display: block; }
-    button { padding:10px 20px; margin:10px; cursor:pointer; }
-    #sidebar { width: 200px; float:left; border-right:1px solid #ccc; height: calc(100vh - 40px); padding: 10px; box-sizing:border-box; }
-    #main { margin-left: 220px; padding: 10px; box-sizing:border-box; }
-    ul { list-style: none; padding:0; }
-    li { padding:5px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
-    .file-actions button { margin-left:5px; }
+    header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; }
+    header span { margin-right:5px; cursor:pointer; color:blue; }
+    #fileArea { padding:10px; }
+    .folder, .file { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+    .folder:hover, .file:hover { background:#f9f9f9; }
+    .fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
+    #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
+    #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
+    #fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; }
 </style>
 </head>
 <body>
 
-<!-- Home Page -->
-<div class="home active">
-    <h1>Web File Manager</h1>
-    <button onclick="openManager('local')">Local Storage</button>
-    <button onclick="openManager('cloud')">Cloud Storage</button>
+<header id="breadcrumb"></header>
+
+<div id="fileArea"></div>
+
+<!-- Floating + Button -->
+<div class="fab" onclick="toggleFab()">+</div>
+<div id="fabMenu">
+    <button onclick="createFolder()">Create Folder</button>
+    <button onclick="uploadFile()">Upload File</button>
 </div>
 
-<!-- File Manager -->
-<div class="manager">
-    <button onclick="goHome()">⬅ Back</button>
-    <h2 id="managerTitle"></h2>
-    <div id="sidebar">
-        <h3>Folders</h3>
-        <button onclick="createFolder()">+ New Folder</button>
-        <ul id="folderList"></ul>
-    </div>
-    <div id="main">
-        <h3>Files</h3>
-        <button onclick="uploadFile()">Upload File</button>
-        <ul id="fileList"></ul>
-    </div>
+<!-- File Operations Toolbar -->
+<div id="fileOperations">
+    <button onclick="downloadSelected()">Download</button>
+    <button onclick="renameSelected()">Rename</button>
+    <button onclick="deleteSelected()">Delete</button>
+    <button onclick="cancelSelection()">Cancel</button>
 </div>
 
 <input type="file" id="fileInput" style="display:none;" onchange="handleFileUpload(event)">
 
 <script>
 // State
-let currentManager = '';
-let currentFolder = '/';
-if(!localStorage.getItem('files')) localStorage.setItem('files', JSON.stringify({ '/': {} }));
+let path = ['/']; // Breadcrumb path
+let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
+let selectedFiles = [];
 
-function openManager(type){
-    currentManager = type;
-    document.querySelector('.home').classList.remove('active');
-    document.querySelector('.manager').classList.add('active');
-    document.getElementById('managerTitle').innerText = type === 'local' ? 'Local Storage' : 'Cloud Storage';
-    if(type === 'local') loadLocalStorage();
-    else alert('Cloud Storage integration coming soon!');
+// Utility to get current folder object
+function getCurrentFolder() {
+    let folder = files;
+    path.forEach(p => folder = folder[p]);
+    return folder;
 }
 
-function goHome(){
-    document.querySelector('.home').classList.add('active');
-    document.querySelector('.manager').classList.remove('active');
+// Render breadcrumb
+function renderBreadcrumb() {
+    const bc = document.getElementById('breadcrumb');
+    bc.innerHTML = '';
+    path.forEach((p, index) => {
+        let span = document.createElement('span');
+        span.innerText = p;
+        span.onclick = () => navigateTo(index);
+        bc.appendChild(span);
+        if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
+    });
 }
 
-// Local Storage Functions
-function loadLocalStorage(){
-    const files = JSON.parse(localStorage.getItem('files'));
-    const folderList = document.getElementById('folderList');
-    const fileList = document.getElementById('fileList');
-    folderList.innerHTML = '';
-    fileList.innerHTML = '';
+// Navigate to a folder in breadcrumb
+function navigateTo(index) {
+    path = path.slice(0,index+1);
+    renderFiles();
+}
 
-    for(let name in files[currentFolder]){
-        if(typeof files[currentFolder][name] === 'object'){ // Folder
-            let li = document.createElement('li');
-            li.innerHTML = `<span onclick="openFolder('${name}')">${name}</span>
-                            <span class="file-actions"><button onclick="deleteFolder('${name}')">Delete</button></span>`;
-            folderList.appendChild(li);
-        } else { // File
-            let li = document.createElement('li');
-            li.innerHTML = `${name} <span class="file-actions">
-                                <button onclick="downloadFile('${name}')">Download</button>
-                                <button onclick="deleteFile('${name}')">Delete</button>
-                            </span>`;
-            fileList.appendChild(li);
+// Render files and folders
+function renderFiles() {
+    renderBreadcrumb();
+    const fileArea = document.getElementById('fileArea');
+    fileArea.innerHTML = '';
+    const folderObj = getCurrentFolder();
+    selectedFiles = [];
+    toggleFileOperations(false);
+
+    for(let name in folderObj){
+        if(typeof folderObj[name] === 'object'){ // folder
+            const div = document.createElement('div');
+            div.className = 'folder';
+            div.innerText = '📁 ' + name;
+            div.onclick = () => { path.push(name); renderFiles(); };
+            fileArea.appendChild(div);
+        } else { // file
+            const div = document.createElement('div');
+            div.className = 'file';
+            div.innerHTML = `<span>📄 ${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
+            fileArea.appendChild(div);
         }
     }
 }
 
-function createFolder(){
-    let name = prompt('Folder Name:');
+// Floating button
+function toggleFab() {
+    const menu = document.getElementById('fabMenu');
+    menu.style.display = menu.style.display==='flex'?'none':'flex';
+}
+
+// Create folder
+function createFolder() {
+    const name = prompt('Folder Name:');
     if(!name) return;
-    let files = JSON.parse(localStorage.getItem('files'));
-    if(files[currentFolder][name]){
-        alert('Folder already exists!');
-        return;
-    }
-    files[currentFolder][name] = {};
+    const folderObj = getCurrentFolder();
+    if(folderObj[name]){ alert('Folder already exists'); return; }
+    folderObj[name] = {};
     localStorage.setItem('files', JSON.stringify(files));
-    loadLocalStorage();
+    renderFiles();
 }
 
-function openFolder(name){
-    currentFolder = name;
-    loadLocalStorage();
-}
-
-function deleteFolder(name){
-    if(!confirm(`Delete folder "${name}" and all its contents?`)) return;
-    const files = JSON.parse(localStorage.getItem('files'));
-    delete files[currentFolder][name];
-    localStorage.setItem('files', JSON.stringify(files));
-    loadLocalStorage();
-}
-
-function uploadFile(){
+// Upload file
+function uploadFile() {
     document.getElementById('fileInput').click();
+    toggleFab();
 }
 
+// Handle file upload
 function handleFileUpload(event){
     const file = event.target.files[0];
     const reader = new FileReader();
     reader.onload = function(){
-        let files = JSON.parse(localStorage.getItem('files'));
-        files[currentFolder][file.name] = reader.result;
+        const folderObj = getCurrentFolder();
+        folderObj[file.name] = reader.result;
         localStorage.setItem('files', JSON.stringify(files));
-        loadLocalStorage();
+        renderFiles();
     };
     reader.readAsDataURL(file);
 }
 
-function downloadFile(name){
-    const files = JSON.parse(localStorage.getItem('files'));
-    const a = document.createElement('a');
-    a.href = files[currentFolder][name];
-    a.download = name;
-    a.click();
+// File selection
+function toggleSelect(checkbox,name){
+    if(checkbox.checked) selectedFiles.push(name);
+    else selectedFiles = selectedFiles.filter(n=>n!==name);
+    toggleFileOperations(selectedFiles.length>0);
 }
 
-function deleteFile(name){
-    if(!confirm(`Delete file "${name}"?`)) return;
-    const files = JSON.parse(localStorage.getItem('files'));
-    delete files[currentFolder][name];
-    localStorage.setItem('files', JSON.stringify(files));
-    loadLocalStorage();
+// Show/hide file operations
+function toggleFileOperations(show){
+    document.getElementById('fileOperations').style.display = show?'flex':'none';
 }
+
+// File operations
+function downloadSelected(){
+    const folderObj = getCurrentFolder();
+    selectedFiles.forEach(name=>{
+        const a = document.createElement('a');
+        a.href = folderObj[name];
+        a.download = name;
+        a.click();
+    });
+    cancelSelection();
+}
+function deleteSelected(){
+    if(!confirm('Delete selected files?')) return;
+    const folderObj = getCurrentFolder();
+    selectedFiles.forEach(name=>delete folderObj[name]);
+    localStorage.setItem('files', JSON.stringify(files));
+    cancelSelection();
+    renderFiles();
+}
+function renameSelected(){
+    if(selectedFiles.length!==1){ alert('Select only 1 file to rename'); return; }
+    const oldName = selectedFiles[0];
+    const newName = prompt('New name:',oldName);
+    if(!newName) return;
+    const folderObj = getCurrentFolder();
+    folderObj[newName] = folderObj[oldName];
+    delete folderObj[oldName];
+    localStorage.setItem('files', JSON.stringify(files));
+    cancelSelection();
+    renderFiles();
+}
+function cancelSelection(){
+    selectedFiles=[];
+    document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
+    toggleFileOperations(false);
+}
+
+// Initial render
+renderFiles();
 </script>
 
 </body>

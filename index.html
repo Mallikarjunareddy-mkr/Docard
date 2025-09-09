@@ -1,52 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
+<!--
+Requirements:
+1. Home page asks user to choose between Local Storage and Cloud Storage.
+2. Local Storage: allow storing, viewing, downloading, and deleting files in the browser (IndexedDB/localStorage).
+3. Cloud Storage: placeholders for linking Google Drive, Dropbox, etc. (OAuth integration required).
+4. Simple UI with two main sections.
+
+Design:
+- Page 1: Two buttons (Local Storage, Cloud Storage).
+- Local Storage Manager: File upload, list of stored files, download & delete options.
+- Cloud Storage: Mock UI with buttons for Google Drive/Dropbox, placeholder message.
+--><!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>MyData - Browser File Manager</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web File Manager</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+    header { background: #333; color: #fff; padding: 10px; text-align: center; }
+    .container { padding: 20px; }
+    .option-btn { padding: 15px 25px; margin: 10px; font-size: 18px; cursor: pointer; border: none; border-radius: 8px; background: #007BFF; color: white; }
+    .hidden { display: none; }
+    .file-list { margin-top: 20px; }
+    .file-item { background: #fff; padding: 10px; margin: 5px 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+    button.small { padding: 5px 10px; font-size: 14px; margin-left: 5px; }
+  </style>
 </head>
 <body>
   <header>
-    <h1>MyData</h1>
-    <input type="text" id="searchBox" placeholder="Search..." oninput="render()">
+    <h1>Web File Manager</h1>
   </header>
+  <div class="container">
+    <!-- Home Screen -->
+    <div id="home">
+      <button class="option-btn" onclick="showSection('local')">Local Storage</button>
+      <button class="option-btn" onclick="showSection('cloud')">Cloud Storage</button>
+    </div><!-- Local Storage Manager -->
+<div id="local" class="hidden">
+  <h2>Local Storage Manager</h2>
+  <input type="file" id="fileInput" multiple>
+  <button onclick="uploadFiles()">Upload</button>
+  <div class="file-list" id="fileList"></div>
+  <button onclick="goHome()">Back</button>
+</div>
 
-  <nav id="path" class="path"></nav>
+<!-- Cloud Storage Placeholder -->
+<div id="cloud" class="hidden">
+  <h2>Cloud Storage</h2>
+  <p>Connect your preferred cloud provider:</p>
+  <button class="option-btn">Google Drive (Coming Soon)</button>
+  <button class="option-btn">Dropbox (Coming Soon)</button>
+  <button class="option-btn">OneDrive (Coming Soon)</button>
+  <br><br>
+  <button onclick="goHome()">Back</button>
+</div>
 
-  <main id="cards" class="cards"></main>
+  </div>  <script>
+    const fileDB = [];
 
-  <!-- Note Editor -->
-  <div id="notePopup" class="popup">
-    <div class="popup-content">
-      <h3>Edit Note</h3>
-      <textarea id="noteText"></textarea>
-      <div class="popup-actions">
-        <button onclick="saveNote()">Save</button>
-        <button onclick="closeNote()">Cancel</button>
-      </div>
-    </div>
-  </div>
+    function showSection(section) {
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('local').classList.add('hidden');
+      document.getElementById('cloud').classList.add('hidden');
+      document.getElementById(section).classList.remove('hidden');
+      if (section === 'local') renderFiles();
+    }
 
-  <!-- File Preview -->
-  <div id="filePopup" class="popup">
-    <div class="popup-content">
-      <h3>Preview</h3>
-      <div id="filePreview"></div>
-      <div class="popup-actions">
-        <button onclick="closeFile()">Close</button>
-      </div>
-    </div>
-  </div>
+    function goHome() {
+      document.getElementById('local').classList.add('hidden');
+      document.getElementById('cloud').classList.add('hidden');
+      document.getElementById('home').classList.remove('hidden');
+    }
 
-  <!-- Floating Add Button -->
-  <div class="fab" onclick="toggleAddMenu()">＋</div>
-  <div id="addMenu" class="fab-menu">
-    <button onclick="createCard('folder')">📂 New Folder</button>
-    <button onclick="createCard('note')">📝 New Note</button>
-    <input type="file" id="fileInput" onchange="uploadFile(event)" hidden>
-    <button onclick="document.getElementById('fileInput').click()">📄 Upload File</button>
-  </div>
+    function uploadFiles() {
+      const input = document.getElementById('fileInput');
+      const files = input.files;
+      for (let f of files) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          fileDB.push({ name: f.name, data: e.target.result });
+          renderFiles();
+        };
+        reader.readAsDataURL(f);
+      }
+      input.value = '';
+    }
 
-  <script src="script.js"></script>
-</body>
+    function renderFiles() {
+      const list = document.getElementById('fileList');
+      list.innerHTML = '';
+      fileDB.forEach((file, i) => {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        div.innerHTML = `
+          <span>${file.name}</span>
+          <span>
+            <button class="small" onclick="downloadFile(${i})">Download</button>
+            <button class="small" onclick="deleteFile(${i})">Delete</button>
+          </span>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function downloadFile(index) {
+      const file = fileDB[index];
+      const a = document.createElement('a');
+      a.href = file.data;
+      a.download = file.name;
+      a.click();
+    }
+
+    function deleteFile(index) {
+      fileDB.splice(index, 1);
+      renderFiles();
+    }
+  </script></body>
 </html>

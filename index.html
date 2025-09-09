@@ -3,67 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nested Android-Style File Manager with Back Button</title>
+<title>Web File Manager</title>
 <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fafafa; }
-    header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; align-items:center; font-size:14px; }
-    #backBtn { margin-right:10px; cursor:pointer; color:#0d6efd; font-weight:bold; }
-    #backBtn.disabled { color:#aaa; cursor:default; }
-    header span { margin-right:5px; cursor:pointer; color:#0d6efd; }
-    #fileArea { padding:10px; }
-    .folder, .file { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; border-radius:5px; margin-bottom:5px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.05); }
-    .folder:hover, .file:hover { background:#e8f0fe; }
-    .folder span:first-child, .file span:first-child { display:flex; align-items:center; }
-    .folder span:first-child::before { content:"📁"; margin-right:8px; }
-    .file span:first-child::before { content:"📄"; margin-right:8px; }
-    .fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
-    #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
-    #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
-    #fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; }
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fafafa; }
+.page { display:none; padding:20px; }
+.page.active { display:block; }
+button { padding:10px 20px; margin:10px; cursor:pointer; }
+header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; align-items:center; font-size:14px; }
+#backBtn { margin-right:10px; cursor:pointer; color:#0d6efd; font-weight:bold; }
+#backBtn.disabled { color:#aaa; cursor:default; }
+#breadcrumb span { margin-right:5px; cursor:pointer; color:#0d6efd; }
+#fileArea { padding:10px; }
+.folder, .file { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; border-radius:5px; margin-bottom:5px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.05); }
+.folder:hover, .file:hover { background:#e8f0fe; }
+.folder span:first-child, .file span:first-child { display:flex; align-items:center; }
+.folder span:first-child::before { content:"📁"; margin-right:8px; }
+.file span:first-child::before { content:"📄"; margin-right:8px; }
+.fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
+#fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
+#fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
+#fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; flex-wrap:wrap; }
 </style>
 </head>
 <body>
 
-<header>
-    <span id="backBtn" class="disabled" onclick="goBack()">⬅ Back</span>
-    <span id="breadcrumb"></span>
-</header>
-
-<div id="fileArea"></div>
-
-<!-- Floating + Button -->
-<div class="fab" onclick="toggleFab()">+</div>
-<div id="fabMenu">
-    <button onclick="createFolder()">Create Folder</button>
-    <button onclick="uploadFile()">Upload File</button>
+<!-- Home Page -->
+<div id="homePage" class="page active">
+    <h1>Web File Manager</h1>
+    <button onclick="openManager('local')">Local Storage</button>
+    <button onclick="openManager('cloud')">Cloud Storage</button>
 </div>
 
-<!-- File Operations Toolbar -->
-<div id="fileOperations">
-    <button onclick="downloadSelected()">Download</button>
-    <button onclick="renameSelected()">Rename</button>
-    <button onclick="deleteSelected()">Delete</button>
-    <button onclick="cancelSelection()">Cancel</button>
+<!-- Local Storage Manager Page -->
+<div id="localPage" class="page">
+    <header>
+        <span id="backBtn" class="disabled" onclick="goBack()">⬅ Back</span>
+        <span id="breadcrumb"></span>
+    </header>
+    <div id="fileArea"></div>
+    <div class="fab" onclick="toggleFab()">+</div>
+    <div id="fabMenu">
+        <button onclick="createFolder()">Create Folder</button>
+        <button onclick="uploadFile()">Upload File</button>
+    </div>
+    <div id="fileOperations">
+        <button onclick="downloadSelected()">Download</button>
+        <button onclick="renameSelected()">Rename</button>
+        <button onclick="deleteSelected()">Delete</button>
+        <button onclick="cancelSelection()">Cancel</button>
+    </div>
 </div>
 
-<input type="file" id="fileInput" style="display:none;" onchange="handleFileUpload(event)">
+<!-- Cloud Storage Page (Placeholder) -->
+<div id="cloudPage" class="page">
+    <h2>Cloud Storage</h2>
+    <p>Integration coming soon!</p>
+    <button onclick="goHome()">⬅ Back to Home</button>
+</div>
+
+<input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
 
 <script>
-// State
-let path = ['/']; // Breadcrumb path
-let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
-let selectedFiles = [];
+// --- Navigation between pages ---
+function openManager(type){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    if(type==='local') document.getElementById('localPage').classList.add('active');
+    else document.getElementById('cloudPage').classList.add('active');
+    if(type==='local') renderFiles();
+}
 
-// Utility to get current folder object using path array
+function goHome(){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('homePage').classList.add('active');
+}
+
+// --- Local Storage File Manager ---
+let path = ['/']; 
+let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
+let selectedItems = []; // can include folders or files
+
 function getCurrentFolder() {
     let folder = files;
-    for(let i=1;i<path.length;i++){
-        folder = folder[path[i]];
-    }
+    for(let i=1;i<path.length;i++){ folder = folder[path[i]]; }
     return folder;
 }
 
-// Render breadcrumb
+// Validate names
+function isValidName(name){
+    return name && !name.includes('/');
+}
+
 function renderBreadcrumb() {
     const bc = document.getElementById('breadcrumb');
     bc.innerHTML = '';
@@ -75,143 +104,123 @@ function renderBreadcrumb() {
         if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
 
-    // Update back button
     const backBtn = document.getElementById('backBtn');
-    if(path.length === 1){
-        backBtn.classList.add('disabled');
-    } else {
-        backBtn.classList.remove('disabled');
-    }
+    if(path.length === 1) backBtn.classList.add('disabled');
+    else backBtn.classList.remove('disabled');
 }
 
-// Back button functionality
 function goBack(){
-    if(path.length > 1){
-        path.pop();
-        renderFiles();
-    }
+    if(path.length>1){ path.pop(); renderFiles(); }
 }
 
-// Navigate to a folder in breadcrumb
-function navigateTo(index) {
-    path = path.slice(0,index+1);
-    renderFiles();
-}
+function navigateTo(index){ path = path.slice(0,index+1); renderFiles(); }
 
-// Render files and folders
 function renderFiles() {
     renderBreadcrumb();
     const fileArea = document.getElementById('fileArea');
     fileArea.innerHTML = '';
     const folderObj = getCurrentFolder();
-    selectedFiles = [];
+    selectedItems = [];
     toggleFileOperations(false);
 
     for(let name in folderObj){
-        if(typeof folderObj[name] === 'object'){ // folder
-            const div = document.createElement('div');
-            div.className = 'folder';
-            div.innerHTML = `<span>${name}</span>`;
-            div.onclick = () => { path.push(name); renderFiles(); };
-            fileArea.appendChild(div);
-        } else { // file
-            const div = document.createElement('div');
-            div.className = 'file';
-            div.innerHTML = `<span>${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
-            fileArea.appendChild(div);
+        const isFolder = typeof folderObj[name] === 'object';
+        const div = document.createElement('div');
+        div.className = isFolder ? 'folder' : 'file';
+        div.innerHTML = `<span>${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}',${isFolder})">`;
+        if(isFolder){
+            div.onclick = (e)=>{
+                if(e.target.tagName!=='INPUT'){ path.push(name); renderFiles(); }
+            };
         }
+        fileArea.appendChild(div);
     }
 }
 
-// Floating button
-function toggleFab() {
-    const menu = document.getElementById('fabMenu');
-    menu.style.display = menu.style.display==='flex'?'none':'flex';
-}
+// Floating + button
+function toggleFab(){ const menu=document.getElementById('fabMenu'); menu.style.display = menu.style.display==='flex'?'none':'flex'; }
 
 // Create folder
-function createFolder() {
-    const name = prompt('Folder Name:');
-    if(!name) return;
+function createFolder(){
+    const name=prompt('Folder Name:'); 
+    if(!isValidName(name)){ alert('Invalid folder name'); return; }
     const folderObj = getCurrentFolder();
     if(folderObj[name]){ alert('Folder already exists'); return; }
-    folderObj[name] = {};
+    folderObj[name]={};
     localStorage.setItem('files', JSON.stringify(files));
-    renderFiles();
-    toggleFab();
+    renderFiles(); toggleFab();
 }
 
 // Upload file
-function uploadFile() {
-    document.getElementById('fileInput').click();
-    toggleFab();
-}
+function uploadFile(){ document.getElementById('fileInput').click(); toggleFab(); }
 
-// Handle file upload
 function handleFileUpload(event){
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = function(){
-        const folderObj = getCurrentFolder();
-        folderObj[file.name] = reader.result;
-        localStorage.setItem('files', JSON.stringify(files));
-        renderFiles();
-    };
-    reader.readAsDataURL(file);
-}
-
-// File selection
-function toggleSelect(checkbox,name){
-    if(checkbox.checked) selectedFiles.push(name);
-    else selectedFiles = selectedFiles.filter(n=>n!==name);
-    toggleFileOperations(selectedFiles.length>0);
-}
-
-// Show/hide file operations
-function toggleFileOperations(show){
-    document.getElementById('fileOperations').style.display = show?'flex':'none';
-}
-
-// File operations
-function downloadSelected(){
     const folderObj = getCurrentFolder();
-    selectedFiles.forEach(name=>{
-        const a = document.createElement('a');
-        a.href = folderObj[name];
-        a.download = name;
-        a.click();
+    Array.from(event.target.files).forEach(file=>{
+        if(folderObj[file.name]){ alert(`File "${file.name}" already exists`); return; }
+        const reader = new FileReader();
+        reader.onload = function(){ folderObj[file.name] = reader.result; localStorage.setItem('files', JSON.stringify(files)); renderFiles(); };
+        reader.readAsDataURL(file);
+    });
+}
+
+// File/folder selection
+function toggleSelect(checkbox,name,isFolder){
+    const item = {name, isFolder};
+    if(checkbox.checked) selectedItems.push(item);
+    else selectedItems = selectedItems.filter(i=>i.name!==name || i.isFolder!==isFolder);
+    toggleFileOperations(selectedItems.length>0);
+}
+
+function toggleFileOperations(show){ document.getElementById('fileOperations').style.display = show?'flex':'none'; }
+
+// File/folder operations
+function downloadSelected(){
+    selectedItems.forEach(i=>{
+        if(i.isFolder) alert('Cannot download folder yet');
+        else {
+            const folderObj = getCurrentFolder();
+            const a = document.createElement('a');
+            a.href = folderObj[i.name];
+            a.download = i.name;
+            a.click();
+        }
     });
     cancelSelection();
 }
+
 function deleteSelected(){
-    if(!confirm('Delete selected files?')) return;
+    if(!confirm('Delete selected items?')) return;
     const folderObj = getCurrentFolder();
-    selectedFiles.forEach(name=>delete folderObj[name]);
+    selectedItems.forEach(i=>{
+        delete folderObj[i.name];
+    });
     localStorage.setItem('files', JSON.stringify(files));
     cancelSelection();
     renderFiles();
 }
+
 function renameSelected(){
-    if(selectedFiles.length!==1){ alert('Select only 1 file to rename'); return; }
-    const oldName = selectedFiles[0];
-    const newName = prompt('New name:',oldName);
-    if(!newName) return;
+    if(selectedItems.length!==1){ alert('Select only 1 item to rename'); return; }
+    const item = selectedItems[0];
+    const newName = prompt('New name:', item.name); 
+    if(!isValidName(newName)) { alert('Invalid name'); return; }
     const folderObj = getCurrentFolder();
-    folderObj[newName] = folderObj[oldName];
-    delete folderObj[oldName];
+    folderObj[newName] = folderObj[item.name];
+    delete folderObj[item.name];
     localStorage.setItem('files', JSON.stringify(files));
     cancelSelection();
     renderFiles();
 }
+
 function cancelSelection(){
-    selectedFiles=[];
+    selectedItems=[];
     document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
     toggleFileOperations(false);
 }
 
-// Initial render
+// Initial setup
 renderFiles();
 </script>
-
 </body>
 </html>

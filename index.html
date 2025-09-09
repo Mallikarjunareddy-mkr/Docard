@@ -3,14 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Android-Style File Manager</title>
+<title>Nested Android-Style File Manager with Back Button</title>
 <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; }
-    header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; }
-    header span { margin-right:5px; cursor:pointer; color:blue; }
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fafafa; }
+    header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; align-items:center; font-size:14px; }
+    #backBtn { margin-right:10px; cursor:pointer; color:#0d6efd; font-weight:bold; }
+    #backBtn.disabled { color:#aaa; cursor:default; }
+    header span { margin-right:5px; cursor:pointer; color:#0d6efd; }
     #fileArea { padding:10px; }
-    .folder, .file { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
-    .folder:hover, .file:hover { background:#f9f9f9; }
+    .folder, .file { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; border-radius:5px; margin-bottom:5px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.05); }
+    .folder:hover, .file:hover { background:#e8f0fe; }
+    .folder span:first-child, .file span:first-child { display:flex; align-items:center; }
+    .folder span:first-child::before { content:"📁"; margin-right:8px; }
+    .file span:first-child::before { content:"📄"; margin-right:8px; }
     .fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
     #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
     #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
@@ -19,7 +24,10 @@
 </head>
 <body>
 
-<header id="breadcrumb"></header>
+<header>
+    <span id="backBtn" class="disabled" onclick="goBack()">⬅ Back</span>
+    <span id="breadcrumb"></span>
+</header>
 
 <div id="fileArea"></div>
 
@@ -46,10 +54,12 @@ let path = ['/']; // Breadcrumb path
 let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
 let selectedFiles = [];
 
-// Utility to get current folder object
+// Utility to get current folder object using path array
 function getCurrentFolder() {
     let folder = files;
-    path.forEach(p => folder = folder[p]);
+    for(let i=1;i<path.length;i++){
+        folder = folder[path[i]];
+    }
     return folder;
 }
 
@@ -64,6 +74,22 @@ function renderBreadcrumb() {
         bc.appendChild(span);
         if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
+
+    // Update back button
+    const backBtn = document.getElementById('backBtn');
+    if(path.length === 1){
+        backBtn.classList.add('disabled');
+    } else {
+        backBtn.classList.remove('disabled');
+    }
+}
+
+// Back button functionality
+function goBack(){
+    if(path.length > 1){
+        path.pop();
+        renderFiles();
+    }
 }
 
 // Navigate to a folder in breadcrumb
@@ -85,13 +111,13 @@ function renderFiles() {
         if(typeof folderObj[name] === 'object'){ // folder
             const div = document.createElement('div');
             div.className = 'folder';
-            div.innerText = '📁 ' + name;
+            div.innerHTML = `<span>${name}</span>`;
             div.onclick = () => { path.push(name); renderFiles(); };
             fileArea.appendChild(div);
         } else { // file
             const div = document.createElement('div');
             div.className = 'file';
-            div.innerHTML = `<span>📄 ${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
+            div.innerHTML = `<span>${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
             fileArea.appendChild(div);
         }
     }
@@ -112,6 +138,7 @@ function createFolder() {
     folderObj[name] = {};
     localStorage.setItem('files', JSON.stringify(files));
     renderFiles();
+    toggleFab();
 }
 
 // Upload file

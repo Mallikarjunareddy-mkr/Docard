@@ -22,7 +22,33 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
 .fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
 #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
 #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
-#fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; flex-wrap:wrap; }
+#fabMenu button:hover { background:#f0f0f0; }
+
+/* File/Folder operation drop-down style */
+#fileOperations {
+    display: none; /* hidden by default */
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px; /* appears below breadcrumb */
+    width: 150px;
+    z-index: 100;
+}
+
+#fileOperations button {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#fileOperations button:hover {
+    background: #f0f0f0;
+}
 </style>
 </head>
 <body>
@@ -40,17 +66,17 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
         <span id="backBtn" class="disabled" onclick="goBack()">⬅ Back</span>
         <span id="breadcrumb"></span>
     </header>
-    <div id="fileArea"></div>
-    <div class="fab" onclick="toggleFab()">+</div>
-    <div id="fabMenu">
-        <button onclick="createFolder()">Create Folder</button>
-        <button onclick="uploadFile()">Upload File</button>
-    </div>
     <div id="fileOperations">
         <button onclick="downloadSelected()">Download</button>
         <button onclick="renameSelected()">Rename</button>
         <button onclick="deleteSelected()">Delete</button>
         <button onclick="cancelSelection()">Cancel</button>
+    </div>
+    <div id="fileArea"></div>
+    <div class="fab" onclick="toggleFab()">+</div>
+    <div id="fabMenu">
+        <button onclick="createFolder()">Create Folder</button>
+        <button onclick="uploadFile()">Upload File</button>
     </div>
 </div>
 
@@ -64,7 +90,7 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
 <input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
 
 <script>
-// --- Navigation between pages ---
+// --- Page Navigation ---
 function openManager(type){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     if(type==='local') document.getElementById('localPage').classList.add('active');
@@ -77,7 +103,7 @@ function goHome(){
     document.getElementById('homePage').classList.add('active');
 }
 
-// --- Local Storage File Manager ---
+// --- Local Storage Manager ---
 let path = ['/']; 
 let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
 let selectedItems = []; // can include folders or files
@@ -88,7 +114,6 @@ function getCurrentFolder() {
     return folder;
 }
 
-// Validate names
 function isValidName(name){
     return name && !name.includes('/');
 }
@@ -103,16 +128,12 @@ function renderBreadcrumb() {
         bc.appendChild(span);
         if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
-
     const backBtn = document.getElementById('backBtn');
     if(path.length === 1) backBtn.classList.add('disabled');
     else backBtn.classList.remove('disabled');
 }
 
-function goBack(){
-    if(path.length>1){ path.pop(); renderFiles(); }
-}
-
+function goBack(){ if(path.length>1){ path.pop(); renderFiles(); } }
 function navigateTo(index){ path = path.slice(0,index+1); renderFiles(); }
 
 function renderFiles() {
@@ -153,7 +174,6 @@ function createFolder(){
 
 // Upload file
 function uploadFile(){ document.getElementById('fileInput').click(); toggleFab(); }
-
 function handleFileUpload(event){
     const folderObj = getCurrentFolder();
     Array.from(event.target.files).forEach(file=>{
@@ -172,9 +192,10 @@ function toggleSelect(checkbox,name,isFolder){
     toggleFileOperations(selectedItems.length>0);
 }
 
+// Show/hide file/folder operations drop-down
 function toggleFileOperations(show){ document.getElementById('fileOperations').style.display = show?'flex':'none'; }
 
-// File/folder operations
+// Operations
 function downloadSelected(){
     selectedItems.forEach(i=>{
         if(i.isFolder) alert('Cannot download folder yet');
@@ -192,9 +213,7 @@ function downloadSelected(){
 function deleteSelected(){
     if(!confirm('Delete selected items?')) return;
     const folderObj = getCurrentFolder();
-    selectedItems.forEach(i=>{
-        delete folderObj[i.name];
-    });
+    selectedItems.forEach(i=>{ delete folderObj[i.name]; });
     localStorage.setItem('files', JSON.stringify(files));
     cancelSelection();
     renderFiles();
@@ -219,7 +238,7 @@ function cancelSelection(){
     toggleFileOperations(false);
 }
 
-// Initial setup
+// Initial render
 renderFiles();
 </script>
 </body>

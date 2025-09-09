@@ -1,118 +1,170 @@
-<!--
-Requirements:
-1. Home page asks user to choose between Local Storage and Cloud Storage.
-2. Local Storage: allow storing, viewing, downloading, and deleting files in the browser (IndexedDB/localStorage).
-3. Cloud Storage: placeholders for linking Google Drive, Dropbox, etc. (OAuth integration required).
-4. Simple UI with two main sections.
-
-Design:
-- Page 1: Two buttons (Local Storage, Cloud Storage).
-- Local Storage Manager: File upload, list of stored files, download & delete options.
-- Cloud Storage: Mock UI with buttons for Google Drive/Dropbox, placeholder message.
---><!DOCTYPE html><html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web File Manager</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
-    header { background: #333; color: #fff; padding: 10px; text-align: center; }
-    .container { padding: 20px; }
-    .option-btn { padding: 15px 25px; margin: 10px; font-size: 18px; cursor: pointer; border: none; border-radius: 8px; background: #007BFF; color: white; }
-    .hidden { display: none; }
-    .file-list { margin-top: 20px; }
-    .file-item { background: #fff; padding: 10px; margin: 5px 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-    button.small { padding: 5px 10px; font-size: 14px; margin-left: 5px; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f8f9fa; }
+    header { background: #343a40; color: #fff; padding: 12px; text-align: center; }
+    .layout { display: flex; height: calc(100vh - 50px); }/* Sidebar */
+.sidebar { width: 220px; background: #212529; color: white; padding: 15px; display: flex; flex-direction: column; }
+.sidebar h2 { font-size: 18px; margin-bottom: 15px; }
+.nav-btn { background: none; border: none; color: white; text-align: left; padding: 10px; margin: 2px 0; cursor: pointer; font-size: 15px; border-radius: 6px; }
+.nav-btn:hover { background: #495057; }
+
+/* Main content */
+.main { flex: 1; padding: 15px; display: flex; flex-direction: column; }
+.toolbar { margin-bottom: 10px; }
+.toolbar button { margin-right: 10px; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; background: #007bff; color: white; }
+.toolbar button:hover { background: #0056b3; }
+
+/* File area */
+.file-area { flex: 1; background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, 120px); gap: 15px; align-content: flex-start; overflow-y: auto; }
+.file-item { text-align: center; cursor: pointer; }
+.file-icon { font-size: 40px; margin-bottom: 5px; color: #6c757d; }
+.file-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Folder tree placeholder */
+.folder-tree { margin-bottom: 20px; font-size: 14px; color: #ddd; }
+.folder { margin-left: 15px; cursor: pointer; }
+
   </style>
 </head>
 <body>
   <header>
     <h1>Web File Manager</h1>
-  </header>
-  <div class="container">
-    <!-- Home Screen -->
-    <div id="home">
-      <button class="option-btn" onclick="showSection('local')">Local Storage</button>
-      <button class="option-btn" onclick="showSection('cloud')">Cloud Storage</button>
-    </div><!-- Local Storage Manager -->
-<div id="local" class="hidden">
-  <h2>Local Storage Manager</h2>
-  <input type="file" id="fileInput" multiple>
-  <button onclick="uploadFiles()">Upload</button>
-  <div class="file-list" id="fileList"></div>
-  <button onclick="goHome()">Back</button>
-</div>
+  </header>  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>Navigation</h2>
+      <button class="nav-btn" onclick="goHome()">🏠 Home</button>
+      <button class="nav-btn" onclick="showSection('local')">💻 Local Storage</button>
+      <button class="nav-btn" onclick="showSection('cloud')">☁️ Cloud Storage</button>
+      <div class="folder-tree" id="folderTree">
+        <p><strong>Folders</strong></p>
+        <div class="folder" onclick="openFolder('/')">📁 Root</div>
+      </div>
+    </div><!-- Main Content -->
+<div class="main">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button onclick="uploadFiles()">⬆️ Upload</button>
+    <button onclick="createFolder()">📂 New Folder</button>
+    <input type="file" id="fileInput" multiple style="display:none">
+  </div>
 
-<!-- Cloud Storage Placeholder -->
-<div id="cloud" class="hidden">
-  <h2>Cloud Storage</h2>
-  <p>Connect your preferred cloud provider:</p>
-  <button class="option-btn">Google Drive (Coming Soon)</button>
-  <button class="option-btn">Dropbox (Coming Soon)</button>
-  <button class="option-btn">OneDrive (Coming Soon)</button>
-  <br><br>
-  <button onclick="goHome()">Back</button>
+  <!-- File Grid -->
+  <div class="file-area" id="fileArea"></div>
 </div>
 
   </div>  <script>
-    const fileDB = [];
+    let db;
+    let currentPath = '/';
 
-    function showSection(section) {
-      document.getElementById('home').classList.add('hidden');
-      document.getElementById('local').classList.add('hidden');
-      document.getElementById('cloud').classList.add('hidden');
-      document.getElementById(section).classList.remove('hidden');
-      if (section === 'local') renderFiles();
+    // Init IndexedDB
+    function initDB() {
+      const request = indexedDB.open('FileManagerDB', 2);
+
+      request.onupgradeneeded = function(e) {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains('files')) {
+          db.createObjectStore('files', { keyPath: 'id' });
+        }
+      };
+
+      request.onsuccess = function(e) {
+        db = e.target.result;
+        renderFiles();
+      };
     }
 
     function goHome() {
-      document.getElementById('local').classList.add('hidden');
-      document.getElementById('cloud').classList.add('hidden');
-      document.getElementById('home').classList.remove('hidden');
+      currentPath = '/';
+      renderFiles();
+    }
+
+    function showSection(section) {
+      if (section === 'cloud') {
+        alert('Cloud integration coming soon!');
+      } else {
+        currentPath = '/';
+        renderFiles();
+      }
     }
 
     function uploadFiles() {
       const input = document.getElementById('fileInput');
-      const files = input.files;
-      for (let f of files) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          fileDB.push({ name: f.name, data: e.target.result });
-          renderFiles();
-        };
-        reader.readAsDataURL(f);
-      }
-      input.value = '';
+      input.click();
+      input.onchange = function() {
+        const files = input.files;
+        for (let f of files) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const transaction = db.transaction(['files'], 'readwrite');
+            const store = transaction.objectStore('files');
+            const id = currentPath + f.name;
+            store.put({ id, name: f.name, path: currentPath, type: 'file', data: e.target.result });
+            transaction.oncomplete = renderFiles;
+          };
+          reader.readAsDataURL(f);
+        }
+      };
+    }
+
+    function createFolder() {
+      const name = prompt('Enter folder name:');
+      if (!name) return;
+      const transaction = db.transaction(['files'], 'readwrite');
+      const store = transaction.objectStore('files');
+      const id = currentPath + name + '/';
+      store.put({ id, name, path: currentPath, type: 'folder' });
+      transaction.oncomplete = renderFiles;
+    }
+
+    function openFolder(path) {
+      currentPath = path;
+      renderFiles();
     }
 
     function renderFiles() {
-      const list = document.getElementById('fileList');
-      list.innerHTML = '';
-      fileDB.forEach((file, i) => {
-        const div = document.createElement('div');
-        div.className = 'file-item';
-        div.innerHTML = `
-          <span>${file.name}</span>
-          <span>
-            <button class="small" onclick="downloadFile(${i})">Download</button>
-            <button class="small" onclick="deleteFile(${i})">Delete</button>
-          </span>
-        `;
-        list.appendChild(div);
-      });
+      const transaction = db.transaction(['files'], 'readonly');
+      const store = transaction.objectStore('files');
+      const request = store.getAll();
+
+      request.onsuccess = function() {
+        const area = document.getElementById('fileArea');
+        area.innerHTML = '';
+        request.result.filter(item => item.path === currentPath).forEach(file => {
+          const div = document.createElement('div');
+          div.className = 'file-item';
+          div.onclick = () => {
+            if (file.type === 'folder') openFolder(file.id);
+            else downloadFile(file.id);
+          };
+          div.innerHTML = `
+            <div class="file-icon">${file.type === 'folder' ? '📁' : '📄'}</div>
+            <div class="file-name">${file.name}</div>
+          `;
+          area.appendChild(div);
+        });
+      };
     }
 
-    function downloadFile(index) {
-      const file = fileDB[index];
-      const a = document.createElement('a');
-      a.href = file.data;
-      a.download = file.name;
-      a.click();
+    function downloadFile(id) {
+      const transaction = db.transaction(['files'], 'readonly');
+      const store = transaction.objectStore('files');
+      const request = store.get(id);
+      request.onsuccess = function() {
+        const file = request.result;
+        if (file && file.type === 'file') {
+          const a = document.createElement('a');
+          a.href = file.data;
+          a.download = file.name;
+          a.click();
+        }
+      };
     }
 
-    function deleteFile(index) {
-      fileDB.splice(index, 1);
-      renderFiles();
-    }
+    window.onload = initDB;
   </script></body>
 </html>

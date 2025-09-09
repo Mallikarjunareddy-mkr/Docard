@@ -10,7 +10,7 @@ body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fafafa; 
 .page.active { display:block; }
 button { padding:10px 20px; margin:10px; cursor:pointer; }
 header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; align-items:center; font-size:14px; gap:10px; }
-#backBtn, #homeBtn { cursor:pointer; color:#0d6efd; font-weight:bold; }
+#backBtn { cursor:pointer; color:#0d6efd; font-weight:bold; }
 #backBtn.disabled { color:#aaa; cursor:default; }
 #breadcrumb { display:flex; flex-wrap:wrap; align-items:center; font-size:14px; }
 #breadcrumb span { margin-right:5px; cursor:pointer; color:#0d6efd; }
@@ -28,16 +28,14 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
 /* File/Folder operation drop-down style */
 #fileOperations {
     display: none;
+    position: absolute; /* dynamic near selected item */
     background: #fff;
     border: 1px solid #ccc;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    display: flex;
     flex-direction: column;
-    margin-top: 5px; 
     width: 150px;
-    z-index: 100;
+    z-index: 1000;
 }
-
 #fileOperations button {
     padding: 8px 12px;
     border: none;
@@ -46,7 +44,6 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
     cursor: pointer;
     font-size: 14px;
 }
-
 #fileOperations button:hover {
     background: #f0f0f0;
 }
@@ -65,8 +62,8 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
 <div id="localPage" class="page">
     <header>
         <span id="backBtn" class="disabled" onclick="goBack()">⬅ Back</span>
-        <span id="homeBtn" onclick="goHome()">🏠 Home</span>
         <span id="breadcrumb"></span>
+        <button onclick="exitToHome()" style="margin-left:auto;">Exit</button>
     </header>
     <div id="fileOperations">
         <button onclick="downloadSelected()">Download</button>
@@ -86,7 +83,7 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
 <div id="cloudPage" class="page">
     <h2>Cloud Storage</h2>
     <p>Integration coming soon!</p>
-    <button onclick="goHome()">⬅ Back to Home</button>
+    <button onclick="exitToHome()">⬅ Back to Home</button>
 </div>
 
 <input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
@@ -100,7 +97,7 @@ function openManager(type){
     if(type==='local') renderFiles();
 }
 
-function goHome(){
+function exitToHome(){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById('homePage').classList.add('active');
 }
@@ -108,7 +105,7 @@ function goHome(){
 // --- Local Storage Manager ---
 let path = ['/']; 
 let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
-let selectedItems = []; // can include folders or files
+let selectedItems = [];
 
 function getCurrentFolder() {
     let folder = files;
@@ -120,13 +117,11 @@ function isValidName(name){
     return name && !name.includes('/');
 }
 
-// Render breadcrumb cleanly with single slashes
+// Breadcrumb
 function renderBreadcrumb() {
     const bc = document.getElementById('breadcrumb');
     bc.innerHTML = '';
-    let fullPath = '';
     path.forEach((p, index) => {
-        fullPath += (index === 0 ? '/' : '/' + p);
         let span = document.createElement('span');
         span.innerText = p;
         span.onclick = () => navigateTo(index);
@@ -194,13 +189,20 @@ function toggleSelect(checkbox,name,isFolder){
     const item = {name, isFolder};
     if(checkbox.checked) selectedItems.push(item);
     else selectedItems = selectedItems.filter(i=>i.name!==name || i.isFolder!==isFolder);
-    toggleFileOperations(selectedItems.length>0);
+
+    const fileOps = document.getElementById('fileOperations');
+    if(selectedItems.length>0){
+        fileOps.style.display = 'flex';
+        const rect = document.querySelector('#fileArea input[type=checkbox]:checked').getBoundingClientRect();
+        fileOps.style.top = (window.scrollY + rect.bottom + 2) + 'px';
+        fileOps.style.left = (window.scrollX + rect.left) + 'px';
+    } else {
+        fileOps.style.display = 'none';
+    }
 }
 
-// Show/hide file/folder operations drop-down
-function toggleFileOperations(show){ document.getElementById('fileOperations').style.display = show?'flex':'none'; }
-
 // Operations
+function toggleFileOperations(show){ document.getElementById('fileOperations').style.display = show?'flex':'none'; }
 function downloadSelected(){
     selectedItems.forEach(i=>{
         if(i.isFolder) alert('Cannot download folder yet');

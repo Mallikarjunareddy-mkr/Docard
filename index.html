@@ -20,13 +20,19 @@
 
 /* File area */
 .file-area { flex: 1; background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, 120px); gap: 15px; align-content: flex-start; overflow-y: auto; }
-.file-item { text-align: center; cursor: pointer; }
+.file-item { text-align: center; cursor: pointer; position: relative; }
+.file-checkbox { position: absolute; top: 5px; left: 5px; }
 .file-icon { font-size: 40px; margin-bottom: 5px; color: #6c757d; }
 .file-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Folder tree placeholder */
 .folder-tree { margin-bottom: 20px; font-size: 14px; color: #ddd; }
 .folder { margin-left: 15px; cursor: pointer; }
+
+/* Context Menu */
+.context-menu { position: absolute; background: white; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: none; z-index: 1000; }
+.context-menu button { display: block; width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; cursor: pointer; }
+.context-menu button:hover { background: #f1f1f1; }
 
   </style>
 </head>
@@ -50,6 +56,8 @@
   <div class="toolbar">
     <button onclick="uploadFiles()">⬆️ Upload</button>
     <button onclick="createFolder()">📂 New Folder</button>
+    <button onclick="deleteSelected()">🗑️ Delete</button>
+    <button onclick="downloadSelected()">⬇️ Download</button>
     <input type="file" id="fileInput" multiple style="display:none">
   </div>
 
@@ -57,13 +65,18 @@
   <div class="file-area" id="fileArea"></div>
 </div>
 
+  </div>  <!-- Context Menu -->  <div class="context-menu" id="contextMenu">
+    <button onclick="renameFile()">✏️ Rename</button>
+    <button onclick="deleteFile()">🗑️ Delete</button>
+    <button onclick="downloadFile()">⬇️ Download</button>
   </div>  <script>
     let db;
     let currentPath = '/';
+    let contextTarget = null;
 
     // Init IndexedDB
     function initDB() {
-      const request = indexedDB.open('FileManagerDB', 2);
+      const request = indexedDB.open('FileManagerDB', 3);
 
       request.onupgradeneeded = function(e) {
         db = e.target.result;
@@ -137,23 +150,73 @@
         request.result.filter(item => item.path === currentPath).forEach(file => {
           const div = document.createElement('div');
           div.className = 'file-item';
-          div.onclick = () => {
-            if (file.type === 'folder') openFolder(file.id);
-            else downloadFile(file.id);
-          };
           div.innerHTML = `
+            <input type="checkbox" class="file-checkbox" data-id="${file.id}">
             <div class="file-icon">${file.type === 'folder' ? '📁' : '📄'}</div>
             <div class="file-name">${file.name}</div>
           `;
+          div.onclick = (e) => {
+            if (e.target.tagName === 'INPUT') return; // checkbox click
+            if (file.type === 'folder') openFolder(file.id);
+            else downloadFile(file.id);
+          };
+          div.oncontextmenu = (e) => {
+            e.preventDefault();
+            contextTarget = file;
+            showContextMenu(e.pageX, e.pageY);
+          };
           area.appendChild(div);
         });
       };
     }
 
-    function downloadFile(id) {
+    function showContextMenu(x, y) {
+      const menu = document.getElementById('contextMenu');
+      menu.style.left = x + 'px';
+      menu.style.top = y + 'px';
+      menu.style.display = 'block';
+    }
+
+    window.onclick = function() {
+      document.getElementById('contextMenu').style.display = 'none';
+    };
+
+    function renameFile() {
+      if (!contextTarget) return;
+      const newName = prompt('Enter new name:', contextTarget.name);
+      if (!newName) return;
+      const transaction = db.transaction(['files'], 'readwrite');
+      const store = transaction.objectStore('files');
+      store.delete(contextTarget.id);
+      const newId = contextTarget.path + newName + (contextTarget.type === 'folder' ? '/' : '');
+      contextTarget.name = newName;
+      contextTarget.id = newId;
+      store.put(contextTarget);
+      transaction.oncomplete = renderFiles;
+    }
+
+    function deleteFile() {
+      if (!contextTarget) return;
+      const transaction = db.transaction(['files'], 'readwrite');
+      const store = transaction.objectStore('files');
+      store.delete(contextTarget.id);
+      transaction.oncomplete = renderFiles;
+    }
+
+    function deleteSelected() {
+      const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+      const transaction = db.transaction(['files'], 'readwrite');
+      const store = transaction.objectStore('files');
+      checkboxes.forEach(cb => store.delete(cb.dataset.id));
+      transaction.oncomplete = renderFiles;
+    }
+
+    function downloadFile(id = null) {
+      const fileId = id || (contextTarget ? contextTarget.id : null);
+      if (!fileId) return;
       const transaction = db.transaction(['files'], 'readonly');
       const store = transaction.objectStore('files');
-      const request = store.get(id);
+      const request = store.get(fileId);
       request.onsuccess = function() {
         const file = request.result;
         if (file && file.type === 'file') {
@@ -163,6 +226,11 @@
           a.click();
         }
       };
+    }
+
+    function downloadSelected() {
+      const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+      checkboxes.forEach(cb => downloadFile(cb.dataset.id));
     }
 
     window.onload = initDB;

@@ -3,126 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mobile File Manager</title>
+<title>Web File Manager</title>
 <style>
-* { box-sizing: border-box; }
-body { margin:0; font-family: Arial; background:#f5f5f5; }
-header { background:#333; color:white; padding:1rem; text-align:center; }
-button { padding:8px 12px; margin:3px; cursor:pointer; border:none; border-radius:5px; }
-.container { padding:10px; }
-#homePage, #fileManager, #cloudManager { display:none; }
-#homePage { display:flex; flex-direction:column; align-items:center; justify-content:center; height:80vh; }
-.optionButton { width:80%; margin:10px 0; font-size:1.2rem; background:#007bff; color:white; }
-#sidebar { width:100%; display:flex; overflow-x:auto; margin-bottom:10px; }
-#sidebar button { flex:0 0 auto; margin-right:5px; }
-#fileView { display:flex; flex-wrap:wrap; gap:10px; }
-.fileItem { flex:1 1 45%; border:1px solid #ccc; border-radius:8px; padding:10px; display:flex; flex-direction:column; align-items:center; text-align:center; min-width:120px; background:#fff; }
-.fileItem span.icon { font-size:2rem; }
-.breadcrumb { margin-bottom:10px; font-size:0.9rem; color:#555; }
-.dark-mode { background:#222; color:#eee; }
-.dark-mode #fileView .fileItem { background:#333; border-color:#555; }
-#fileInput { display:none; }
+    body { font-family: Arial, sans-serif; margin:0; padding:0; }
+    .home, .manager { display: none; padding: 20px; }
+    .home.active, .manager.active { display: block; }
+    button { padding:10px 20px; margin:10px; cursor:pointer; }
+    #sidebar { width: 200px; float:left; border-right:1px solid #ccc; height: calc(100vh - 40px); padding: 10px; box-sizing:border-box; }
+    #main { margin-left: 220px; padding: 10px; box-sizing:border-box; }
+    ul { list-style: none; padding:0; }
+    li { padding:5px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+    .file-actions button { margin-left:5px; }
 </style>
 </head>
 <body>
 
-<header>
-<h1>Mobile File Manager</h1>
-</header>
-
 <!-- Home Page -->
-<div class="container" id="homePage">
-  <button class="optionButton" onclick="openLocal()">Local Storage</button>
-  <button class="optionButton" onclick="openCloud()">Cloud Storage</button>
+<div class="home active">
+    <h1>Web File Manager</h1>
+    <button onclick="openManager('local')">Local Storage</button>
+    <button onclick="openManager('cloud')">Cloud Storage</button>
 </div>
 
-<!-- Local Storage Manager -->
-<div class="container" id="fileManager">
-  <div id="sidebar">
-    <button onclick="goHome()">Back</button>
-    <button onclick="createFolder()">New Folder</button>
-    <button onclick="createFile()">New File</button>
-    <button onclick="uploadFiles()">Upload</button>
-    <button onclick="toggleDarkMode()">Dark Mode</button>
-    <input type="text" id="searchBox" placeholder="Search..." oninput="searchFiles()">
-    <input type="file" id="fileInput" multiple onchange="handleFileUpload(event)">
-  </div>
-  <div class="breadcrumb" id="breadcrumb"></div>
-  <div id="fileView"></div>
+<!-- File Manager -->
+<div class="manager">
+    <button onclick="goHome()">⬅ Back</button>
+    <h2 id="managerTitle"></h2>
+    <div id="sidebar">
+        <h3>Folders</h3>
+        <button onclick="createFolder()">+ New Folder</button>
+        <ul id="folderList"></ul>
+    </div>
+    <div id="main">
+        <h3>Files</h3>
+        <button onclick="uploadFile()">Upload File</button>
+        <ul id="fileList"></ul>
+    </div>
 </div>
 
-<!-- Cloud Storage Manager -->
-<div class="container" id="cloudManager">
-  <button onclick="goHome()">Back</button>
-  <h2>Cloud Storage (Coming Soon)</h2>
-  <p>Cloud integration placeholder. Will support Google Drive, Dropbox, OneDrive.</p>
-</div>
+<input type="file" id="fileInput" style="display:none;" onchange="handleFileUpload(event)">
 
 <script>
-// =================== Navigation ===================
-function openLocal(){ document.getElementById('homePage').style.display='none'; document.getElementById('fileManager').style.display='block'; initDB(); }
-function openCloud(){ document.getElementById('homePage').style.display='none'; document.getElementById('cloudManager').style.display='block'; }
-function goHome(){ document.getElementById('fileManager').style.display='none'; document.getElementById('cloudManager').style.display='none'; document.getElementById('homePage').style.display='flex'; }
+// State
+let currentManager = '';
+let currentFolder = '/';
+if(!localStorage.getItem('files')) localStorage.setItem('files', JSON.stringify({ '/': {} }));
 
-// =================== Dark Mode ===================
-function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); }
-
-// =================== IndexedDB ===================
-let db; let currentParent=null;
-function initDB(){
-  const request=indexedDB.open("FileManagerDB",1);
-  request.onerror=e=>console.error(e);
-  request.onsuccess=e=>{ db=e.target.result; loadFiles(); };
-  request.onupgradeneeded=e=>{ db=e.target.result; const store=db.createObjectStore("files",{keyPath:"id",autoIncrement:true}); store.createIndex("name","name",{unique:false}); store.createIndex("type","type",{unique:false}); store.createIndex("parent","parent",{unique:false}); };
+function openManager(type){
+    currentManager = type;
+    document.querySelector('.home').classList.remove('active');
+    document.querySelector('.manager').classList.add('active');
+    document.getElementById('managerTitle').innerText = type === 'local' ? 'Local Storage' : 'Cloud Storage';
+    if(type === 'local') loadLocalStorage();
+    else alert('Cloud Storage integration coming soon!');
 }
 
-// =================== CRUD ===================
-function addFileToDB(file){ const tx=db.transaction("files","readwrite"); tx.objectStore("files").add(file); tx.oncomplete=()=>{ loadFiles(); }; }
-function getAllFiles(callback){ const tx=db.transaction("files","readonly"); tx.objectStore("files").getAll().onsuccess=e=>callback(e.target.result); }
-
-// =================== File UI ===================
-function loadFiles(filter=''){
-  getAllFiles(files=>{
-    const view=document.getElementById('fileView'); view.innerHTML='';
-    const breadcrumb=document.getElementById('breadcrumb'); breadcrumb.innerHTML='';
-    let path=[], ptr=currentParent; while(ptr){ path.unshift(ptr); ptr=ptr.parentRef; }
-    breadcrumb.innerHTML=path.map(p=>`<span style="cursor:pointer;color:blue;" onclick="goToFolder(${p.id})">${p.name}</span>`).join(" / ");
-    files.forEach(f=>{
-      if(f.parent!== (currentParent?currentParent.id:null)) return;
-      if(filter && !f.name.toLowerCase().includes(filter.toLowerCase())) return;
-      const div=document.createElement('div'); div.className='fileItem';
-      let icon='📄'; if(f.type==='folder') icon='📁'; else if(f.name.match(/\.(jpg|jpeg|png|gif)$/i)) icon='🖼️'; else if(f.name.match(/\.pdf$/i)) icon='📕';
-      div.innerHTML=`<span class="icon">${icon}</span><strong>${f.name}</strong>
-        <div style="margin-top:5px;">
-          ${f.type==='folder'?`<button onclick="enterFolder(${f.id})">Open</button>`:''}
-          ${f.type==='file'?`<button onclick="previewFile(${f.id})">Preview</button> <button onclick="downloadFile(${f.id})">Download</button>`:''}
-          <button onclick="renameFile(${f.id})">Rename</button>
-          <button onclick="deleteFile(${f.id})">Delete</button>
-        </div>`;
-      view.appendChild(div);
-    });
-  });
+function goHome(){
+    document.querySelector('.home').classList.add('active');
+    document.querySelector('.manager').classList.remove('active');
 }
 
-// =================== File Actions ===================
-function createFolder(){ const name=prompt("Folder name:"); if(name) addFileToDB({name,type:'folder',parent:currentParent?currentParent.id:null}); }
-function createFile(){ const name=prompt("File name:"); if(name){ const content=prompt("File content:"); addFileToDB({name,type:'file',content,parent:currentParent?currentParent.id:null}); } }
-function renameFile(id){ const newName=prompt("New name:"); if(!newName) return; const tx=db.transaction("files","readwrite"); const store=tx.objectStore("files"); store.get(Number(id)).onsuccess=e=>{ const file=e.target.result; file.name=newName; store.put(file); tx.oncomplete=()=>{ loadFiles(); }; }; }
-function deleteFile(id){ if(confirm("Delete?")){ const tx=db.transaction("files","readwrite"); tx.objectStore("files").delete(Number(id)); tx.oncomplete=()=>{ loadFiles(); }; } }
-function previewFile(id){ const tx=db.transaction("files","readonly"); tx.objectStore("files").get(Number(id)).onsuccess=e=>{ const f=e.target.result; if(f.content instanceof Blob){ const url=URL.createObjectURL(f.content); window.open(url); setTimeout(()=>URL.revokeObjectURL(url),60000); }else alert(f.content); }; }
-function downloadFile(id){ const tx=db.transaction("files","readonly"); tx.objectStore("files").get(Number(id)).onsuccess=e=>{ const f=e.target.result; if(f.content instanceof Blob){ const url=URL.createObjectURL(f.content); const a=document.createElement('a'); a.href=url; a.download=f.name; a.click(); URL.revokeObjectURL(url); }else{ const blob=new Blob([f.content],{type:'text/plain'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=f.name; a.click(); URL.revokeObjectURL(url); } }; }
-function searchFiles(){ loadFiles(document.getElementById('searchBox').value); }
+// Local Storage Functions
+function loadLocalStorage(){
+    const files = JSON.parse(localStorage.getItem('files'));
+    const folderList = document.getElementById('folderList');
+    const fileList = document.getElementById('fileList');
+    folderList.innerHTML = '';
+    fileList.innerHTML = '';
 
-// =================== Nested Folders ===================
-function enterFolder(id){ const tx=db.transaction("files","readonly"); tx.objectStore("files").get(Number(id)).onsuccess=e=>{ currentParent=e.target.result; currentParent.parentRef=null; loadFiles(); }; }
-function goToFolder(id){ const tx=db.transaction("files","readonly"); tx.objectStore("files").get(Number(id)).onsuccess=e=>{ currentParent=e.target.result; loadFiles(); }; }
+    for(let name in files[currentFolder]){
+        if(typeof files[currentFolder][name] === 'object'){ // Folder
+            let li = document.createElement('li');
+            li.innerHTML = `<span onclick="openFolder('${name}')">${name}</span>
+                            <span class="file-actions"><button onclick="deleteFolder('${name}')">Delete</button></span>`;
+            folderList.appendChild(li);
+        } else { // File
+            let li = document.createElement('li');
+            li.innerHTML = `${name} <span class="file-actions">
+                                <button onclick="downloadFile('${name}')">Download</button>
+                                <button onclick="deleteFile('${name}')">Delete</button>
+                            </span>`;
+            fileList.appendChild(li);
+        }
+    }
+}
 
-// =================== File Upload ===================
-function uploadFiles(){ document.getElementById('fileInput').click(); }
-function handleFileUpload(event){ const files=event.target.files; Array.from(files).forEach(file=>{ const reader=new FileReader(); reader.onload=e=>{ const content=new Blob([e.target.result],{type:file.type}); addFileToDB({name:file.name,type:'file',content,parent:currentParent?currentParent.id:null}); }; reader.readAsArrayBuffer(file); }); event.target.value=''; }
+function createFolder(){
+    let name = prompt('Folder Name:');
+    if(!name) return;
+    let files = JSON.parse(localStorage.getItem('files'));
+    if(files[currentFolder][name]){
+        alert('Folder already exists!');
+        return;
+    }
+    files[currentFolder][name] = {};
+    localStorage.setItem('files', JSON.stringify(files));
+    loadLocalStorage();
+}
+
+function openFolder(name){
+    currentFolder = name;
+    loadLocalStorage();
+}
+
+function deleteFolder(name){
+    if(!confirm(`Delete folder "${name}" and all its contents?`)) return;
+    const files = JSON.parse(localStorage.getItem('files'));
+    delete files[currentFolder][name];
+    localStorage.setItem('files', JSON.stringify(files));
+    loadLocalStorage();
+}
+
+function uploadFile(){
+    document.getElementById('fileInput').click();
+}
+
+function handleFileUpload(event){
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(){
+        let files = JSON.parse(localStorage.getItem('files'));
+        files[currentFolder][file.name] = reader.result;
+        localStorage.setItem('files', JSON.stringify(files));
+        loadLocalStorage();
+    };
+    reader.readAsDataURL(file);
+}
+
+function downloadFile(name){
+    const files = JSON.parse(localStorage.getItem('files'));
+    const a = document.createElement('a');
+    a.href = files[currentFolder][name];
+    a.download = name;
+    a.click();
+}
+
+function deleteFile(name){
+    if(!confirm(`Delete file "${name}"?`)) return;
+    const files = JSON.parse(localStorage.getItem('files'));
+    delete files[currentFolder][name];
+    localStorage.setItem('files', JSON.stringify(files));
+    loadLocalStorage();
+}
 </script>
-</body>
-</html>s[p]){ const div=document.createElement('div'); div.innerHTML=`<h3>${p.toUpperCase()}</h3><p>Files synced locally (offline caching placeholder)</p>`; cloudDiv.appendChild(div); } } if(!Object.values(cloudAccounts).includes(true)) cloudDiv.innerHTML='<p>No cloud accounts connected.</p>'; }
-</script>
+
 </body>
 </html>

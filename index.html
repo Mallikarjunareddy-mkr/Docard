@@ -12,11 +12,15 @@
     --color-primary-dark: #1565c0;
     --color-accent: #00bcd4;
     --color-bg: #f5f7fa;
-    --color-bg-dark: #121212;
+    --color-bg-dark: #181825;
     --color-card: #fff;
-    --color-card-dark: #232323;
+    --color-card-dark: #232436;
     --color-text: #222;
-    --color-text-dark: #f5f7fa;
+    --color-text-dark: #e3eafc;
+    --color-muted: #666;
+    --color-muted-dark: #b3b9cc;
+    --color-border: #bbb;
+    --color-border-dark: #3a3c52;
     --shadow: 0 2px 8px rgba(0,0,0,0.08);
     --radius: 12px;
     --transition: .2s;
@@ -57,7 +61,8 @@ body.dark header { background: var(--color-card-dark); color:var(--color-text-da
     transition: background var(--transition);
 }
 .toolbar button:hover { background: #e3f2fd;}
-body.dark .toolbar button:hover { background: #234;}
+body.dark .toolbar button { color:var(--color-accent); }
+body.dark .toolbar button:hover { background: #21243a; color:var(--color-primary-dark); }
 
 #sidebar {
     position:fixed; left:0; top:var(--header-height); 
@@ -72,11 +77,14 @@ body.dark #sidebar { background: var(--color-card-dark);}
     padding:16px 24px; font-size:16px; color:var(--color-text); 
     cursor:pointer; font-weight:500; border-radius:0 20px 20px 0;
     display:flex; align-items:center; gap:10px;
-    transition: background var(--transition);
+    transition: background var(--transition), color var(--transition);
 }
 body.dark #sidebar button { color:var(--color-text-dark);}
 #sidebar button.active, #sidebar button:hover {
     background:var(--color-primary); color:#fff;
+}
+body.dark #sidebar button.active, body.dark #sidebar button:hover {
+    background:var(--color-primary-dark); color:#fff;
 }
 #sidebar .material-symbols-outlined { font-size:22px;}
 
@@ -85,34 +93,37 @@ body.dark #sidebar button { color:var(--color-text-dark);}
 
 .card {
     background:var(--color-card); box-shadow:var(--shadow); border-radius:var(--radius);
-    padding:18px; margin-bottom:18px; transition:box-shadow var(--transition);
+    padding:18px; margin-bottom:18px; transition:box-shadow var(--transition), background var(--transition), color var(--transition);
     display:flex; align-items:center; gap:18px;
+    color: var(--color-text);
 }
-body.dark .card { background:var(--color-card-dark);}
+body.dark .card { background:var(--color-card-dark); color:var(--color-text-dark); }
 .card:hover { box-shadow:0 6px 20px rgba(25,118,210,0.14);}
 .card h3 {margin:0;font-size:18px;font-weight:500;}
-.card p {margin:4px 0 0 0;color:#666;}
-body.dark .card p {color:#aaa;}
+.card p {margin:4px 0 0 0;color:var(--color-muted);}
+body.dark .card p {color:var(--color-muted-dark);}
 .card .material-symbols-outlined {font-size:32px;color:var(--color-primary);}
+body.dark .card .material-symbols-outlined {color:var(--color-accent);}
 
 .filters {display:flex;gap:10px;flex-wrap:wrap;}
 .filter-btn {
     display:flex;align-items:center;gap:7px;
     padding:8px 15px;border:none;background:#e3f2fd;border-radius:18px;
     font-size:15px;cursor:pointer;transition:.2s;
+    color: var(--color-primary);
 }
 .filter-btn.active, .filter-btn:hover { background:var(--color-primary); color:#fff;}
-body.dark .filter-btn { background:#234;}
+body.dark .filter-btn { background:#21243a; color:var(--color-accent);}
 body.dark .filter-btn.active, body.dark .filter-btn:hover { background:var(--color-primary-dark); color:#fff;}
 .filter-btn .material-symbols-outlined {font-size:18px;}
 
 #searchBar {
     width:100%;padding:10px 16px;margin:12px 0;
-    border-radius:20px;border:1px solid #bbb; font-size:15px;
+    border-radius:20px;border:1px solid var(--color-border); font-size:15px;
     background:var(--color-bg); color:var(--color-text);
     transition:.2s;
 }
-body.dark #searchBar { background:var(--color-bg-dark); color:var(--color-text-dark); border-color:#555;}
+body.dark #searchBar { background:var(--color-bg-dark); color:var(--color-text-dark); border-color:var(--color-border-dark); }
 
 #fileArea {
     display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
@@ -124,18 +135,19 @@ body.dark #searchBar { background:var(--color-bg-dark); color:var(--color-text-d
     padding:16px;transition:.2s; position:relative;
     cursor:pointer;
     outline:none;
+    color: var(--color-text);
 }
-body.dark .file-item { background:var(--color-card-dark);}
-.file-item.selected, .file-item:hover { background:#e3f2fd;}
-body.dark .file-item.selected, body.dark .file-item:hover { background:#234;}
+body.dark .file-item { background:var(--color-card-dark); color:var(--color-text-dark);}
+.file-item.selected, .file-item:hover { background:#e3f2fd; color:var(--color-primary);}
+body.dark .file-item.selected, body.dark .file-item:hover { background:#21243a; color:var(--color-accent);}
 .file-icon {
     font-size:36px; margin-bottom:8px; color:var(--color-accent);
 }
 body.dark .file-icon { color:#4dd0e1;}
 .file-info { width:100%;}
 .file-name {font-weight:500;font-size:15px;word-break:break-all;}
-.file-meta {font-size:12px;color:#666;}
-body.dark .file-meta {color:#aaa;}
+.file-meta {font-size:12px;color:var(--color-muted);}
+body.dark .file-meta {color:var(--color-muted-dark);}
 .file-checkbox {
     position:absolute;top:12px;right:12px;transform:scale(1.3);
 }
@@ -148,18 +160,22 @@ body.dark .file-meta {color:#aaa;}
     transition:background .2s;
 }
 .fab:hover { background:var(--color-primary-dark);}
+body.dark .fab { background:var(--color-accent); color:var(--color-card-dark);}
+body.dark .fab:hover { background:var(--color-primary-dark); color:#fff;}
 #fabMenu, #fileOperations {
     position:fixed; right:30px; bottom:100px; background:var(--color-card); 
     border-radius:var(--radius); box-shadow:var(--shadow); display:none;
     flex-direction:column; width:200px; z-index:221; animation:fadeIn .3s;
+    color: var(--color-text);
 }
-body.dark #fabMenu, body.dark #fileOperations{ background:var(--color-card-dark);}
+body.dark #fabMenu, body.dark #fileOperations{ background:var(--color-card-dark); color:var(--color-text-dark);}
 #fabMenu button, #fileOperations button {
     padding:14px 18px; text-align:left; border:none; background:none;
     cursor:pointer; font-size:15px;transition:.2s;
+    color: inherit;
 }
-#fabMenu button:hover, #fileOperations button:hover {background:#e3f2fd;}
-body.dark #fabMenu button:hover, body.dark #fileOperations button:hover {background:#234;}
+#fabMenu button:hover, #fileOperations button:hover {background:#e3f2fd; color:var(--color-primary);}
+body.dark #fabMenu button:hover, body.dark #fileOperations button:hover {background:#21243a; color:var(--color-accent);}
 
 #previewModal {
     display:none; position:fixed;top:0;left:0;width:100vw;height:100vh;
@@ -171,14 +187,16 @@ body.dark #fabMenu button:hover, body.dark #fileOperations button:hover {backgro
     padding:34px 34px 18px 34px; border-radius:var(--radius);
     overflow:auto;box-shadow:0 8px 32px rgba(25,118,210,0.2);
     display:flex;flex-direction:column;align-items:center;
+    color: var(--color-text);
 }
-body.dark #previewContent { background: var(--color-card-dark);}
+body.dark #previewContent { background: var(--color-card-dark); color:var(--color-text-dark);}
 #previewContent img, #previewContent iframe, #previewContent pre {max-width:100%;max-height:70vh;display:block;margin:0 auto;}
 #previewContent h4 {margin:0 0 10px 0;}
 #previewClose {
     position:absolute;top:22px;right:26px;font-size:28px;cursor:pointer;color:var(--color-primary);
     background:none;border:none;
 }
+body.dark #previewClose { color:var(--color-accent); }
 
 #detailsModal {
     display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1003;background:rgba(0,0,0,0.35);justify-content:center;align-items:center;
@@ -198,7 +216,7 @@ body.dark #detailsContent {background:var(--color-card-dark);color:var(--color-t
 body.dark .toast { background: var(--color-primary-dark);}
 ::-webkit-scrollbar{width:12px;background:#eee;}
 ::-webkit-scrollbar-thumb{background:#ccc;border-radius:10px;}
-body.dark ::-webkit-scrollbar{background:#232;}
+body.dark ::-webkit-scrollbar{background:#232436;}
 body.dark ::-webkit-scrollbar-thumb{background:#444;}
 #breadcrumb {
     display: flex;
@@ -208,10 +226,16 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
     font-size: 15px;
     overflow-x: auto;
     white-space: nowrap;
+    color: var(--color-text);
 }
+body.dark #breadcrumb { color: var(--color-text-dark);}
 #breadcrumb span {
     display: inline-block;
+    color: var(--color-primary);
+    transition: color .2s;
+    cursor:pointer;
 }
+body.dark #breadcrumb span { color: var(--color-accent);}
 #breadcrumb-wrapper {
     position:sticky;
     top:0;z-index:11;
@@ -260,7 +284,7 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
         <div class="card" style="justify-content:center;flex-direction:column;align-items:center;">
             <span class="material-symbols-outlined" style="font-size:54px;color:var(--color-primary);">folder_open</span>
             <h1 style="font-size:2.1em;margin:12px 0 0 0;">Docard File Manager</h1>
-            <p style="font-size:17px;color:#888;margin-top:10px;">A modern, secure file manager for your browser. Manage your files like you do on Android or desktop, with cloud and local support.</p>
+            <p style="font-size:17px;color:var(--color-muted);margin-top:10px;">A modern, secure file manager for your browser. Manage your files like you do on Android or desktop, with cloud and local support.</p>
         </div>
         <div style="display:flex;gap:18px;margin-top:32px;flex-wrap:wrap;">
             <button class="filter-btn" style="font-size:1.1em;" onclick="showPage('localDashboard')">
@@ -340,7 +364,7 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
         <div class="card" style="flex-direction:column;align-items:center;text-align:center;">
             <span class="material-symbols-outlined" style="font-size:54px;color:var(--color-accent);">cloud</span>
             <h2 style="margin-top:8px;">Cloud Storage</h2>
-            <p style="color:#888;">Integration coming soon!<br>Stay tuned for Google Drive, Dropbox, OneDrive and more.</p>
+            <p style="color:var(--color-muted);">Integration coming soon!<br>Stay tuned for Google Drive, Dropbox, OneDrive and more.</p>
             <button class="filter-btn" style="margin-top:22px;" onclick="showPage('homePage')"><span class="material-symbols-outlined">arrow_back</span>Back to Home</button>
         </div>
     </div>
@@ -359,7 +383,7 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
 
 <!-- Settings Modal -->
 <div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1002;background:rgba(0,0,0,0.35);justify-content:center;align-items:center;">
-    <div style="background:var(--color-card);padding:32px 42px;border-radius:16px;box-shadow:var(--shadow);min-width:300px;max-width:95vw;position:relative;">
+    <div style="background:var(--color-card);padding:32px 42px;border-radius:16px;box-shadow:var(--shadow);min-width:300px;max-width:95vw;position:relative;color:var(--color-text);">
         <h2 style="margin:0 0 14px 0;">Settings</h2>
         <div style="margin-bottom:18px;">
             <label style="font-weight:500;">Theme:</label>
@@ -367,21 +391,38 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
         </div>
         <div>
             <strong>Storage Usage:</strong>
-            <div id="modalStorageInfo" style="margin-top:6px;color:#1976d2;"></div>
+            <div id="modalStorageInfo" style="margin-top:6px;color:var(--color-primary);"></div>
         </div>
         <div style="margin-top:18px;">
             <strong>About:</strong>
-            <p style="font-size:14px;color:#888;">Docard is a professional web file manager built for productivity and privacy.</p>
+            <p style="font-size:14px;color:var(--color-muted);">Docard is a professional web file manager built for productivity and privacy.</p>
         </div>
         <button class="filter-btn" onclick="closeSettings()" style="margin-top:28px;"><span class="material-symbols-outlined">close</span>Close</button>
     </div>
 </div>
+<!-- For dark mode -->
+<style>
+body.dark #settingsModal > div {
+    background:var(--color-card-dark)!important;
+    color:var(--color-text-dark)!important;
+}
+body.dark #settingsModal strong,
+body.dark #settingsModal label {
+    color:var(--color-accent)!important;
+}
+body.dark #settingsModal #modalStorageInfo {
+    color:var(--color-accent)!important;
+}
+body.dark #settingsModal p {
+    color:var(--color-muted-dark)!important;
+}
+</style>
 
 <!-- Help Modal -->
 <div id="helpModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1002;background:rgba(0,0,0,0.35);justify-content:center;align-items:center;">
-    <div style="background:var(--color-card);padding:32px 42px;border-radius:16px;box-shadow:var(--shadow);min-width:320px;max-width:95vw;position:relative;">
+    <div style="background:var(--color-card);padding:32px 42px;border-radius:16px;box-shadow:var(--shadow);min-width:320px;max-width:95vw;position:relative;color:var(--color-text);">
         <h2 style="margin:0 0 14px 0;">How to use Docard</h2>
-        <ul style="font-size:15px;line-height:1.7;color:#555;margin-bottom:18px;">
+        <ul style="font-size:15px;line-height:1.7;color:var(--color-muted);margin-bottom:18px;">
             <li>Navigate between folders by clicking on their card.</li>
             <li>Click file name or icon for preview, or use the checkbox for bulk actions.</li>
             <li>Use the FAB (+) for quick folder creation/upload.</li>
@@ -392,6 +433,14 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
         <button class="filter-btn" onclick="closeHelpModal()" style="margin-top:10px;"><span class="material-symbols-outlined">close</span>Close</button>
     </div>
 </div>
+<style>
+body.dark #helpModal > div {
+    background:var(--color-card-dark)!important;
+    color:var(--color-text-dark)!important;
+}
+body.dark #helpModal h2 {color:var(--color-accent)!important;}
+body.dark #helpModal ul {color:var(--color-muted-dark)!important;}
+</style>
 
 <script>
 // Page Navigation & Sidebar
@@ -498,7 +547,6 @@ function renderBreadcrumb(){
     const bc=document.getElementById('breadcrumb'); bc.innerHTML='';
     path.forEach((p,i)=>{
         let span=document.createElement('span'); span.innerText=(i === 0 ? "Root" : p);
-        span.style.cursor='pointer'; span.style.color='var(--color-primary)';
         span.onclick=()=>navigateTo(i); bc.appendChild(span);
         if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
@@ -698,7 +746,7 @@ function previewFile(name){
         }
         reader.readAsText(dataURLtoBlob(f.content));
     } else {
-        content.innerHTML += `<p style="color:#888;">Preview not available for this file type.</p><a href="${f.content}" download="${name}" class="filter-btn" style="margin-top:12px;">Download</a>`;
+        content.innerHTML += `<p style="color:var(--color-muted);">Preview not available for this file type.</p><a href="${f.content}" download="${name}" class="filter-btn" style="margin-top:12px;">Download</a>`;
     }
     modal.style.display = 'flex';
 }

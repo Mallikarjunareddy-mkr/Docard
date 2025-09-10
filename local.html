@@ -7,29 +7,45 @@
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@700" rel="stylesheet" />
 <style>
+:root {
+    --primary: #1976d2;
+    --accent: #00bcd4;
+    --bg-dark: #121d2b;
+    --bg-gradient: linear-gradient(135deg,#121d2b 0%,#1976d2 65%,#00bcd4 100%);
+    --card-dark: #232b3a;
+    --glow: 0 0 18px #00bcd4,0 0 4px #1976d2;
+    --text-glow: 0 0 8px #fff,0 0 2px #00bcd4;
+    --border-radius:18px;
+    --shadow: 0 8px 32px rgba(25,118,210,0.17);
+}
 body {
     margin: 0;
     min-height: 100vh;
-    background: linear-gradient(135deg,#1976d2 0%,#00bcd4 100%);
+    background: var(--bg-gradient);
+    color: #e3eafc;
     font-family: 'Roboto', Arial, sans-serif;
-    color: #fff;
 }
 .header {
     width: 100%;
-    padding: 30px 0 18px 0;
+    padding: 32px 0 10px 0;
     text-align: center;
-    font-size: 2.3em;
+    font-size: 2em;
     font-weight: bold;
     letter-spacing: 2px;
-    text-shadow: 0 0 24px #fff, 0 0 64px #1976d2;
-    margin-bottom: 8px;
+    text-shadow: var(--text-glow),0 0 30px #1976d2;
+    margin-bottom: 6px;
+    animation: thunder 1.1s infinite alternate;
+}
+@keyframes thunder {
+    0% { text-shadow: var(--text-glow),0 0 30px #1976d2; }
+    100% { text-shadow: var(--text-glow),0 0 52px #00bcd4; }
 }
 .back-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #fff;
-    color: #1976d2;
+    background: var(--card-dark);
+    color: #e3eafc;
     border: none;
     font-size: 1.1em;
     font-weight: 700;
@@ -38,20 +54,21 @@ body {
     margin-bottom: 18px;
     margin-left: 10px;
     cursor: pointer;
-    box-shadow: 0 2px 12px rgba(25,118,210,0.18);
+    box-shadow: 0 2px 12px #00bcd4;
     text-decoration: none;
+    transition: background .16s;
 }
-@media (max-width: 600px) {
-    .header { font-size: 1.4em; }
+.back-btn:hover, .back-btn:focus {
+    background: #182231;
+    color: #fff;
 }
 .manager-block {
-    background: rgba(255,255,255,0.07);
-    border-radius: 18px;
+    background: rgba(35,43,58,0.93);
+    border-radius: var(--border-radius);
     margin: 0 auto;
-    padding: 16px 16px 34px 16px;
-    max-width: 700px;
-    box-shadow: 0 8px 32px rgba(25,118,210,0.16);
-    color: #fff;
+    padding: 18px 16px 34px 16px;
+    max-width: 750px;
+    box-shadow: var(--shadow);
 }
 #breadcrumb {
     display: flex;
@@ -59,14 +76,15 @@ body {
     align-items: center;
     gap: 4px;
     font-size: 16px;
-    color: #fff;
+    color: #e3eafc;
     margin-bottom: 12px;
     overflow-x: auto;
     white-space: nowrap;
 }
 #breadcrumb span {
-    color: #e3eafc;
+    color: var(--accent);
     cursor: pointer;
+    text-shadow: 0 0 6px #00bcd4;
     text-decoration: underline;
 }
 .files-toolbar {
@@ -74,6 +92,7 @@ body {
     gap: 8px;
     align-items: center;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 .files-toolbar input {
     border-radius: 12px;
@@ -83,19 +102,25 @@ body {
     color: #1976d2;
     background: #e3eafc;
     margin-right: 12px;
-    min-width: 180px;
+    min-width: 150px;
+    box-shadow: 0 0 6px #00bcd4;
 }
 .files-toolbar button {
-    background: #fff;
-    color: #1976d2;
+    background: var(--card-dark);
+    color: #e3eafc;
     border: none;
     border-radius: 12px;
     font-size: 1em;
     font-weight: bold;
     padding: 9px 18px;
     cursor: pointer;
-    box-shadow: 0 2px 12px rgba(25,118,210,0.16);
+    box-shadow: 0 2px 12px #00bcd4;
     margin-right: 5px;
+    transition: background .16s, color .16s;
+}
+.files-toolbar button:hover, .files-toolbar button:focus {
+    background: #182231;
+    color: #fff;
 }
 #fileArea {
     display: grid;
@@ -104,10 +129,10 @@ body {
     margin-top: 10px;
 }
 .file-item {
-    background: #fff;
-    color: #1976d2;
+    background: var(--card-dark);
+    color: #e3eafc;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(25,118,210,0.11);
+    box-shadow: 0 2px 12px #00bcd4;
     padding: 13px 13px 13px 13px;
     display: flex;
     flex-direction: column;
@@ -115,45 +140,62 @@ body {
     font-size: 1em;
     cursor: pointer;
     position: relative;
-    transition: box-shadow 0.18s;
+    transition: box-shadow 0.18s, background .16s, color .16s;
 }
 .file-item:hover {
-    box-shadow: 0 4px 18px #00bcd4;
+    box-shadow: 0 4px 18px #1976d2;
+    background: #182231;
+    color: #fff;
 }
 .file-icon {
     font-size: 2em;
-    color: #00bcd4;
+    color: var(--accent);
+    filter: drop-shadow(0 0 8px #00bcd4);
 }
 .file-name { font-weight: 600; word-break: break-all; }
-.file-meta { font-size: 0.9em; color: #1976d2; }
+.file-meta { font-size: 0.9em; color: #b3e5fc; }
 .file-checkbox {
     position:absolute;top:10px;right:10px;transform:scale(1.2);
 }
 .fab {
     position:fixed;bottom:28px;right:28px;width:62px;height:62px;
-    border-radius:50%;background:#fff;color:#1976d2;
+    border-radius:50%;background:var(--accent);color:#fff;
     font-size:2.2em;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 4px 16px #00bcd47a;cursor:pointer;z-index:20;
+    box-shadow:0 4px 16px #1976d2;cursor:pointer;z-index:20;
     transition:background .2s;
 }
-.fab:hover { background: #e3eafc; }
+.fab:hover { background: #1976d2; }
 #fabMenu, #fileOperations {
-    position:fixed; right:28px; bottom:100px; background:#fff; 
-    border-radius:16px; box-shadow:0 2px 12px #1976d2;
+    position:fixed; right:28px; bottom:100px; background:var(--card-dark); 
+    border-radius:16px; box-shadow:0 2px 12px #00bcd4;
     display:none; flex-direction:column; width:200px; z-index:21;
-    color:#1976d2; animation:fadeIn .28s;
+    color:#e3eafc; animation:fadeIn .28s;
 }
 #fabMenu button, #fileOperations button {
     padding:14px 18px; text-align:left; border:none; background:none;
     cursor:pointer; font-size:1em;
     color: inherit;
+    transition: background .15s, color .15s;
 }
-#fabMenu button:hover, #fileOperations button:hover {background:#e3eafc; color:#00bcd4;}
+#fabMenu button:hover, #fileOperations button:hover {background:#182231; color:var(--accent);}
 .toast {
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:#00bcd4;color:#fff;padding:12px 24px;
+    background:var(--accent);color:#fff;padding:12px 24px;
     border-radius:25px;font-size:1em;box-shadow:0 4px 18px #1976d2;
     z-index:100;display:none;
+}
+@media (max-width: 900px) {
+    .manager-block { max-width:98vw; padding:12px 2vw 34px 2vw;}
+    #fileArea { grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); }
+}
+@media (max-width: 600px) {
+    .header { font-size: 1.2em; padding:16px 0 5px 0;}
+    .manager-block { padding:8px 2vw 24px 2vw;}
+    #fileArea { grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); }
+    .fab { width:48px;height:48px;font-size:1.3em;}
+    #fabMenu, #fileOperations { width:140px; right:14px; bottom:78px;}
+    .files-toolbar input { min-width: 80px; font-size:0.95em;}
+    .files-toolbar button { font-size:0.95em; padding:7px 12px;}
 }
 </style>
 </head>

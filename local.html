@@ -19,7 +19,6 @@
     #settings { position:fixed; top:10px; right:10px; background:#0d6efd; color:#fff; padding:5px 10px; border-radius:5px; cursor:pointer; }
     #settingsMenu { position:fixed; top:50px; right:10px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:11; width:200px; }
     #settingsMenu div { margin-bottom:5px; }
-    /* File preview modal */
     #previewModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:20; }
     #previewContent { background:#fff; padding:20px; max-width:90%; max-height:90%; overflow:auto; border-radius:5px; position:relative; display:flex; flex-direction:column; align-items:center; }
     #previewContent img, #previewContent video, #previewContent iframe, #previewContent pre { max-width:100%; max-height:70vh; }
@@ -39,14 +38,12 @@
     <div id="fileCount">Files: 0 | Folders: 0</div>
 </div>
 
-<!-- Floating + Button -->
 <div class="fab" onclick="toggleFab()">+</div>
 <div id="fabMenu">
     <button onclick="createFolder()">Create Folder</button>
     <button onclick="uploadFile()">Upload File</button>
 </div>
 
-<!-- File Operations Toolbar -->
 <div id="fileOperations">
     <button onclick="downloadSelected()">Download</button>
     <button onclick="renameSelected()">Rename</button>
@@ -54,10 +51,8 @@
     <button onclick="cancelSelection()">Cancel</button>
 </div>
 
-<!-- File input -->
 <input type="file" id="fileInput" style="display:none;" onchange="handleFileUpload(event)">
 
-<!-- Preview Modal -->
 <div id="previewModal" onclick="closePreview(event)">
     <div id="previewContent">
         <button id="previewClose" onclick="closePreview(event)">Close</button>
@@ -67,67 +62,55 @@
 </div>
 
 <script>
-// State
-let path = ['/']; 
-let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
+// Initialize files
+if(!localStorage.getItem('files')){
+    localStorage.setItem('files', JSON.stringify({'/':{}}));
+}
+let files = JSON.parse(localStorage.getItem('files'));
+let path = ['/'];
 let selectedFiles = [];
-let longPressTimer = null;
 let previewFile = null;
 
-// Utility to get current folder object
+// Get current folder
 function getCurrentFolder() {
-    let folder = files;
-    path.forEach(p => folder = folder[p]);
+    let folder = files['/'];
+    for(let i=1;i<path.length;i++){
+        folder = folder[path[i]];
+    }
     return folder;
 }
 
 // Render breadcrumb
-function renderBreadcrumb() {
+function renderBreadcrumb(){
     const bc = document.getElementById('breadcrumb');
-    bc.innerHTML = '';
-    path.forEach((p, index) => {
+    bc.innerHTML='';
+    path.forEach((p,i)=>{
         let span = document.createElement('span');
-        span.innerText = p === '/' ? 'Home' : p;
-        span.onclick = () => navigateTo(index);
+        span.innerText = p==='/'?'Home':p;
+        span.onclick = ()=>{ path = path.slice(0,i+1); renderFiles(); };
         bc.appendChild(span);
-        if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
+        if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
 }
 
-// Navigate
-function navigateTo(index) {
-    path = path.slice(0,index+1);
-    renderFiles();
-}
-
-// Render files and folders
-function renderFiles() {
+// Render files/folders
+function renderFiles(){
     renderBreadcrumb();
     const fileArea = document.getElementById('fileArea');
-    fileArea.innerHTML = '';
-    const folderObj = getCurrentFolder();
-    selectedFiles = [];
+    fileArea.innerHTML='';
+    selectedFiles=[];
     toggleFileOperations(false);
+    const folderObj = getCurrentFolder();
 
     for(let name in folderObj){
-        let type = typeof folderObj[name] === 'object' ? 'folder' : 'file';
+        let type = typeof folderObj[name]==='object'?'folder':'file';
         const div = document.createElement('div');
         div.className = type;
-        let icon = type==='folder' ? '📁' : getFileIcon(name);
-        div.innerHTML = type==='folder' ? `${icon} ${name}` : `<span>${icon} ${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
+        let icon = type==='folder'?'📁':getFileIcon(name);
+        div.innerHTML = type==='folder'?`${icon} ${name}`:`<span>${icon} ${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
 
-        // Folder: open
-        if(type==='folder') div.onclick = () => { path.push(name); renderFiles(); };
-
-        // File: preview on click
-        if(type==='file'){
-            div.addEventListener('click', (e)=>{
-                if(e.target.tagName!=='INPUT') showPreview(name, folderObj[name]);
-            });
-            // Long press selection (mobile)
-            div.addEventListener('touchstart', ()=>{ longPressTimer = setTimeout(()=>{ div.classList.toggle('selected'); toggleSelectCheckbox(name, div); }, 500); });
-            div.addEventListener('touchend', ()=>{ clearTimeout(longPressTimer); });
-        }
+        if(type==='folder') div.onclick=()=>{ path.push(name); renderFiles(); };
+        if(type==='file') div.addEventListener('click',(e)=>{ if(e.target.tagName!=='INPUT') showPreview(name,folderObj[name]); });
 
         fileArea.appendChild(div);
     }
@@ -135,57 +118,41 @@ function renderFiles() {
     updateStorageInfo();
 }
 
-// Determine file icon
+// File icon
 function getFileIcon(name){
     let ext = name.split('.').pop().toLowerCase();
     if(['png','jpg','jpeg','gif','bmp'].includes(ext)) return '🖼️';
     if(['mp3','wav','ogg'].includes(ext)) return '🎵';
-    if(['mp4','mov','avi'].includes(ext)) return '🎬';
+    if(['mp4','mov','avi','webm'].includes(ext)) return '🎬';
     if(['pdf'].includes(ext)) return '📄';
     if(['zip','rar','7z'].includes(ext)) return '🗜️';
     return '📄';
 }
 
-// Floating button
-function toggleFab() {
-    const menu = document.getElementById('fabMenu');
-    menu.style.display = menu.style.display==='flex'?'none':'flex';
-}
-
-// Close menus on outside click
-document.addEventListener('click', e => {
-    if(!e.target.closest('.fab') && !e.target.closest('#fabMenu') && !e.target.closest('#settings')){
-        document.getElementById('fabMenu').style.display = 'none';
-        document.getElementById('settingsMenu').style.display = 'none';
-    }
-});
+// FAB
+function toggleFab(){ document.getElementById('fabMenu').style.display = document.getElementById('fabMenu').style.display==='flex'?'none':'flex'; }
 
 // Create folder
-function createFolder() {
+function createFolder(){
     const name = prompt('Folder Name:');
     if(!name) return;
     const folderObj = getCurrentFolder();
-    if(folderObj[name]){ alert('Folder already exists'); return; }
-    folderObj[name] = {};
-    localStorage.setItem('files', JSON.stringify(files));
+    if(folderObj[name]){ alert('Folder exists'); return; }
+    folderObj[name]={};
+    localStorage.setItem('files',JSON.stringify(files));
     renderFiles();
     toggleFab();
 }
 
 // Upload file
-function uploadFile() {
-    document.getElementById('fileInput').click();
-    toggleFab();
-}
-
-// Handle file upload
+function uploadFile(){ document.getElementById('fileInput').click(); toggleFab(); }
 function handleFileUpload(event){
     const file = event.target.files[0];
     const reader = new FileReader();
     reader.onload = function(){
         const folderObj = getCurrentFolder();
         folderObj[file.name] = reader.result;
-        localStorage.setItem('files', JSON.stringify(files));
+        localStorage.setItem('files',JSON.stringify(files));
         renderFiles();
     };
     reader.readAsDataURL(file);
@@ -197,33 +164,17 @@ function toggleSelect(checkbox,name){
     else selectedFiles = selectedFiles.filter(n=>n!==name);
     toggleFileOperations(selectedFiles.length>0);
 }
-function toggleSelectCheckbox(name, div){
-    const cb = div.querySelector('input');
-    cb.checked = !cb.checked;
-    toggleSelect(cb, name);
-}
-
-// Show/hide file operations
-function toggleFileOperations(show){
-    document.getElementById('fileOperations').style.display = show?'flex':'none';
-}
-
-// File operations
+function toggleFileOperations(show){ document.getElementById('fileOperations').style.display = show?'flex':'none'; }
 function downloadSelected(){
     const folderObj = getCurrentFolder();
-    selectedFiles.forEach(name=>{
-        const a = document.createElement('a');
-        a.href = folderObj[name];
-        a.download = name;
-        a.click();
-    });
+    selectedFiles.forEach(name=>{ const a=document.createElement('a'); a.href=folderObj[name]; a.download=name; a.click(); });
     cancelSelection();
 }
 function deleteSelected(){
     if(!confirm('Delete selected files?')) return;
     const folderObj = getCurrentFolder();
     selectedFiles.forEach(name=>delete folderObj[name]);
-    localStorage.setItem('files', JSON.stringify(files));
+    localStorage.setItem('files',JSON.stringify(files));
     cancelSelection();
     renderFiles();
 }
@@ -235,53 +186,54 @@ function renameSelected(){
     const folderObj = getCurrentFolder();
     folderObj[newName] = folderObj[oldName];
     delete folderObj[oldName];
-    localStorage.setItem('files', JSON.stringify(files));
+    localStorage.setItem('files',JSON.stringify(files));
     cancelSelection();
     renderFiles();
 }
 function cancelSelection(){
     selectedFiles=[];
     document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
-    document.querySelectorAll('#fileArea .file').forEach(div=>div.classList.remove('selected'));
     toggleFileOperations(false);
 }
 
-// Settings menu
-function toggleSettings() {
-    const menu = document.getElementById('settingsMenu');
-    menu.style.display = menu.style.display==='flex'?'none':'flex';
-}
-
-// Update storage info
+// Settings
+function toggleSettings(){ const menu = document.getElementById('settingsMenu'); menu.style.display = menu.style.display==='flex'?'none':'flex'; }
 function updateStorageInfo(){
-    let totalSize = 0, fileCount = 0, folderCount = 0;
+    let totalSize=0, fileCount=0, folderCount=0;
     function traverse(obj){
         for(let key in obj){
             if(typeof obj[key]==='object'){ folderCount++; traverse(obj[key]); }
-            else { fileCount++; totalSize += obj[key].length * 2 / 1024; } 
+            else { fileCount++; totalSize += obj[key].length*2/1024; }
         }
     }
-    traverse(files);
-    document.getElementById('storageInfo').innerText = `Storage: ${totalSize.toFixed(2)} KB used`;
-    document.getElementById('fileCount').innerText = `Files: ${fileCount} | Folders: ${folderCount}`;
+    traverse(files['/']);
+    document.getElementById('storageInfo').innerText=`Storage: ${totalSize.toFixed(2)} KB used`;
+    document.getElementById('fileCount').innerText=`Files: ${fileCount} | Folders: ${folderCount}`;
 }
 
-// FILE PREVIEW
-function showPreview(name, data){
-    previewFile = {name, data};
-    const body = document.getElementById('previewBody');
-    body.innerHTML = '';
-    let ext = name.split('.').pop().toLowerCase();
-    if(['png','jpg','jpeg','gif','bmp'].includes(ext)){
-        let img = document.createElement('img'); img.src = data; body.appendChild(img);
-    } else if(['mp4','mov','avi','webm'].includes(ext)){
-        let vid = document.createElement('video'); vid.src = data; vid.controls=true; body.appendChild(vid);
-    } else if(['txt','csv','json','js','html','css'].includes(ext)){
-        let pre = document.createElement('pre'); pre.textContent = atob(data.split(',')[1]); body.appendChild(pre);
-    } else if(ext==='pdf'){
-        let iframe = document.createElement('iframe'); iframe.src = data; body.appendChild(iframe);
-    } else { 
-        let span = document.createElement('span'); span.innerText='Cannot preview this file'; body.appendChild(span); 
+// File preview
+function showPreview(name,data){
+    previewFile={name,data};
+    const body=document.getElementById('previewBody');
+    body.innerHTML='';
+    let ext=name.split('.').pop().toLowerCase();
+    if(['png','jpg','jpeg','gif','bmp'].includes(ext)){ let img=document.createElement('img'); img.src=data; body.appendChild(img); }
+    else if(['mp4','mov','avi','webm'].includes(ext)){ let vid=document.createElement('video'); vid.src=data; vid.controls=true; body.appendChild(vid); }
+    else if(['txt','csv','json','js','html','css'].includes(ext)){ 
+        let pre=document.createElement('pre'); 
+        try { pre.textContent = atob(data.split(',')[1]); } catch(e){ pre.textContent = "Cannot decode file"; }
+        body.appendChild(pre); 
+    } 
+    else if(ext==='pdf'){ 
+        let iframe=document.createElement('iframe'); 
+        iframe.src=data; 
+        iframe.style.width='100%'; iframe.style.height='80vh'; 
+        body.appendChild(iframe); 
+    } 
+    else { 
+        let span=document.createElement('span'); 
+        span.innerText='Cannot preview this file'; 
+        body.appendChild(span); 
     }
     document.getElementById('previewModal').style.display='flex';
 }
@@ -294,12 +246,20 @@ function closePreview(e){
 
 function downloadPreview(){
     if(previewFile){
-        const a = document.createElement('a');
-        a.href = previewFile.data;
-        a.download = previewFile.name;
+        const a=document.createElement('a');
+        a.href=previewFile.data;
+        a.download=previewFile.name;
         a.click();
     }
 }
+
+// Close menus on outside click
+document.addEventListener('click', e=>{
+    if(!e.target.closest('.fab') && !e.target.closest('#fabMenu') && !e.target.closest('#settings')){
+        document.getElementById('fabMenu').style.display='none';
+        document.getElementById('settingsMenu').style.display='none';
+    }
+});
 
 // Initial render
 renderFiles();

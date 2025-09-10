@@ -1,101 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Docard - Home</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
-      font-family: "Roboto", sans-serif;
-      color: #fff;
-      overflow: hidden;
-    }
-    .home-container {
-      text-align: center;
-      animation: fadeIn 1.2s ease;
-    }
-    .glow-title {
-      font-size: 4rem;
-      font-weight: 700;
-      margin-bottom: 1.2rem;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      animation: thunder 3s infinite;
-    }
-    @keyframes thunder {
-      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-        text-shadow: 0 0 5px #00e5ff, 
-                     0 0 15px #00e5ff, 
-                     0 0 30px #00ffff, 
-                     0 0 60px #00ffff;
-        color: #fff;
-      }
-      20%, 24%, 55% {
-        text-shadow: 0 0 2px #fff, 
-                     0 0 10px #fff, 
-                     0 0 20px #00ffff, 
-                     0 0 40px #00e5ff;
-        color: #e0f7fa;
-      }
-    }
-    .tagline {
-      font-size: 1.2rem;
-      color: #ccc;
-      margin-bottom: 2.5rem;
-    }
-    .home-options {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.2rem;
-    }
-    .home-options a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      width: 250px;
-      padding: 1rem;
-      font-size: 1.2rem;
-      font-weight: 500;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 50px;
-      background: linear-gradient(135deg, #00bcd4, #0097a7);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .home-options a:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    }
-    .home-options a span {
-      font-size: 1.6rem;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docard - Web File Manager</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="home-container">
-    <h1 class="glow-title">Docard</h1>
-    <p class="tagline">Your Smart File Manager</p>
-    <div class="home-options">
-      <a href="local.html"><span class="material-symbols-outlined">storage</span> Local Storage</a>
-      <a href="cloud.html"><span class="material-symbols-outlined">cloud</span> Cloud Storage</a>
+  <header>
+    <div class="logo">Docard</div>
+    <div class="toolbar">
+      <button onclick="toggleTheme()"><span id="themeIcon" class="material-symbols-outlined">light_mode</span></button>
+      <button onclick="openHelpModal()"><span class="material-symbols-outlined">help</span></button>
+      <button onclick="openSettings()"><span class="material-symbols-outlined">settings</span></button>
+    </div>
+  </header>
+
+  <main class="page active" id="homePage">
+    <div class="center">
+      <h1 class="title thunder">Docard</h1>
+      <p class="tagline">Your Web File Manager</p>
+      <div class="home-buttons">
+        <a href="local.html" class="home-btn">Local Storage</a>
+        <a href="cloud.html" class="home-btn">Cloud Storage</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Help Modal -->
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <span onclick="closeHelpModal()" class="close">&times;</span>
+      <h2>Help</h2>
+      <p>Welcome to Docard! Choose Local Storage to manage your device files or Cloud Storage for online storage integration.</p>
     </div>
   </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span onclick="closeSettings()" class="close">&times;</span>
+      <h2>Settings</h2>
+      <p id="modalStorageInfo">Used: 0 / Total: 100 MB</p>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="script.js"></script>
 </body>
 </html>

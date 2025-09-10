@@ -23,6 +23,11 @@ header { padding:10px; background:#f0f0f0; display:flex; align-items:center; gap
 #fabMenu, #fileOperations { position:fixed; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; width:160px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:101; }
 #fabMenu button, #fileOperations button { padding:10px 15px; text-align:left; border:none; background:none; cursor:pointer; font-size:14px; }
 #fabMenu button:hover, #fileOperations button:hover { background:#f0f0f0; }
+
+/* Preview Modal */
+#previewModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:200; }
+#previewContent { max-width:90%; max-height:90%; background:#fff; padding:10px; border-radius:5px; overflow:auto; }
+#previewContent img, #previewContent iframe, #previewContent pre { max-width:100%; max-height:100%; display:block; margin:0 auto; }
 </style>
 </head>
 <body>
@@ -48,6 +53,7 @@ header { padding:10px; background:#f0f0f0; display:flex; align-items:center; gap
         <button onclick="uploadFile()">Upload File</button>
     </div>
     <div id="fileOperations">
+        <button onclick="previewSelected()">Preview</button>
         <button onclick="downloadSelected()">Download</button>
         <button onclick="renameSelected()">Rename</button>
         <button onclick="deleteSelected()">Delete</button>
@@ -64,40 +70,41 @@ header { padding:10px; background:#f0f0f0; display:flex; align-items:center; gap
 
 <input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
 
-<script>
-let path = ['/'], files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}'), selectedItems = [];
+<!-- Preview Modal -->
+<div id="previewModal" onclick="closePreview()">
+    <div id="previewContent"></div>
+</div>
 
-// Page Navigation
+<script>
+let path=['/'], files=JSON.parse(localStorage.getItem('files')||'{"\/":{}}'), selectedItems=[];
+
+// Navigation
 function openManager(type){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    if(type==='local') { document.getElementById('localPage').classList.add('active'); renderFiles(); }
+    if(type==='local'){ document.getElementById('localPage').classList.add('active'); renderFiles(); }
     else document.getElementById('cloudPage').classList.add('active');
 }
 function exitToHome(){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('homePage').classList.add('active'); }
 function goBack(){ if(path.length>1){ path.pop(); renderFiles(); } }
-function navigateTo(index){ path = path.slice(0,index+1); renderFiles(); }
+function navigateTo(i){ path=path.slice(0,i+1); renderFiles(); }
 
 // Breadcrumb
 function renderBreadcrumb(){
-    const bc = document.getElementById('breadcrumb');
-    bc.innerHTML='';
+    const bc=document.getElementById('breadcrumb'); bc.innerHTML='';
     path.forEach((p,i)=>{
-        let span=document.createElement('span'); span.innerText=p;
-        span.onclick=()=>navigateTo(i);
+        let span=document.createElement('span'); span.innerText=p; span.onclick=()=>navigateTo(i);
         bc.appendChild(span);
         if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
-    document.getElementById('backBtn').classList.toggle('disabled', path.length===1);
+    document.getElementById('backBtn').classList.toggle('disabled',path.length===1);
 }
 
-// Local Storage Rendering
-function getCurrentFolder(){ let folder=files; for(let i=1;i<path.length;i++) folder=folder[path[i]]; return folder; }
+// Local Storage
+function getCurrentFolder(){ let f=files; for(let i=1;i<path.length;i++) f=f[path[i]]; return f; }
 function renderFiles(){
     renderBreadcrumb();
-    const fileArea=document.getElementById('fileArea');
-    fileArea.innerHTML='';
-    selectedItems=[];
-    updateFabIcon(); toggleFileOperations(false);
+    const fileArea=document.getElementById('fileArea'); fileArea.innerHTML='';
+    selectedItems=[]; updateFabIcon(); toggleFileOperations(false);
 
     const folderObj=getCurrentFolder();
     for(let name in folderObj){
@@ -111,38 +118,60 @@ function renderFiles(){
 
 // FAB + / Edit
 function fabAction(){
-    const fabBtn=document.getElementById('fabBtn'), fabMenu=document.getElementById('fabMenu'), fileOps=document.getElementById('fileOperations');
+    const fabBtn=document.getElementById('fabBtn');
+    const fabMenu=document.getElementById('fabMenu');
+    const fileOps=document.getElementById('fileOperations');
+    const rect=fabBtn.getBoundingClientRect();
+    const top=Math.max(window.scrollY + rect.top - 5, 5);
+    const left=Math.min(window.scrollX + rect.left, window.innerWidth - 160 - 5);
+
     if(selectedItems.length>0){
+        // Edit mode
         fileOps.style.display='flex';
-        const rect=fabBtn.getBoundingClientRect();
-        fileOps.style.top=Math.max(window.scrollY + rect.top - fileOps.offsetHeight -5,5)+'px';
-        fileOps.style.left=Math.min(window.scrollX + rect.left, window.innerWidth - fileOps.offsetWidth -5)+'px';
+        fileOps.style.top=(top - fileOps.offsetHeight) + 'px';
+        fileOps.style.left=left + 'px';
         fabMenu.style.display='none';
-    } else fabMenu.style.display=fabMenu.style.display==='flex'?'none':'flex';
+    } else {
+        // + mode
+        fabMenu.style.display=fabMenu.style.display==='flex'?'none':'flex';
+        fabMenu.style.top=(top - fabMenu.offsetHeight) + 'px';
+        fabMenu.style.left=left + 'px';
+        fileOps.style.display='none';
+    }
 }
-
-// FAB icon update
-function updateFabIcon(){ document.getElementById('fabBtn').innerText = selectedItems.length>0?'✎':'+'; }
-
-// File/folder selection
-function toggleSelect(cb,name,isFolder){ 
-    selectedItems = cb.checked ? [...selectedItems,{name,isFolder}] : selectedItems.filter(i=>i.name!==name||i.isFolder!==isFolder);
-    updateFabIcon(); toggleFileOperations(false);
-}
-
-// File Operations
+function updateFabIcon(){ document.getElementById('fabBtn').innerText=selectedItems.length>0?'✎':'+'; }
+function toggleSelect(cb,name,isFolder){ selectedItems=cb.checked?[...selectedItems,{name,isFolder}]:selectedItems.filter(i=>i.name!==name||i.isFolder!==isFolder); updateFabIcon(); toggleFileOperations(false); }
 function toggleFileOperations(show){ document.getElementById('fileOperations').style.display=show?'flex':'none'; }
 function cancelSelection(){ selectedItems=[]; document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false); updateFabIcon(); toggleFileOperations(false); }
-function downloadSelected(){ selectedItems.forEach(i=>{ if(!i.isFolder){ const a=document.createElement('a'); a.href=getCurrentFolder()[i.name]; a.download=i.name; a.click(); } else alert('Cannot download folder yet'); }); cancelSelection(); }
-function deleteSelected(){ if(!confirm('Delete selected items?')) return; const folderObj=getCurrentFolder(); selectedItems.forEach(i=>delete folderObj[i.name]); localStorage.setItem('files',JSON.stringify(files)); renderFiles(); cancelSelection(); }
-function renameSelected(){ if(selectedItems.length!==1){ alert('Select only 1 item to rename'); return; } const item=selectedItems[0]; const newName=prompt('New name:',item.name); if(!newName||newName.includes('/')) return alert('Invalid name'); const folderObj=getCurrentFolder(); folderObj[newName]=folderObj[item.name]; delete folderObj[item.name]; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); cancelSelection(); }
 
-// Folder / File creation
-function createFolder(){ const name=prompt('Folder Name:'); if(!name||name.includes('/')) return alert('Invalid name'); const folderObj=getCurrentFolder(); if(folderObj[name]) return alert('Already exists'); folderObj[name]={}; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); document.getElementById('fabMenu').style.display='none'; }
+// Folder / File Operations
+function createFolder(){ const name=prompt('Folder Name:'); if(!name||name.includes('/')) return alert('Invalid name'); const f=getCurrentFolder(); if(f[name]) return alert('Already exists'); f[name]={}; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); document.getElementById('fabMenu').style.display='none'; }
 function uploadFile(){ document.getElementById('fileInput').click(); document.getElementById('fabMenu').style.display='none'; }
-function handleFileUpload(e){ const folderObj=getCurrentFolder(); Array.from(e.target.files).forEach(f=>{ if(!folderObj[f.name]){ const reader=new FileReader(); reader.onload=()=>{ folderObj[f.name]=reader.result; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); }; reader.readAsDataURL(f); } }); }
+function handleFileUpload(e){ const f=getCurrentFolder(); Array.from(e.target.files).forEach(file=>{ if(!f[file.name]){ const reader=new FileReader(); reader.onload=()=>{ f[file.name]=reader.result; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); }; reader.readAsDataURL(file); } }); }
+function downloadSelected(){ selectedItems.forEach(i=>{ if(!i.isFolder){ const a=document.createElement('a'); a.href=getCurrentFolder()[i.name]; a.download=i.name; a.click(); } else alert('Cannot download folder yet'); }); cancelSelection(); }
+function deleteSelected(){ if(!confirm('Delete selected items?')) return; const f=getCurrentFolder(); selectedItems.forEach(i=>delete f[i.name]); localStorage.setItem('files',JSON.stringify(files)); renderFiles(); cancelSelection(); }
+function renameSelected(){ if(selectedItems.length!==1){ alert('Select only 1 item'); return; } const item=selectedItems[0]; const newName=prompt('New name:',item.name); if(!newName||newName.includes('/')) return alert('Invalid name'); const f=getCurrentFolder(); f[newName]=f[item.name]; delete f[item.name]; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); cancelSelection(); }
 
-// Initial Render
+// Preview
+function previewSelected(){
+    if(selectedItems.length!==1) return alert('Select 1 file');
+    const item=selectedItems[0];
+    if(item.isFolder) return alert('Cannot preview folder');
+    const f=getCurrentFolder();
+    const data=f[item.name];
+    const modal=document.getElementById('previewModal');
+    const content=document.getElementById('previewContent');
+    content.innerHTML='';
+    if(item.name.match(/\.(jpg|jpeg|png|gif)$/i)){
+        const img=document.createElement('img'); img.src=data; content.appendChild(img);
+    } else if(item.name.match(/\.(pdf)$/i)){
+        const iframe=document.createElement('iframe'); iframe.src=data; iframe.style.width='100%'; iframe.style.height='80vh'; content.appendChild(iframe);
+    } else { const pre=document.createElement('pre'); pre.textContent=atob(data.split(',')[1]); content.appendChild(pre); }
+    modal.style.display='flex';
+}
+function closePreview(){ document.getElementById('previewModal').style.display='none'; }
+
+// Initial render
 renderFiles();
 </script>
 </body>

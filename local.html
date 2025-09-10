@@ -3,160 +3,307 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Local File Manager</title>
-<link rel="stylesheet" href="style.css">
+<title>Android-Style File Manager</title>
 <style>
-  /* Thunder flickering page title */
-  #pageTitle {
-    font-size: 2.8rem;
-    font-weight: 700;
-    text-shadow: 0 0 15px cyan, 0 0 30px blue;
-    animation: thunder 2s infinite;
-    margin-bottom: 16px;
-    text-align:center;
-  }
-
-  /* Breadcrumb */
-  #breadcrumb {
-    display:flex;
-    flex-wrap:wrap;
-    gap:4px;
-    font-size:16px;
-    color: var(--primary);
-    margin-bottom:16px;
-    justify-content:center;
-  }
-  #breadcrumb span { cursor:pointer; text-decoration:underline; }
-
-  /* File Manager Grid */
-  #fileArea {
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-    gap:20px;
-    padding:0 16px 100px 16px;
-  }
-
-  .folder, .file {
-    background: var(--card-bg);
-    box-shadow: var(--shadow);
-    border-radius: var(--radius);
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:8px;
-    cursor:pointer;
-    transition: all 0.2s;
-  }
-  body.dark .folder, body.dark .file { background: var(--card-bg-dark); }
-  .folder:hover, .file:hover { box-shadow:0 6px 20px rgba(25,118,210,0.14); transform: translateY(-2px); }
-
-  /* File & Folder Icons */
-  .folder span, .file span { font-weight:500; display:flex; align-items:center; gap:6px; }
-
-  /* FAB */
-  .fab {
-    position:fixed;
-    bottom:30px;
-    right:30px;
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    background: var(--primary);
-    color:#fff;
-    font-size:36px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    box-shadow:0 4px 16px rgba(25,118,210,0.2);
-    transition: background .2s;
-    z-index:10;
-  }
-  body.dark .fab { background: var(--accent); }
-  .fab:hover { background: var(--primary-dark); }
-
-  /* FAB Menu */
-  #fabMenu {
-    position:fixed;
-    bottom:100px;
-    right:30px;
-    background: var(--card-bg);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    display:none;
-    flex-direction:column;
-    z-index:10;
-  }
-  body.dark #fabMenu { background: var(--card-bg-dark); }
-  #fabMenu button {
-    padding:12px 20px;
-    border:none;
-    background:none;
-    cursor:pointer;
-    text-align:left;
-    transition:0.2s;
-    color: var(--text);
-  }
-  #fabMenu button:hover { background: var(--primary); color:#fff; }
-  body.dark #fabMenu button:hover { background: var(--primary-dark); color:#fff; }
-
-  /* File Operations Toolbar */
-  #fileOperations {
-    position:fixed;
-    bottom:100px;
-    left:50%;
-    transform:translateX(-50%);
-    display:flex;
-    gap:10px;
-    background: var(--card-bg);
-    padding:6px 12px;
-    border-radius:var(--radius);
-    box-shadow: var(--shadow);
-    z-index:11;
-    display:none;
-  }
-  body.dark #fileOperations { background: var(--card-bg-dark); }
-  #fileOperations button {
-    border:none;
-    background:none;
-    cursor:pointer;
-    padding:8px 12px;
-    border-radius:8px;
-    transition:0.2s;
-  }
-  #fileOperations button:hover { background: var(--primary); color:#fff; }
-  body.dark #fileOperations button:hover { background: var(--primary-dark); color:#fff; }
-
-  /* Hidden file input */
-  #fileInput { display:none; }
-
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fafafa; }
+    header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; align-items:center; }
+    header span { margin-right:5px; cursor:pointer; color:#0d6efd; }
+    #fileArea { padding:10px; min-height:70vh; border-top:1px solid #ddd; border-bottom:1px solid #ddd; }
+    .folder, .file { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; border-radius:5px; }
+    .folder:hover, .file:hover { background:#f9f9f9; }
+    .selected { background:#d0e6ff; }
+    .fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:10; }
+    #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:9; }
+    #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
+    #fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
+    #settings { position:fixed; top:10px; right:10px; background:#0d6efd; color:#fff; padding:5px 10px; border-radius:5px; cursor:pointer; }
+    #settingsMenu { position:fixed; top:50px; right:10px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; padding:10px; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:11; width:200px; }
+    #settingsMenu div { margin-bottom:5px; }
+    /* File preview modal */
+    #previewModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:20; }
+    #previewContent { background:#fff; padding:20px; max-width:90%; max-height:90%; overflow:auto; border-radius:5px; position:relative; display:flex; flex-direction:column; align-items:center; }
+    #previewContent img, #previewContent video, #previewContent iframe, #previewContent pre { max-width:100%; max-height:70vh; }
+    #previewClose { position:absolute; top:10px; right:10px; cursor:pointer; font-size:18px; background:#0d6efd; color:#fff; border:none; border-radius:3px; padding:5px 10px; }
+    #previewDownload { position:absolute; bottom:10px; right:10px; cursor:pointer; font-size:16px; background:#198754; color:#fff; border:none; border-radius:3px; padding:5px 10px; }
 </style>
 </head>
 <body>
 
-<div id="pageTitle">Local File Manager</div>
-<div id="breadcrumb"></div>
+<header id="breadcrumb"></header>
+
 <div id="fileArea"></div>
+
+<div id="settings" onclick="toggleSettings()">⚙️ Settings</div>
+<div id="settingsMenu">
+    <div id="storageInfo">Storage: 0 KB used</div>
+    <div id="fileCount">Files: 0 | Folders: 0</div>
+</div>
 
 <!-- Floating + Button -->
 <div class="fab" onclick="toggleFab()">+</div>
 <div id="fabMenu">
-  <button onclick="createFolder()">Create Folder</button>
-  <button onclick="uploadFile()">Upload File</button>
+    <button onclick="createFolder()">Create Folder</button>
+    <button onclick="uploadFile()">Upload File</button>
 </div>
 
 <!-- File Operations Toolbar -->
 <div id="fileOperations">
-  <button onclick="downloadSelected()">Download</button>
-  <button onclick="renameSelected()">Rename</button>
-  <button onclick="deleteSelected()">Delete</button>
-  <button onclick="cancelSelection()">Cancel</button>
+    <button onclick="downloadSelected()">Download</button>
+    <button onclick="renameSelected()">Rename</button>
+    <button onclick="deleteSelected()">Delete</button>
+    <button onclick="cancelSelection()">Cancel</button>
 </div>
 
-<input type="file" id="fileInput" multiple onchange="handleFileUpload(event)">
+<!-- File input -->
+<input type="file" id="fileInput" style="display:none;" onchange="handleFileUpload(event)">
 
-<script src="script.js"></script>
+<!-- Preview Modal -->
+<div id="previewModal" onclick="closePreview(event)">
+    <div id="previewContent">
+        <button id="previewClose" onclick="closePreview(event)">Close</button>
+        <button id="previewDownload" onclick="downloadPreview()">Download</button>
+        <div id="previewBody"></div>
+    </div>
+</div>
+
+<script>
+// State
+let path = ['/']; 
+let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
+let selectedFiles = [];
+let longPressTimer = null;
+let previewFile = null;
+
+// Utility to get current folder object
+function getCurrentFolder() {
+    let folder = files;
+    path.forEach(p => folder = folder[p]);
+    return folder;
+}
+
+// Render breadcrumb
+function renderBreadcrumb() {
+    const bc = document.getElementById('breadcrumb');
+    bc.innerHTML = '';
+    path.forEach((p, index) => {
+        let span = document.createElement('span');
+        span.innerText = p === '/' ? 'Home' : p;
+        span.onclick = () => navigateTo(index);
+        bc.appendChild(span);
+        if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
+    });
+}
+
+// Navigate
+function navigateTo(index) {
+    path = path.slice(0,index+1);
+    renderFiles();
+}
+
+// Render files and folders
+function renderFiles() {
+    renderBreadcrumb();
+    const fileArea = document.getElementById('fileArea');
+    fileArea.innerHTML = '';
+    const folderObj = getCurrentFolder();
+    selectedFiles = [];
+    toggleFileOperations(false);
+
+    for(let name in folderObj){
+        let type = typeof folderObj[name] === 'object' ? 'folder' : 'file';
+        const div = document.createElement('div');
+        div.className = type;
+        let icon = type==='folder' ? '📁' : getFileIcon(name);
+        div.innerHTML = type==='folder' ? `${icon} ${name}` : `<span>${icon} ${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
+
+        // Folder: open
+        if(type==='folder') div.onclick = () => { path.push(name); renderFiles(); };
+
+        // File: preview on click
+        if(type==='file'){
+            div.addEventListener('click', (e)=>{
+                if(e.target.tagName!=='INPUT') showPreview(name, folderObj[name]);
+            });
+            // Long press selection (mobile)
+            div.addEventListener('touchstart', ()=>{ longPressTimer = setTimeout(()=>{ div.classList.toggle('selected'); toggleSelectCheckbox(name, div); }, 500); });
+            div.addEventListener('touchend', ()=>{ clearTimeout(longPressTimer); });
+        }
+
+        fileArea.appendChild(div);
+    }
+
+    updateStorageInfo();
+}
+
+// Determine file icon
+function getFileIcon(name){
+    let ext = name.split('.').pop().toLowerCase();
+    if(['png','jpg','jpeg','gif','bmp'].includes(ext)) return '🖼️';
+    if(['mp3','wav','ogg'].includes(ext)) return '🎵';
+    if(['mp4','mov','avi'].includes(ext)) return '🎬';
+    if(['pdf'].includes(ext)) return '📄';
+    if(['zip','rar','7z'].includes(ext)) return '🗜️';
+    return '📄';
+}
+
+// Floating button
+function toggleFab() {
+    const menu = document.getElementById('fabMenu');
+    menu.style.display = menu.style.display==='flex'?'none':'flex';
+}
+
+// Close menus on outside click
+document.addEventListener('click', e => {
+    if(!e.target.closest('.fab') && !e.target.closest('#fabMenu') && !e.target.closest('#settings')){
+        document.getElementById('fabMenu').style.display = 'none';
+        document.getElementById('settingsMenu').style.display = 'none';
+    }
+});
+
+// Create folder
+function createFolder() {
+    const name = prompt('Folder Name:');
+    if(!name) return;
+    const folderObj = getCurrentFolder();
+    if(folderObj[name]){ alert('Folder already exists'); return; }
+    folderObj[name] = {};
+    localStorage.setItem('files', JSON.stringify(files));
+    renderFiles();
+    toggleFab();
+}
+
+// Upload file
+function uploadFile() {
+    document.getElementById('fileInput').click();
+    toggleFab();
+}
+
+// Handle file upload
+function handleFileUpload(event){
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(){
+        const folderObj = getCurrentFolder();
+        folderObj[file.name] = reader.result;
+        localStorage.setItem('files', JSON.stringify(files));
+        renderFiles();
+    };
+    reader.readAsDataURL(file);
+}
+
+// File selection
+function toggleSelect(checkbox,name){
+    if(checkbox.checked) selectedFiles.push(name);
+    else selectedFiles = selectedFiles.filter(n=>n!==name);
+    toggleFileOperations(selectedFiles.length>0);
+}
+function toggleSelectCheckbox(name, div){
+    const cb = div.querySelector('input');
+    cb.checked = !cb.checked;
+    toggleSelect(cb, name);
+}
+
+// Show/hide file operations
+function toggleFileOperations(show){
+    document.getElementById('fileOperations').style.display = show?'flex':'none';
+}
+
+// File operations
+function downloadSelected(){
+    const folderObj = getCurrentFolder();
+    selectedFiles.forEach(name=>{
+        const a = document.createElement('a');
+        a.href = folderObj[name];
+        a.download = name;
+        a.click();
+    });
+    cancelSelection();
+}
+function deleteSelected(){
+    if(!confirm('Delete selected files?')) return;
+    const folderObj = getCurrentFolder();
+    selectedFiles.forEach(name=>delete folderObj[name]);
+    localStorage.setItem('files', JSON.stringify(files));
+    cancelSelection();
+    renderFiles();
+}
+function renameSelected(){
+    if(selectedFiles.length!==1){ alert('Select only 1 file to rename'); return; }
+    const oldName = selectedFiles[0];
+    const newName = prompt('New name:',oldName);
+    if(!newName) return;
+    const folderObj = getCurrentFolder();
+    folderObj[newName] = folderObj[oldName];
+    delete folderObj[oldName];
+    localStorage.setItem('files', JSON.stringify(files));
+    cancelSelection();
+    renderFiles();
+}
+function cancelSelection(){
+    selectedFiles=[];
+    document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
+    document.querySelectorAll('#fileArea .file').forEach(div=>div.classList.remove('selected'));
+    toggleFileOperations(false);
+}
+
+// Settings menu
+function toggleSettings() {
+    const menu = document.getElementById('settingsMenu');
+    menu.style.display = menu.style.display==='flex'?'none':'flex';
+}
+
+// Update storage info
+function updateStorageInfo(){
+    let totalSize = 0, fileCount = 0, folderCount = 0;
+    function traverse(obj){
+        for(let key in obj){
+            if(typeof obj[key]==='object'){ folderCount++; traverse(obj[key]); }
+            else { fileCount++; totalSize += obj[key].length * 2 / 1024; } 
+        }
+    }
+    traverse(files);
+    document.getElementById('storageInfo').innerText = `Storage: ${totalSize.toFixed(2)} KB used`;
+    document.getElementById('fileCount').innerText = `Files: ${fileCount} | Folders: ${folderCount}`;
+}
+
+// FILE PREVIEW
+function showPreview(name, data){
+    previewFile = {name, data};
+    const body = document.getElementById('previewBody');
+    body.innerHTML = '';
+    let ext = name.split('.').pop().toLowerCase();
+    if(['png','jpg','jpeg','gif','bmp'].includes(ext)){
+        let img = document.createElement('img'); img.src = data; body.appendChild(img);
+    } else if(['mp4','mov','avi','webm'].includes(ext)){
+        let vid = document.createElement('video'); vid.src = data; vid.controls=true; body.appendChild(vid);
+    } else if(['txt','csv','json','js','html','css'].includes(ext)){
+        let pre = document.createElement('pre'); pre.textContent = atob(data.split(',')[1]); body.appendChild(pre);
+    } else if(ext==='pdf'){
+        let iframe = document.createElement('iframe'); iframe.src = data; body.appendChild(iframe);
+    } else { 
+        let span = document.createElement('span'); span.innerText='Cannot preview this file'; body.appendChild(span); 
+    }
+    document.getElementById('previewModal').style.display='flex';
+}
+
+function closePreview(e){
+    if(e.target.id==='previewModal' || e.target.id==='previewClose'){
+        document.getElementById('previewModal').style.display='none';
+    }
+}
+
+function downloadPreview(){
+    if(previewFile){
+        const a = document.createElement('a');
+        a.href = previewFile.data;
+        a.download = previewFile.name;
+        a.click();
+    }
+}
+
+// Initial render
+renderFiles();
+</script>
 
 </body>
 </html>

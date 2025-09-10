@@ -3,388 +3,283 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Docard - Local File Manager</title>
-  <!-- Google Fonts & Material Icons -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@700" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css">
+  <title>Android-Style File Manager</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; }
+    header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; }
+    header span { margin-right:5px; cursor:pointer; color:blue; }
+    #fileArea { padding:10px; display:flex; flex-wrap:wrap; gap:12px; }
+    .folder, .file { 
+      min-width:150px; max-width:220px;
+      padding:14px 12px; 
+      border:1px solid #eee; border-radius:7px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:#fbfbfb;
+      box-shadow: 0 2px 6px #0001;
+      position:relative;
+      transition:background 0.15s;
+    }
+    .folder:hover, .file:hover { background:#f5f8ff; }
+    .file input[type=checkbox] { position:absolute; top:8px; right:8px; }
+    .fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
+    #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
+    #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
+    #fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; z-index:10; }
+  </style>
 </head>
 <body>
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left" style="display: flex; align-items: center; gap: 0.8rem;">
-      <button class="icon-btn" id="homeBtn" title="Home">
-        <span class="material-symbols-outlined">home</span>
-      </button>
-      <button class="icon-btn" id="backBtn" title="Back">
-        <span class="material-symbols-outlined">arrow_back</span>
-      </button>
-      <span class="docard-title" style="font-weight:700; font-size:1.27rem; letter-spacing:1px;">Local</span>
-      <div class="breadcrumb-block" id="breadcrumb"></div>
-    </div>
-    <div class="header-right" style="display: flex; align-items: center; gap: 0.3em;">
-      <button class="search-btn icon-btn" id="searchBtn" title="Search">
-        <span class="material-symbols-outlined">search</span>
-      </button>
-      <button id="settingsBtn" class="icon-btn material-symbols-outlined" aria-label="Settings" title="Menu">more_vert</button>
-      <div id="settingsMenu" class="settings-dropdown">
-        <button onclick="location.href='local.html'">📂 Local Storage</button>
-        <button onclick="location.href='cloud.html'">☁️ Cloud Storage</button>
-        <button onclick="toggleTheme()">🌙 Toggle Theme</button>
-        <button onclick="sortFiles()">Sort Files</button>
-        <button onclick="showDetailsSelected()">File Details</button>
-        <button onclick="downloadSelected()">Download</button>
-        <button onclick="renameSelected()">Rename</button>
-        <button onclick="confirmDeleteSelected()">Delete</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Storage Bar -->
-  <div class="storage-bar">
-    <div class="used" id="storageUsed"></div>
-    <span class="storage-label" id="storageLabel"></span>
-  </div>
+<header id="breadcrumb"></header>
 
-  <!-- Main Manager Container -->
-  <div class="manager-container">
-    <div class="folder-list-container">
-      <div id="fileArea" tabindex="0" aria-label="File List"></div>
-    </div>
-  </div>
+<div id="fileArea"></div>
 
-  <input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
-  <div class="toast" id="toast"></div>
+<!-- Floating + Button -->
+<div class="fab" onclick="toggleFab()">+</div>
+<div id="fabMenu">
+  <button onclick="createFolder()">Create Folder</button>
+  <button onclick="uploadFile()">Upload File</button>
+</div>
 
-  <!-- Scripts -->
-  <script>
-    // ===== Settings Menu =====
-    const settingsBtn=document.getElementById('settingsBtn');
-    const settingsMenu=document.getElementById('settingsMenu');
-    document.body.addEventListener('click',e=>{
-      if(!settingsMenu.contains(e.target)&&e.target!==settingsBtn){settingsMenu.classList.remove('show');}
-    });
-    settingsBtn.addEventListener('click',(e)=>{
-      e.stopPropagation();settingsMenu.classList.toggle('show');
-    });
+<!-- File Operations Toolbar -->
+<div id="fileOperations">
+  <button onclick="downloadSelected()">Download</button>
+  <button onclick="renameSelected()">Rename</button>
+  <button onclick="deleteSelected()">Delete</button>
+  <button onclick="cancelSelection()">Cancel</button>
+</div>
 
-    // ===== Toolbar Buttons =====
-    document.getElementById('homeBtn').onclick = () => {
-      path = ['/'];
-      renderFiles();
+<input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
+
+<script>
+// State
+let path = ['/']; // Breadcrumb path
+let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
+let selectedFiles = [];
+
+// Utility to get current folder object
+function getCurrentFolder() {
+  let folder = files;
+  for (let i = 0; i < path.length; i++) {
+    folder = folder[path[i]];
+  }
+  return folder;
+}
+
+// Render breadcrumb
+function renderBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  bc.innerHTML = '';
+  path.forEach((p, index) => {
+    let span = document.createElement('span');
+    span.innerText = (index === 0 ? 'Home' : p);
+    span.onclick = () => navigateTo(index);
+    bc.appendChild(span);
+    if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
+  });
+}
+
+// Navigate to a folder in breadcrumb
+function navigateTo(index) {
+  path = path.slice(0,index+1);
+  renderFiles();
+}
+
+// Render files and folders side by side, neatly
+function renderFiles() {
+  renderBreadcrumb();
+  const fileArea = document.getElementById('fileArea');
+  fileArea.innerHTML = '';
+  const folderObj = getCurrentFolder();
+  selectedFiles = [];
+  toggleFileOperations(false);
+
+  // Show folders first, then files, both arranged line by line, side by side
+  let folders = [];
+  let filesArr = [];
+  for(let name in folderObj){
+    if(typeof folderObj[name] === 'object' && !folderObj[name].content) folders.push(name);
+    else filesArr.push(name);
+  }
+
+  folders.forEach(name => {
+    const div = document.createElement('div');
+    div.className = 'folder';
+    div.innerHTML = `<span style="font-size:2em;">📁</span>
+      <span style="margin-top:7px; font-weight:500;">${name}</span>`;
+    div.onclick = () => { path.push(name); renderFiles(); };
+    fileArea.appendChild(div);
+  });
+
+  filesArr.forEach(name => {
+    const div = document.createElement('div');
+    div.className = 'file';
+    div.innerHTML = `<span style="font-size:2em;">📄</span>
+      <span style="margin-top:7px; font-weight:500;">${name}</span>
+      <input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
+    div.onclick = function(e){
+      // Prevent checkbox click from triggering preview
+      if(e.target.tagName !== 'INPUT') previewFile(name);
     };
-    document.getElementById('backBtn').onclick = () => {
-      if (path.length > 1) {
-        path.pop();
-        renderFiles();
-      }
-    };
+    fileArea.appendChild(div);
+  });
+}
 
-    // ===== Storage Usage =====
-    function updateStorageUsage(usedPercent, usedString){
-      document.getElementById('storageUsed').style.width=usedPercent+"%";
-      document.getElementById('storageLabel').innerText = usedString;
-    }
+// Floating button
+function toggleFab() {
+  const menu = document.getElementById('fabMenu');
+  menu.style.display = menu.style.display==='flex'?'none':'flex';
+}
 
-    // ===== Theme Toggle =====
-    function toggleTheme(){
-      document.body.classList.toggle("light");
-      showToast("Theme toggled");
-    }
+// Create folder
+function createFolder() {
+  const name = prompt('Folder Name:');
+  if(!name) return;
+  const folderObj = getCurrentFolder();
+  if(folderObj[name]){ alert('Folder already exists'); return; }
+  folderObj[name] = {};
+  localStorage.setItem('files', JSON.stringify(files));
+  renderFiles();
+  toggleFab();
+}
 
-    // ===== File Manager State =====
-    let files = JSON.parse(localStorage.getItem('files') || '{"\\/":{}}');
-    let path = ['/'];
-    let selectedItems = [];
-    let searchQuery = '';
-    let sortOrder = 'name';
+// Upload file
+function uploadFile() {
+  document.getElementById('fileInput').click();
+  toggleFab();
+}
 
-    // ===== Helper Functions =====
-    function getCurrentFolder() {
-      let f = files;
-      for (let i = 1; i < path.length; i++) f = f[path[i]];
-      return f;
-    }
-    function formatBytes(bytes) {
-      if (bytes < 1024) return bytes + ' B';
-      else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-      else return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-    }
-    function formatDate(ts) {
-      if (!ts) return '';
-      let d = new Date(ts);
-      let day = d.getDate();
-      let month = d.toLocaleString('default', { month: 'short' });
-      return day + ' ' + month;
-    }
-
-    // ===== Breadcrumb Rendering =====
-    function renderBreadcrumb() {
-      const bc = document.getElementById('breadcrumb');
-      bc.innerHTML = '';
-      path.forEach((p, i) => {
-        let span = document.createElement('span');
-        span.innerText = (i === 0 ? "All files" : p);
-        if (i < path.length - 1) {
-          span.onclick = () => navigateTo(i);
-          span.tabIndex = 0;
-        } else {
-          span.style.color = "#ffd600";
-        }
-        bc.appendChild(span);
-        if (i < path.length - 1) {
-          let slash = document.createElement('span');
-          slash.innerText = ' / ';
-          slash.className = 'slash';
-          bc.appendChild(slash);
-        }
-      });
-    }
-    function navigateTo(i) {
-      path = path.slice(0, i + 1);
-      renderFiles();
-    }
-
-    // ===== File List Rendering =====
-    function renderFiles() {
-      renderBreadcrumb();
-      const fileArea = document.getElementById('fileArea');
-      fileArea.innerHTML = '';
-      selectedItems = [];
-      let folderObj = getCurrentFolder();
-      let items = Object.keys(folderObj).map(name => {
-        let isFolder = typeof folderObj[name] === 'object' && !folderObj[name].content;
-        return { name, isFolder, obj: folderObj[name] };
-      });
-      items = items.filter(item => {
-        if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-        return true;
-      });
-      if (sortOrder === 'name') items.sort((a, b) => a.name.localeCompare(b.name));
-      else if (sortOrder === 'size') items.sort((a, b) => (b.obj.size || 0) - (a.obj.size || 0));
-      // Show item count
-      let countDiv = document.createElement('div');
-      countDiv.style.color = "#ccc";
-      countDiv.style.fontSize = "1.04em";
-      countDiv.style.margin = "0.1em 0 0.7em 0.1em";
-      countDiv.innerText = items.length + " item" + (items.length !== 1 ? "s" : "") + " in total";
-      fileArea.appendChild(countDiv);
-      items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'file-item';
-        div.tabIndex = 0;
-        div.innerHTML = `
-          <span class="file-icon">${getFileIcon(item.name, item.isFolder)}</span>
-          <div class="file-info">
-            <span class="file-name">${item.name}</span>
-            <span class="file-meta">${item.isFolder ?
-              (Object.keys(item.obj).length + " items") : formatBytes(item.obj.size || 0)}
-              ${item.isFolder ? " | " + (item.obj.lastModified ? formatDate(item.obj.lastModified) : "") : (item.obj.lastModified ? " | " + formatDate(item.obj.lastModified) : "")}
-            </span>
-          </div>
-          <span class="arrow material-symbols-outlined">${item.isFolder ? "chevron_right" : ""}</span>
-        `;
-        div.onclick = function(e) {
-          document.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
-          div.classList.add('selected');
-          selectedItems = [{ name: item.name, isFolder: item.isFolder }];
-          if (item.isFolder && (e.target.classList.contains('arrow') || e.target.classList.contains('file-icon') || e.target.classList.contains('file-name'))) {
-            path.push(item.name);
-            renderFiles();
-          }
-          else if (!item.isFolder && (e.target.classList.contains('file-info') || e.target.classList.contains('file-name') || e.target.classList.contains('file-icon'))) {
-            previewFile(item.name);
-          }
-        };
-        div.ondblclick = () => { showDetails(item.name, item.isFolder); };
-        fileArea.appendChild(div);
-      });
-      updateStorageBar();
-    }
-
-    // ===== File Icon =====
-    function getFileIcon(name, isFolder) {
-      if (isFolder) return '<span class="material-symbols-outlined">folder</span>';
-      let ext = name.split('.').pop().toLowerCase();
-      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext)) return '<span class="material-symbols-outlined">image</span>';
-      if (['pdf', 'doc', 'docx', 'txt', 'xlsx', 'xls', 'pptx', 'csv', 'md'].includes(ext)) return '<span class="material-symbols-outlined">description</span>';
-      if (['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(ext)) return '<span class="material-symbols-outlined">movie</span>';
-      return '<span class="material-symbols-outlined">insert_drive_file</span>';
-    }
-
-    // ===== File Actions =====
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 1200);
-    }
-    function sortFiles() {
-      sortOrder = sortOrder === 'name' ? 'size' : 'name';
-      renderFiles();
-      showToast('Sorted by ' + (sortOrder === 'name' ? 'Name' : 'Size'));
-    }
-    function showDetailsSelected() {
-      if (selectedItems.length !== 1) return showToast('Select only one item');
-      showDetails(selectedItems[0].name, selectedItems[0].isFolder);
-    }
-    function showDetails(name, isFolder) {
-      const f = getCurrentFolder()[name];
-      if (!f) return showToast('File not found!');
-      let details =
-        `Type: ${isFolder ? 'Folder' : (f.type || 'Unknown')}\n` +
-        `Size: ${isFolder ? 'N/A' : formatBytes(f.size || 0)}\n` +
-        `Last Modified: ${isFolder ? 'N/A' : (f.lastModified ? new Date(f.lastModified).toLocaleString() : '')}`;
-      alert(details);
-    }
-    function renameSelected() {
-      if (selectedItems.length !== 1) return showToast('Select only one item');
-      const oldName = selectedItems[0].name;
-      const newName = prompt('New name:', oldName);
-      if (!newName || newName.includes('/')) return showToast('Invalid name');
-      const f = getCurrentFolder();
-      if (f[newName]) return showToast('Name already exists');
-      f[newName] = f[oldName];
-      delete f[oldName];
+// Handle file upload (multiple)
+function handleFileUpload(event){
+  const folderObj = getCurrentFolder();
+  for(const file of event.target.files){
+    const reader = new FileReader();
+    reader.onload = function(){
+      folderObj[file.name] = {
+        content: reader.result,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      };
       localStorage.setItem('files', JSON.stringify(files));
       renderFiles();
-      showToast('Renamed');
+    };
+    reader.readAsDataURL(file);
+  }
+  event.target.value = '';
+}
+
+// File selection
+function toggleSelect(checkbox,name){
+  if(checkbox.checked) selectedFiles.push(name);
+  else selectedFiles = selectedFiles.filter(n=>n!==name);
+  toggleFileOperations(selectedFiles.length>0);
+}
+
+// Show/hide file operations
+function toggleFileOperations(show){
+  document.getElementById('fileOperations').style.display = show?'flex':'none';
+}
+
+// File operations
+function downloadSelected(){
+  const folderObj = getCurrentFolder();
+  selectedFiles.forEach(name=>{
+    let fileObj = folderObj[name];
+    if(fileObj && fileObj.content){
+      const a = document.createElement('a');
+      a.href = fileObj.content;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
-    function confirmDeleteSelected() {
-      if (selectedItems.length === 0) return showToast('No items selected');
-      if (confirm('Are you sure you want to delete selected items?')) {
-        deleteSelected();
-      }
-    }
-    function deleteSelected() {
-      const f = getCurrentFolder();
-      selectedItems.forEach(i => delete f[i.name]);
-      selectedItems = [];
-      localStorage.setItem('files', JSON.stringify(files));
-      renderFiles();
-      showToast('Deleted');
-    }
-    function downloadSelected() {
-      selectedItems.forEach(i => {
-        const f = getCurrentFolder()[i.name];
-        if (!i.isFolder) {
-          const a = document.createElement('a');
-          a.href = f.content;
-          a.download = i.name;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
-      });
-      selectedItems = [];
-      showToast('Downloaded');
-    }
-    function previewFile(name) {
-      const f = getCurrentFolder()[name];
-      if (!f) return showToast('File not found!');
-      let ext = name.split('.').pop().toLowerCase();
-      let isTextFile = ['txt', 'md', 'js', 'json', 'css', 'html', 'csv'].includes(ext);
-      let isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
-      if (isImage || ['pdf'].includes(ext)) {
-        window.open(f.content, '_blank');
-      } else if (isTextFile) {
-        let reader = new FileReader();
-        reader.onload = function (ev) { showModal(ev.target.result, name); }
-        reader.readAsText(dataURLtoBlob(f.content));
-      } else {
-        showToast('Preview not available for this file type.');
-      }
-    }
-    function showModal(content, filename) {
+  });
+  cancelSelection();
+}
+function deleteSelected(){
+  if(!confirm('Delete selected files?')) return;
+  const folderObj = getCurrentFolder();
+  selectedFiles.forEach(name=>delete folderObj[name]);
+  localStorage.setItem('files', JSON.stringify(files));
+  cancelSelection();
+  renderFiles();
+}
+function renameSelected(){
+  if(selectedFiles.length!==1){ alert('Select only 1 file to rename'); return; }
+  const oldName = selectedFiles[0];
+  const newName = prompt('New name:',oldName);
+  if(!newName) return;
+  const folderObj = getCurrentFolder();
+  if(folderObj[newName]){ alert('Name already exists'); return; }
+  folderObj[newName] = folderObj[oldName];
+  delete folderObj[oldName];
+  localStorage.setItem('files', JSON.stringify(files));
+  cancelSelection();
+  renderFiles();
+}
+function cancelSelection(){
+  selectedFiles=[];
+  document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
+  toggleFileOperations(false);
+}
+
+// Preview file (basic for images/text)
+function previewFile(name){
+  const folderObj = getCurrentFolder();
+  const fileObj = folderObj[name];
+  if(!fileObj || !fileObj.content) return;
+  let ext = name.split('.').pop().toLowerCase();
+  let isImage = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext);
+  let isText = ['txt','md','js','json','css','html','csv'].includes(ext);
+  if(isImage){
+    let modal = document.createElement('div');
+    modal.style.position='fixed'; modal.style.top=0; modal.style.left=0;
+    modal.style.width='100vw'; modal.style.height='100vh';
+    modal.style.background='rgba(0,0,0,0.7)';
+    modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center';
+    modal.style.zIndex='999';
+    modal.innerHTML = `<div style="background:#fff;padding:1.1em;border-radius:12px;max-width:90vw;max-height:80vh;overflow:auto;">
+      <img src="${fileObj.content}" alt="${name}" style="max-width:500px;max-height:70vh;">
+      <div style="margin-top:0.8em;text-align:center;font-weight:500;">${name}</div>
+      <button style="margin-top:1em;float:right;background:#1976d2;color:#fff;border:none;border-radius:6px;padding:0.5em 1.3em;cursor:pointer;" onclick="this.parentNode.parentNode.remove()">Close</button>
+    </div>`;
+    document.body.appendChild(modal);
+  } else if(isText){
+    let reader = new FileReader();
+    reader.onload = function(ev){
       let modal = document.createElement('div');
-      modal.style.position = 'fixed';
-      modal.style.top = '0'; modal.style.left = '0';
-      modal.style.width = '100vw'; modal.style.height = '100vh';
-      modal.style.background = 'rgba(0,0,0,0.7)';
-      modal.style.display = 'flex';
-      modal.style.alignItems = 'center';
-      modal.style.justifyContent = 'center';
-      modal.style.zIndex = '200';
-      modal.innerHTML = `
-        <div style="background:#fff;color:#222;max-width:550px;width:90vw;max-height:70vh;overflow:auto;padding:1.3em 1em;border-radius:12px;box-shadow:0 8px 24px #2226;">
-          <div style="font-weight:bold;margin-bottom:0.7em;">${filename}</div>
-          <pre style="white-space:pre-wrap;word-break:break-all;font-size:1em;">${content}</pre>
-          <button style="margin-top:1em;float:right;background:#1976d2;color:#fff;border:none;border-radius:6px;padding:0.5em 1.3em;cursor:pointer;" onclick="this.parentNode.parentNode.remove()">Close</button>
-        </div>
-      `;
+      modal.style.position='fixed'; modal.style.top=0; modal.style.left=0;
+      modal.style.width='100vw'; modal.style.height='100vh';
+      modal.style.background='rgba(0,0,0,0.7)';
+      modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center';
+      modal.style.zIndex='999';
+      modal.innerHTML = `<div style="background:#fff;padding:1.1em;border-radius:12px;max-width:90vw;max-height:80vh;overflow:auto;">
+        <div style="font-weight:bold;margin-bottom:0.7em;">${name}</div>
+        <pre style="white-space:pre-wrap;word-break:break-all;font-size:1em;">${ev.target.result}</pre>
+        <button style="margin-top:1em;float:right;background:#1976d2;color:#fff;border:none;border-radius:6px;padding:0.5em 1.3em;cursor:pointer;" onclick="this.parentNode.parentNode.remove()">Close</button>
+      </div>`;
       document.body.appendChild(modal);
-    }
+    };
+    reader.readAsText(dataURLtoBlob(fileObj.content));
+  } else {
+    alert('Preview not available for this file type.');
+  }
+}
 
-    // ===== Utils =====
-    function dataURLtoBlob(dataurl) {
-      let arr = dataurl.split(',');
-      let mime = arr[0].match(/:(.*?);/)[1];
-      let bstr = atob(arr[1]);
-      let n = bstr.length;
-      let u8arr = new Uint8Array(n);
-      while (n--) { u8arr[n] = bstr.charCodeAt(n); }
-      return new Blob([u8arr], { type: mime });
-    }
+// Utility: DataURL to Blob for text preview
+function dataURLtoBlob(dataurl) {
+  let arr = dataurl.split(',');
+  let mime = arr[0].match(/:(.*?);/)[1];
+  let bstr = atob(arr[1]);
+  let n = bstr.length;
+  let u8arr = new Uint8Array(n);
+  while (n--) { u8arr[n] = bstr.charCodeAt(n); }
+  return new Blob([u8arr], { type: mime });
+}
 
-    // ===== Search =====
-    function searchFiles(q) {
-      searchQuery = q;
-      renderFiles();
-    }
+// Initial render
+renderFiles();
+</script>
 
-    // ===== Drag & Drop =====
-    document.addEventListener('dragover', e => e.preventDefault(), false);
-    document.addEventListener('drop', e => {
-      if (document.getElementById('fileArea')) {
-        e.preventDefault();
-        if (e.dataTransfer.files && e.dataTransfer.files.length) {
-          document.getElementById('fileInput').files = e.dataTransfer.files;
-          handleFileUpload({ target: { files: e.dataTransfer.files } });
-        }
-      }
-    }, false);
-
-    // ===== Storage Bar Calculation =====
-    function updateStorageBar() {
-      let total = 0;
-      function calc(obj) {
-        for (let k in obj) {
-          if (obj[k].content) total += obj[k].size || 0;
-          else calc(obj[k]);
-        }
-      }
-      calc(files['/']);
-      let quota = 5 * 1024 * 1024;
-      let usedPercent = Math.min(100, (total / quota) * 100);
-      let usedString = formatBytes(total) + " / 5 MB";
-      updateStorageUsage(usedPercent, usedString);
-    }
-
-    // ===== File Upload =====
-    function handleFileUpload(e) {
-      const f = getCurrentFolder();
-      for (const file of e.target.files) {
-        const reader = new FileReader();
-        reader.onload = function (ev) {
-          f[file.name] = {
-            content: ev.target.result,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified
-          };
-          localStorage.setItem('files', JSON.stringify(files));
-          renderFiles();
-          showToast('File uploaded: ' + file.name);
-        };
-        reader.readAsDataURL(file);
-      }
-      e.target.value = '';
-    }
-
-    // ===== Init =====
-    renderFiles();
-    updateStorageBar();
-
-  </script>
 </body>
 </html>

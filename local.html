@@ -15,187 +15,238 @@
       color: #fff;
       margin: 0;
       min-height: 100vh;
-      transition: background 0.3s;
       width: 100vw;
       overflow-x: hidden;
+      transition: background 0.3s;
     }
     body.light {
       background-color: #f5f5f5;
       color: #222;
     }
     .header {
-      background: linear-gradient(to right,#1976d2,#388e3c);
-      color: #fff;
-      font-size: 1.5rem;
-      padding: 1rem 2rem 1rem 2rem;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      position: relative;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      gap: 1rem;
+      justify-content: space-between;
+      background: #181818;
+      padding: 0.7rem 1.5rem 0.5rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      border-bottom: 1px solid #232323;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
     }
     .header .icon-btn {
       background: none;
       border: none;
       color: #fff;
-      font-size: 1.4em;
+      font-size: 1.65em;
       cursor: pointer;
       display: flex;
       align-items: center;
-      border-radius: 7px;
-      padding: 0.2em 0.5em;
-      transition: background 0.2s, opacity 0.2s;
+      border-radius: 50%;
+      padding: 0.32em;
+      transition: background 0.2s, color 0.2s;
     }
-    .header .icon-btn:hover {
-      background: #388e3c22;
-      opacity: 0.85;
+    .header .icon-btn:active,
+    .header .icon-btn:focus {
+      background: #222;
+      outline: none;
     }
-    .header .breadcrumb-block {
+    .header .docard-title {
+      font-weight: 700;
+      font-size: 1.27rem;
+      letter-spacing: 1px;
+      margin-left: 0.2rem;
+      color: #fff;
+    }
+    .breadcrumb-block {
       display: flex;
       align-items: center;
-      font-size: 1rem;
       gap: 0.1em;
+      font-size: 1.09rem;
       color: #bbb;
       min-width: 0;
       overflow-x: auto;
-      margin-right: auto;
+      margin-left: 1.3rem;
     }
-    .header .breadcrumb-block span {
+    .breadcrumb-block span {
       cursor: pointer;
-      padding: 0 4px;
+      padding: 0 6px;
       border-radius: 4px;
-      transition: background .18s;
+      transition: background .18s, color .2s;
       white-space: nowrap;
+      color: #90caf9;
     }
-    .header .breadcrumb-block .slash {
+    .breadcrumb-block .slash {
       cursor: default;
-      color: #eee;
+      color: #888;
       font-size: 1.15em;
       padding: 0 2px;
     }
-    .header .breadcrumb-block span:not(.slash):hover { background: #388e3c22; }
-    .header .docard-title {
-      font-weight: 700;
-      font-size: 1.18rem;
-      letter-spacing: 1px;
-      margin-left: 0.2rem;
-      margin-right: 0.6rem;
+    .breadcrumb-block span:not(.slash):hover {
+      background: #1976d2;
+      color: #fff;
     }
-    .header .search-btn,
-    .header .settings-btn {
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+    }
+    .header .search-btn, .header .settings-btn {
       background: none;
       border: none;
       color: #fff;
-      font-size: 1.5rem;
+      font-size: 1.55rem;
       cursor: pointer;
-      border-radius: 7px;
-      padding: 0.2em 0.5em;
-      margin-left: 0.5rem;
-      transition: color 0.2s, background 0.2s;
+      border-radius: 50%;
+      padding: 0.32em;
+      transition: background 0.2s, color 0.2s;
+      margin-left: 0.3em;
     }
-    .header .search-btn:hover,
-    .header .settings-btn:hover { color: #ffd600; background: #388e3c22; }
+    .header .search-btn:hover, .header .settings-btn:hover {
+      background: #222;
+      color: #ffd600;
+    }
     .settings-dropdown {
       position: absolute;
-      right: 2rem;
-      top: 3.2rem;
-      background: #222;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+      right: 1.6rem;
+      top: 3.5rem;
+      background: #232323;
+      border-radius: 11px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28);
       display: none;
       flex-direction: column;
-      min-width: 180px;
-      z-index: 10;
+      min-width: 185px;
+      z-index: 30;
+      border: 1px solid #222;
+      animation: fadeIn 0.22s;
     }
     .settings-dropdown.show { display: flex; }
     .settings-dropdown button {
       background: none;
       border: none;
       color: #fff;
-      padding: 0.8em 1.3em;
+      padding: 0.9em 1.3em;
       text-align: left;
-      font-size: 1rem;
+      font-size: 1.03em;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.18s, color 0.18s;
+      border-radius: 7px;
+      margin: 0.5px 0;
     }
-    .settings-dropdown button:hover { background: #333; }
+    .settings-dropdown button:hover {
+      background: #1976d2;
+      color: #fff;
+    }
     .storage-bar {
-      width: 98vw;
-      margin: 1rem auto 0.5rem auto;
-      background: #353535;
-      border-radius: 8px;
-      height: 10px;
+      width: 96vw;
+      margin: 1rem auto 0.7rem auto;
+      background: #232323;
+      border-radius: 9px;
+      height: 12px;
       overflow: hidden;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.13);
       max-width: 720px;
+      position: relative;
     }
     .storage-bar .used {
-      background: linear-gradient(90deg,#388e3c,#1976d2 90%);
+      background: linear-gradient(90deg,#388e3c,#1976d2 95%);
       height: 100%;
       width: 0%;
-      border-radius: 8px;
+      border-radius: 9px;
       transition: width 0.3s;
+    }
+    .storage-label {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.92em;
+      color: #a6a6a6;
     }
     .manager-container {
       background: #181818;
-      border-radius: 12px 12px 0 0;
+      border-radius: 16px 16px 0 0;
       margin: 0 auto;
       max-width: 900px;
       min-height: 60vh;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.09);
       padding-bottom: 2.5em;
-      width: 98vw;
-    }
-    .manager-toolbar {
-      display: none;
+      width: 97vw;
+      margin-top: 0.7rem;
     }
     .folder-list-container {
-      padding: 1em 0.7em;
-      min-height: 300px;
+      padding: 0.5em 0.7em 1.5em 0.7em;
+      min-height: 320px;
       background: #181818;
-      border-radius: 0 0 12px 12px;
+      border-radius: 0 0 16px 16px;
       width: 100%;
       box-sizing: border-box;
     }
     #fileArea {
       display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(96%,1fr));
       grid-gap: 0.5em;
       outline: none;
-      transition: grid-template-columns 0.2s;
-      margin-top: 0.5em;
+      margin-top: 0.7em;
       width: 100%;
       box-sizing: border-box;
     }
     .file-item {
-      background: none;
-      border-radius: 8px;
-      padding: 0.6em 0.5em;
+      background: #191d1f;
+      border-radius: 11px;
+      padding: 0.7em 0.7em 0.7em 0.7em;
       display: flex;
       align-items: center;
-      gap: 0.6em;
+      gap: 0.8em;
       cursor: pointer;
-      transition: background 0.18s, box-shadow 0.18s;
+      transition: background 0.16s, box-shadow 0.16s;
       box-shadow: none;
       min-width: 0;
       width: 100%;
-      border-bottom: 1px solid #232323;
+      border-bottom: 1px solid #252525;
+      margin-bottom: 0.1em;
     }
-    .file-item:hover, .file-item:focus { background: #1976d222; }
-    .file-icon { font-size: 2em; color: #ffd600; min-width: 2em;}
+    .file-item:hover, .file-item:focus {
+      background: #1976d233;
+      box-shadow: 0 2px 8px #1976d24a;
+    }
+    .file-icon { font-size: 2.19em; color: #4597ff; min-width: 2.3em;}
     .file-info {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 0.1em;
-      cursor: pointer;
+      gap: 0.07em;
       min-width: 0;
       overflow: hidden;
     }
-    .file-name { font-weight: 500; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;}
-    .file-meta { font-size: 0.9em; color: #aaa; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;}
-    .arrow { margin-left: auto; color: #888; font-size: 1.5em; }
-    .fab, #fabMenu, #fileOperations { display: none; }
+    .file-name {
+      font-weight: 500;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 1.13em;
+      color: #fff;
+      letter-spacing: 0.2px;
+    }
+    .file-meta {
+      font-size: 0.98em;
+      color: #aaa;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      margin-top: 3px;
+    }
+    .arrow { margin-left: auto; color: #888; font-size: 1.55em; }
+    .file-item.selected {
+      background: #388e3c55;
+      box-shadow: 0 4px 16px #388e3c66;
+    }
     .toast {
       position: fixed;
       left: 50%;
@@ -217,12 +268,12 @@
     }
     @media (max-width: 900px) {
       .manager-container { max-width: 100vw; }
-      .header { font-size: 1.18rem; padding: 1rem 0.7rem;}
+      .header { font-size: 1.15rem; padding: 1rem 0.7rem;}
       .storage-bar { max-width: 100vw;}
     }
     @media (max-width: 600px) {
       .manager-container { max-width: 100vw; border-radius: 0;}
-      .header { padding: 1rem 0.7rem; flex-direction: column; gap: 0.5rem;}
+      .header { padding: 1rem 0.7rem; flex-direction: column; gap: 0.7rem;}
       .settings-dropdown { right: 0.7rem;}
       .breadcrumb-block { font-size: 0.97rem;}
       .storage-bar {max-width: 100vw;}
@@ -235,32 +286,36 @@
 </head>
 <body>
   <div class="header">
-    <button class="icon-btn" id="homeBtn" title="Home">
-      <span class="material-symbols-outlined">home</span>
-    </button>
-    <button class="icon-btn" id="backBtn" title="Back">
-      <span class="material-symbols-outlined">arrow_back</span>
-    </button>
-    <div class="breadcrumb-block" id="breadcrumb"></div>
-    <span class="docard-title">Docard</span>
-    <div style="flex:1"></div>
-    <button class="search-btn" id="searchBtn" title="Search">
-      <span class="material-symbols-outlined">search</span>
-    </button>
-    <button id="settingsBtn" class="settings-btn material-symbols-outlined" aria-label="Settings" title="Menu">more_vert</button>
-    <div id="settingsMenu" class="settings-dropdown">
-      <button onclick="location.href='local.html'">📂 Local Storage</button>
-      <button onclick="location.href='cloud.html'">☁️ Cloud Storage</button>
-      <button onclick="toggleTheme()">🌙 Toggle Theme</button>
-      <button onclick="sortFiles()">Sort Files</button>
-      <button onclick="showDetailsSelected()">File Details</button>
-      <button onclick="downloadSelected()">Download</button>
-      <button onclick="renameSelected()">Rename</button>
-      <button onclick="confirmDeleteSelected()">Delete</button>
+    <div class="header-left">
+      <button class="icon-btn" id="homeBtn" title="Home">
+        <span class="material-symbols-outlined">home</span>
+      </button>
+      <button class="icon-btn" id="backBtn" title="Back">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <span class="docard-title">Local</span>
+      <div class="breadcrumb-block" id="breadcrumb"></div>
+    </div>
+    <div class="header-right">
+      <button class="search-btn" id="searchBtn" title="Search">
+        <span class="material-symbols-outlined">search</span>
+      </button>
+      <button id="settingsBtn" class="settings-btn material-symbols-outlined" aria-label="Settings" title="Menu">more_vert</button>
+      <div id="settingsMenu" class="settings-dropdown">
+        <button onclick="location.href='local.html'">📂 Local Storage</button>
+        <button onclick="location.href='cloud.html'">☁️ Cloud Storage</button>
+        <button onclick="toggleTheme()">🌙 Toggle Theme</button>
+        <button onclick="sortFiles()">Sort Files</button>
+        <button onclick="showDetailsSelected()">File Details</button>
+        <button onclick="downloadSelected()">Download</button>
+        <button onclick="renameSelected()">Rename</button>
+        <button onclick="confirmDeleteSelected()">Delete</button>
+      </div>
     </div>
   </div>
   <div class="storage-bar">
     <div class="used" id="storageUsed"></div>
+    <span class="storage-label" id="storageLabel"></span>
   </div>
   <div class="manager-container">
     <div class="folder-list-container">
@@ -290,12 +345,10 @@
         renderFiles();
       }
     };
-    document.getElementById('searchBtn').onclick = () => {
-      document.getElementById('searchBar')?.focus();
-    };
     // ===== Storage Usage =====
-    function updateStorageUsage(usedPercent){
+    function updateStorageUsage(usedPercent, usedString){
       document.getElementById('storageUsed').style.width=usedPercent+"%";
+      document.getElementById('storageLabel').innerText = usedString;
     }
     // ===== Theme Toggle =====
     function toggleTheme(){
@@ -323,7 +376,7 @@
       if (!ts) return '';
       let d = new Date(ts);
       let day = d.getDate();
-      let month = d.toLocaleString('default', { month: 'long' });
+      let month = d.toLocaleString('default', { month: 'short' });
       return day + ' ' + month;
     }
     // ===== Breadcrumb Rendering =====
@@ -372,8 +425,8 @@
       // Show item count
       let countDiv = document.createElement('div');
       countDiv.style.color = "#ccc";
-      countDiv.style.fontSize = "1.02em";
-      countDiv.style.margin = "0.3em 0 0.7em 0.1em";
+      countDiv.style.fontSize = "1.04em";
+      countDiv.style.margin = "0.1em 0 0.7em 0.1em";
       countDiv.innerText = items.length + " item" + (items.length !== 1 ? "s" : "") + " in total";
       fileArea.appendChild(countDiv);
       items.forEach(item => {
@@ -389,16 +442,20 @@
               ${item.isFolder ? " | " + (item.obj.lastModified ? formatDate(item.obj.lastModified) : "") : (item.obj.lastModified ? " | " + formatDate(item.obj.lastModified) : "")}
             </span>
           </div>
-          <span class="arrow material-symbols-outlined">chevron_right</span>
+          <span class="arrow material-symbols-outlined">${item.isFolder ? "chevron_right" : ""}</span>
         `;
-        if (item.isFolder) {
-          div.onclick = (e) => {
+        div.onclick = function(e) {
+          document.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedItems = [{ name: item.name, isFolder: item.isFolder }];
+          if (item.isFolder && (e.target.classList.contains('arrow') || e.target.classList.contains('file-icon') || e.target.classList.contains('file-name'))) {
             path.push(item.name);
             renderFiles();
-          };
-        } else {
-          div.onclick = () => { previewFile(item.name); };
-        }
+          }
+          else if (!item.isFolder && (e.target.classList.contains('file-info') || e.target.classList.contains('file-name') || e.target.classList.contains('file-icon'))) {
+            previewFile(item.name);
+          }
+        };
         div.ondblclick = () => { showDetails(item.name, item.isFolder); };
         fileArea.appendChild(div);
       });
@@ -413,14 +470,6 @@
       if (['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(ext)) return '<span class="material-symbols-outlined">movie</span>';
       return '<span class="material-symbols-outlined">insert_drive_file</span>';
     }
-    // ===== Selection logic (for menu actions) =====
-    document.getElementById('fileArea').onclick = function(e) {
-      let itemDiv = e.target.closest('.file-item');
-      if (!itemDiv) return;
-      let name = itemDiv.querySelector('.file-name').innerText;
-      let isFolder = itemDiv.querySelector('.file-icon .material-symbols-outlined').innerText === 'folder';
-      selectedItems = [{ name, isFolder }];
-    };
     // ===== File Actions =====
     function showToast(msg) {
       const t = document.getElementById('toast');
@@ -559,8 +608,10 @@
         }
       }
       calc(files['/']);
-      let usedPercent = Math.min(100, (total / (5 * 1024 * 1024)) * 100); // simulate 5MB quota
-      document.getElementById('storageUsed').style.width = usedPercent + "%";
+      let quota = 5 * 1024 * 1024;
+      let usedPercent = Math.min(100, (total / quota) * 100);
+      let usedString = formatBytes(total) + " / 5 MB";
+      updateStorageUsage(usedPercent, usedString);
     }
     // ===== File Upload =====
     function handleFileUpload(e) {
@@ -584,7 +635,7 @@
     }
     // ===== Init =====
     renderFiles();
-    updateStorageUsage(40); // Example
+    updateStorageBar();
   </script>
 </body>
 </html>

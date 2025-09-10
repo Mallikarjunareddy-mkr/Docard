@@ -1,52 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Docard - Cloud Storage</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: "Roboto", sans-serif;
+      background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(15, 30, 50, 0.9);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      z-index: 100;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      animation: thunder 3s infinite;
+    }
+    @keyframes thunder {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow: 0 0 5px #00e5ff, 
+                     0 0 15px #00e5ff, 
+                     0 0 30px #00ffff;
+      }
+      20%, 24%, 55% {
+        text-shadow: 0 0 2px #fff, 
+                     0 0 10px #fff, 
+                     0 0 20px #00ffff;
+      }
+    }
+    .toolbar button, .toolbar a {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      font-size: 1.4rem;
+      transition: color 0.2s;
+    }
+    .toolbar button:hover, .toolbar a:hover {
+      color: #00e5ff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+
+    /* Main content */
+    main {
+      padding: 80px 1.5rem 1.5rem;
+    }
+    .card {
+      background: rgba(25, 50, 70, 0.9);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,229,255,0.3);
+    }
+    .card h3 {
+      margin: 0 0 1rem;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .card p {
+      color: #bbb;
+    }
+
+    /* Cloud provider buttons */
+    .providers {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .provider-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.8rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #555, #444);
+      color: #aaa;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .provider-btn span {
+      font-size: 1.4rem;
+    }
+
+    /* Floating action button (disabled) */
+    .fab {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: linear-gradient(135deg, #555, #444);
+      color: #aaa;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  </style>
 </head>
 <body>
+  <!-- Header -->
   <header>
-    <span style="font-size:2em;color:var(--color-primary);font-weight:bold;">Docard</span>
+    <span class="logo">Docard</span>
     <div class="toolbar">
-      <button title="Help" onclick="openHelpModal()" aria-label="Help">
-        <span class="material-symbols-outlined">help</span>
-      </button>
-      <button title="Toggle Dark Mode" onclick="toggleTheme()" aria-label="Toggle Theme">
-        <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
-      </button>
-      <button title="Settings" onclick="openSettings()" aria-label="Settings">
-        <span class="material-symbols-outlined">settings</span>
-      </button>
-      <button title="Exit" onclick="window.location.href='index.html'" aria-label="Exit">
-        <span class="material-symbols-outlined">logout</span>
-      </button>
+      <button onclick="openHelpModal()" title="Help"><span class="material-symbols-outlined">help</span></button>
+      <button onclick="toggleTheme()" title="Toggle Dark Mode"><span class="material-symbols-outlined">light_mode</span></button>
+      <button onclick="openSettings()" title="Settings"><span class="material-symbols-outlined">settings</span></button>
+      <a href="index.html" title="Exit"><span class="material-symbols-outlined">logout</span></a>
     </div>
   </header>
-  <div id="sidebar">
-    <button onclick="window.location.href='index.html'"><span class="material-symbols-outlined">home</span> Home</button>
-    <button onclick="window.location.href='local.html'"><span class="material-symbols-outlined">folder</span> Local Storage</button>
-    <button class="active"><span class="material-symbols-outlined">cloud</span> Cloud Storage</button>
-  </div>
-  <div class="main-content">
-    <div id="cloudPage" class="page active">
-      <div class="card" style="flex-direction:column;align-items:center;text-align:center;">
-        <span class="material-symbols-outlined" style="font-size:54px;color:var(--color-accent);">cloud</span>
-        <h2 style="margin-top:8px;">Cloud Storage</h2>
-        <p style="color:var(--color-muted);">Integration coming soon!<br>Stay tuned for Google Drive, Dropbox, OneDrive and more.</p>
-        <button class="filter-btn" style="margin-top:22px;" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">arrow_back</span>Back to Home</button>
+
+  <!-- Main content -->
+  <main>
+    <div class="card">
+      <h3><span class="material-symbols-outlined">cloud</span> Cloud Storage</h3>
+      <p>Integration with cloud providers is <strong>coming soon</strong>.</p>
+      <div class="providers">
+        <button class="provider-btn"><span class="material-symbols-outlined">cloud</span> Google Drive</button>
+        <button class="provider-btn"><span class="material-symbols-outlined">folder_shared</span> Dropbox</button>
+        <button class="provider-btn"><span class="material-symbols-outlined">cloud_sync</span> OneDrive</button>
       </div>
     </div>
+  </main>
+
+  <!-- Disabled Floating Action Button -->
+  <div class="fab">
+    <span class="material-symbols-outlined">add</span>
   </div>
-  <div id="helpModal" style="display:none;">
-    <!-- ...Help modal as in your previous code... -->
-  </div>
-  <div id="settingsModal" style="display:none;">
-    <!-- ...Settings modal as in your previous code... -->
-  </div>
+
+  <!-- Modals -->
+  <div id="settingsModal" class="modal"></div>
+  <div id="helpModal" class="modal"></div>
+
   <script src="script.js"></script>
 </body>
 </html>

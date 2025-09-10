@@ -3,154 +3,395 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web File Manager</title>
+<title>Docard - Web File Manager</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet" />
 <style>
-body { margin:0; font-family:'Roboto', Arial, sans-serif; background:#fafafa; }
-.page { display:none; padding:0; }
-.page.active { display:block; }
-button { cursor:pointer; font-family: inherit; }
+:root {
+    --color-primary: #1976d2;
+    --color-primary-dark: #1565c0;
+    --color-accent: #00bcd4;
+    --color-bg: #f5f7fa;
+    --color-bg-dark: #121212;
+    --color-card: #fff;
+    --color-card-dark: #232323;
+    --color-text: #222;
+    --color-text-dark: #f5f7fa;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --radius: 12px;
+    --transition: .2s;
+    --header-height: 56px;
+}
+body {
+    margin:0;
+    font-family:'Roboto', Arial, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    transition: background .3s, color .3s;
+}
+body.dark {
+    background: var(--color-bg-dark);
+    color: var(--color-text-dark);
+}
+.page { display:none; }
+.page.active { display:block; animation:fadeIn .5s;}
+@keyframes fadeIn {from{opacity:0;} to{opacity:1;}}
 
-header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-#backBtnFile, #backBtnDashboard { cursor:pointer; color:#0d6efd; font-weight:bold; }
-#breadcrumb { display:flex; flex-wrap:wrap; gap:5px; font-size:14px; }
-#breadcrumb span { cursor:pointer; color:#0d6efd; }
+header {
+    height: var(--header-height);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 20px;
+    background:var(--color-card);
+    box-shadow:var(--shadow);
+    position:sticky;
+    top:0; z-index:10;
+    transition: background .3s, color .3s;
+}
+body.dark header { background: var(--color-card-dark); color:var(--color-text-dark);}
+.toolbar {margin-left:auto; display:flex;align-items:center;gap:10px;}
+.toolbar button {
+    background:none; border:none; color:var(--color-primary);
+    padding:6px 10px; border-radius:20px; font-size:20px; cursor:pointer;
+    transition: background var(--transition);
+}
+.toolbar button:hover { background: #e3f2fd;}
+body.dark .toolbar button:hover { background: #234;}
 
-#fileArea { padding:10px; display:grid; grid-template-columns: 1fr; gap:10px; }
-.file-item { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:0.2s; }
-.file-item:hover { background:#e0f2ff; }
-.file-icon { font-size:24px; margin-right:10px; }
-.file-info { display:flex; flex-direction:column; }
-.file-name { font-weight:bold; }
-.file-meta { font-size:12px; color:#555; }
-.checkbox { margin-left:10px; }
+#sidebar {
+    position:fixed; left:0; top:var(--header-height); 
+    width:220px; height:calc(100% - var(--header-height));
+    background:var(--color-card); box-shadow: 2px 0 8px rgba(0,0,0,0.06);
+    display:flex; flex-direction:column; gap:2px; z-index:10;
+    transition: background .3s;
+}
+body.dark #sidebar { background: var(--color-card-dark);}
+#sidebar button {
+    background:none; border:none; text-align:left;
+    padding:16px 24px; font-size:16px; color:var(--color-text); 
+    cursor:pointer; font-weight:500; border-radius:0 20px 20px 0;
+    display:flex; align-items:center; gap:10px;
+    transition: background var(--transition);
+}
+body.dark #sidebar button { color:var(--color-text-dark);}
+#sidebar button.active, #sidebar button:hover {
+    background:var(--color-primary); color:#fff;
+}
+#sidebar .material-symbols-outlined { font-size:22px;}
 
-.grid-view #fileArea { grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); }
-.grid-view .file-item { flex-direction:column; align-items:center; text-align:center; }
-.grid-view .file-meta { display:none; }
-.grid-view .checkbox { margin:5px 0 0 0; }
+.main-content { margin-left:220px; padding:26px 16px 0 16px; transition:margin .3s;}
+@media(max-width:900px){ #sidebar{position:static;width:100%;height:auto;} .main-content{margin-left:0;} }
 
-.fab { position:fixed; bottom:30px; right:30px; width:60px; height:60px; border-radius:50%; background:#0d6efd; color:#fff; font-size:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:100; }
-#fabMenu, #fileOperations { position:fixed; background:#fff; border:1px solid #ccc; border-radius:8px; display:none; flex-direction:column; width:180px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:120;}
-#fabMenu button, #fileOperations button { padding:12px 16px; text-align:left; border:none; background:none; cursor:pointer; font-size:14px; }
-#fabMenu button:hover, #fileOperations button:hover { background:#f0f0f0; }
+.card {
+    background:var(--color-card); box-shadow:var(--shadow); border-radius:var(--radius);
+    padding:18px; margin-bottom:18px; transition:box-shadow var(--transition);
+    display:flex; align-items:center; gap:18px;
+}
+body.dark .card { background:var(--color-card-dark);}
+.card:hover { box-shadow:0 6px 20px rgba(25,118,210,0.14);}
+.card h3 {margin:0;font-size:18px;font-weight:500;}
+.card p {margin:4px 0 0 0;color:#666;}
+body.dark .card p {color:#aaa;}
+.card .material-symbols-outlined {font-size:32px;color:var(--color-primary);}
 
-.dashboard { padding:20px; display:flex; flex-direction:column; gap:15px; }
-.card { padding:20px; border-radius:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer; display:flex; align-items:center; gap:15px; transition:0.2s; }
-.card:hover { box-shadow:0 4px 12px rgba(0,0,0,0.2); transform: translateY(-2px); }
-.card h3 { margin:0; font-size:16px; }
-.card p { margin:0; color:#555; }
-.card i { font-size:28px; color:#0d6efd; }
+.filters {display:flex;gap:10px;flex-wrap:wrap;}
+.filter-btn {
+    display:flex;align-items:center;gap:7px;
+    padding:8px 15px;border:none;background:#e3f2fd;border-radius:18px;
+    font-size:15px;cursor:pointer;transition:.2s;
+}
+.filter-btn.active, .filter-btn:hover { background:var(--color-primary); color:#fff;}
+body.dark .filter-btn { background:#234;}
+body.dark .filter-btn.active, body.dark .filter-btn:hover { background:var(--color-primary-dark); color:#fff;}
+.filter-btn .material-symbols-outlined {font-size:18px;}
 
-.filters { display:flex; gap:12px; flex-wrap:wrap; }
-.filter-btn { display:flex; align-items:center; gap:8px; padding:8px 12px; border:none; background:#f0f0f0; border-radius:20px; font-size:14px; cursor:pointer; transition:0.2s; }
-.filter-btn.active { background:#0d6efd; color:#fff; }
-.filter-btn i { font-size:18px; color:#0d6efd; }
-.filter-btn.active i { color:#fff; }
+#searchBar {
+    width:100%;padding:10px 16px;margin:12px 0;
+    border-radius:20px;border:1px solid #bbb; font-size:15px;
+    background:var(--color-bg); color:var(--color-text);
+    transition:.2s;
+}
+body.dark #searchBar { background:var(--color-bg-dark); color:var(--color-text-dark); border-color:#555;}
 
-#searchBar { margin:10px 10px 0 10px; padding:8px; width:calc(100% - 20px); border-radius:20px; border:1px solid #ccc; }
+#fileArea {
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:22px;padding-bottom:48px;
+}
+.file-item {
+    background:var(--color-card); box-shadow:var(--shadow); border-radius:var(--radius);
+    display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+    padding:16px;transition:.2s; position:relative;
+    cursor:pointer;
+}
+body.dark .file-item { background:var(--color-card-dark);}
+.file-item.selected, .file-item:hover { background:#e3f2fd;}
+body.dark .file-item.selected, body.dark .file-item:hover { background:#234;}
+.file-icon {
+    font-size:36px; margin-bottom:8px; color:var(--color-accent);
+}
+body.dark .file-icon { color:#4dd0e1;}
+.file-info { width:100%;}
+.file-name {font-weight:500;font-size:15px;word-break:break-all;}
+.file-meta {font-size:12px;color:#666;}
+body.dark .file-meta {color:#aaa;}
+.file-checkbox {
+    position:absolute;top:12px;right:12px;transform:scale(1.3);
+}
 
-#previewModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:200; }
-#previewContent { max-width:90%; max-height:90%; background:#fff; padding:15px; border-radius:8px; overflow:auto; box-shadow:0 4px 12px rgba(0,0,0,0.3);}
-#previewContent img, #previewContent iframe, #previewContent pre { max-width:100%; max-height:100%; display:block; margin:0 auto; }
+.fab {
+    position:fixed;bottom:30px;right:30px;width:60px;height:60px;
+    border-radius:50%;background:var(--color-primary);color:#fff;
+    font-size:38px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 16px rgba(25,118,210,0.2);cursor:pointer;z-index:220;
+    transition:background .2s;
+}
+.fab:hover { background:var(--color-primary-dark);}
+#fabMenu, #fileOperations {
+    position:fixed; right:30px; bottom:100px; background:var(--color-card); 
+    border-radius:var(--radius); box-shadow:var(--shadow); display:none;
+    flex-direction:column; width:200px; z-index:221; animation:fadeIn .3s;
+}
+body.dark #fabMenu, body.dark #fileOperations{ background:var(--color-card-dark);}
+#fabMenu button, #fileOperations button {
+    padding:14px 18px; text-align:left; border:none; background:none;
+    cursor:pointer; font-size:15px;transition:.2s;
+}
+#fabMenu button:hover, #fileOperations button:hover {background:#e3f2fd;}
+body.dark #fabMenu button:hover, body.dark #fileOperations button:hover {background:#234;}
+
+#previewModal {
+    display:none; position:fixed;top:0;left:0;width:100vw;height:100vh;
+    background:rgba(25,118,210,0.7); justify-content:center;align-items:center;z-index:999;
+    animation:fadeIn .3s;
+}
+#previewContent {
+    max-width:90vw;max-height:90vh;background:var(--color-card); 
+    padding:34px 34px 18px 34px; border-radius:var(--radius);
+    overflow:auto;box-shadow:0 8px 32px rgba(25,118,210,0.2);
+    display:flex;flex-direction:column;align-items:center;
+}
+body.dark #previewContent { background: var(--color-card-dark);}
+#previewContent img, #previewContent iframe, #previewContent pre {max-width:100%;max-height:70vh;display:block;margin:0 auto;}
+#previewContent h4 {margin:0 0 10px 0;}
+#previewClose {
+    position:absolute;top:22px;right:26px;font-size:28px;cursor:pointer;color:var(--color-primary);
+    background:none;border:none;
+}
+
+.toast {
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--color-primary);color:#fff;padding:12px 24px;
+    border-radius:25px;font-size:15px;box-shadow:0 4px 18px rgba(25,118,210,0.15);
+    z-index:1002;display:none;animation:fadeIn .4s;
+}
+body.dark .toast { background: var(--color-primary-dark);}
+::-webkit-scrollbar{width:12px;background:#eee;}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:10px;}
+body.dark ::-webkit-scrollbar{background:#232;}
+body.dark ::-webkit-scrollbar-thumb{background:#444;}
 </style>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-
-<!-- Home Page -->
-<div id="homePage" class="page active" style="padding:20px;">
-    <h1>Web File Manager</h1>
-    <div style="margin-top:20px; display:flex; flex-direction:column; gap:15px;">
-        <button onclick="openManager('local')" style="padding:15px 20px; font-size:16px;">Local Storage</button>
-        <button onclick="openManager('cloud')" style="padding:15px 20px; font-size:16px;">Cloud Storage</button>
+<!-- Header -->
+<header>
+    <span style="font-size:2em;color:var(--color-primary);font-weight:bold;letter-spacing:2px;">Docard</span>
+    <div class="toolbar">
+        <button title="Toggle Dark Mode" onclick="toggleTheme()">
+            <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
+        </button>
+        <button title="Settings" onclick="openSettings()">
+            <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button title="Exit" onclick="exitToHome()">
+            <span class="material-symbols-outlined">logout</span>
+        </button>
     </div>
+</header>
+
+<!-- Sidebar -->
+<div id="sidebar">
+    <button id="navHome" class="active" onclick="showPage('homePage')">
+        <span class="material-symbols-outlined">home</span> Home
+    </button>
+    <button id="navLocal" onclick="showPage('localDashboard')">
+        <span class="material-symbols-outlined">folder</span> Local Storage
+    </button>
+    <button id="navCloud" onclick="showPage('cloudPage')">
+        <span class="material-symbols-outlined">cloud</span> Cloud Storage
+    </button>
 </div>
 
-<!-- Local Dashboard -->
-<div id="localDashboard" class="page">
-    <header>
-        <span id="backBtnDashboard" onclick="exitToHome()">⬅ Back</span>
-        <h2 style="margin-left:10px;">Local Storage</h2>
-    </header>
-    <div class="dashboard">
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Home Page -->
+    <div id="homePage" class="page active">
+        <div class="card" style="justify-content:center;flex-direction:column;align-items:center;">
+            <span class="material-symbols-outlined" style="font-size:54px;color:var(--color-primary);">folder_open</span>
+            <h1 style="font-size:2.1em;margin:12px 0 0 0;">Docard File Manager</h1>
+            <p style="font-size:17px;color:#888;margin-top:10px;">A modern, secure file manager for your browser. Manage your files like you do on Android or desktop, with cloud and local support.</p>
+        </div>
+        <div style="display:flex;gap:18px;margin-top:32px;flex-wrap:wrap;">
+            <button class="filter-btn" style="font-size:1.1em;" onclick="showPage('localDashboard')">
+                <span class="material-symbols-outlined">storage</span> Local Storage
+            </button>
+            <button class="filter-btn" style="font-size:1.1em;" onclick="showPage('cloudPage')">
+                <span class="material-symbols-outlined">cloud</span> Cloud Storage
+            </button>
+        </div>
+    </div>
+
+    <!-- Local Dashboard -->
+    <div id="localDashboard" class="page">
         <div class="card">
-            <i class="material-icons">storage</i>
+            <span class="material-symbols-outlined">storage</span>
             <div>
-                <h3>Storage</h3>
-                <p>Used: 16 MB / Total: 100 MB</p>
+                <h3>Storage Usage</h3>
+                <p id="storageInfo">Used: ... / Total: 100 MB</p>
             </div>
         </div>
-        <div class="card" style="flex-direction:column; gap:10px;">
+        <div class="card" style="flex-direction:column;gap:10px;">
             <h3>Filters</h3>
             <div class="filters">
-                <button id="filterImages" class="filter-btn" onclick="filterFiles('images')"><i class="material-icons">image</i>Images</button>
-                <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')"><i class="material-icons">description</i>Documents</button>
-                <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')"><i class="material-icons">videocam</i>Videos</button>
-                <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')"><i class="material-icons">folder</i>Others</button>
+                <button id="filterImages" class="filter-btn" onclick="filterFiles('images')"><span class="material-symbols-outlined">image</span>Images</button>
+                <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')"><span class="material-symbols-outlined">description</span>Documents</button>
+                <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')"><span class="material-symbols-outlined">movie</span>Videos</button>
+                <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')"><span class="material-symbols-outlined">folder</span>Others</button>
+                <button class="filter-btn" onclick="clearFilters()"><span class="material-symbols-outlined">clear_all</span>All</button>
             </div>
         </div>
         <div class="card all-files-block" onclick="openLocalFileManager()">
-            <i class="material-icons">folder_open</i>
+            <span class="material-symbols-outlined">folder_open</span>
             <div>
                 <h3>All Files</h3>
                 <p>Open full file manager</p>
             </div>
         </div>
     </div>
-</div>
 
-<!-- File Manager -->
-<div id="localPage" class="page">
-    <header>
-        <span id="backBtnFile" onclick="goBackManager()">⬅ Back</span>
-        <div id="breadcrumb"></div>
-        <input type="text" id="searchBar" placeholder="Search files..." oninput="searchFiles(this.value)">
-        <button onclick="toggleView()" style="margin-left:auto;">View</button>
-        <button onclick="exitToHome()">Exit</button>
-    </header>
-    <div id="fileArea"></div>
-    <div class="fab" id="fabBtn" onclick="fabAction()">+</div>
-    <div id="fabMenu">
-        <button onclick="createFolder()">Create Folder</button>
-        <button onclick="uploadFile()">Upload File</button>
+    <!-- File Manager -->
+    <div id="localPage" class="page">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button class="filter-btn" onclick="goBackManager()"><span class="material-symbols-outlined">arrow_back</span>Back</button>
+            <div id="breadcrumb" style="font-size:15px;"></div>
+            <input type="text" id="searchBar" placeholder="Search files..." oninput="searchFiles(this.value)">
+            <div style="margin-left:auto;display:flex;gap:8px;">
+                <button class="filter-btn" id="toggleGridBtn" onclick="toggleView()">
+                    <span class="material-symbols-outlined" id="viewIcon">view_list</span>
+                </button>
+                <button class="filter-btn" onclick="sortFiles()">
+                    <span class="material-symbols-outlined">sort</span>
+                </button>
+            </div>
+        </div>
+        <div id="fileArea"></div>
+        <div class="fab" id="fabBtn" onclick="fabAction()"><span class="material-symbols-outlined">add</span></div>
+        <div id="fabMenu">
+            <button onclick="createFolder()"><span class="material-symbols-outlined">create_new_folder</span> Create Folder</button>
+            <button onclick="uploadFile()"><span class="material-symbols-outlined">upload_file</span> Upload File</button>
+        </div>
+        <div id="fileOperations">
+            <button onclick="previewSelected()"><span class="material-symbols-outlined">preview</span>Preview</button>
+            <button onclick="downloadSelected()"><span class="material-symbols-outlined">download</span>Download</button>
+            <button onclick="renameSelected()"><span class="material-symbols-outlined">edit</span>Rename</button>
+            <button onclick="deleteSelected()"><span class="material-symbols-outlined">delete</span>Delete</button>
+            <button onclick="cancelSelection()"><span class="material-symbols-outlined">cancel</span>Cancel</button>
+        </div>
     </div>
-    <div id="fileOperations">
-        <button onclick="previewSelected()">Preview</button>
-        <button onclick="downloadSelected()">Download</button>
-        <button onclick="renameSelected()">Rename</button>
-        <button onclick="deleteSelected()">Delete</button>
-        <button onclick="cancelSelection()">Cancel</button>
-    </div>
-</div>
 
-<!-- Cloud Storage -->
-<div id="cloudPage" class="page" style="padding:20px;">
-    <h2>Cloud Storage</h2>
-    <p>Integration coming soon!</p>
-    <button onclick="exitToHome()">⬅ Back to Home</button>
+    <!-- Cloud Storage -->
+    <div id="cloudPage" class="page">
+        <div class="card" style="flex-direction:column;align-items:center;text-align:center;">
+            <span class="material-symbols-outlined" style="font-size:54px;color:var(--color-accent);">cloud</span>
+            <h2 style="margin-top:8px;">Cloud Storage</h2>
+            <p style="color:#888;">Integration coming soon!<br>Stay tuned for Google Drive, Dropbox, OneDrive and more.</p>
+            <button class="filter-btn" style="margin-top:22px;" onclick="showPage('homePage')"><span class="material-symbols-outlined">arrow_back</span>Back to Home</button>
+        </div>
+    </div>
 </div>
 
 <input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
-<div id="previewModal" onclick="closePreview()"><div id="previewContent"></div></div>
+<div id="previewModal" onclick="closePreview()">
+    <div id="previewContent"></div>
+    <button id="previewClose" onclick="closePreview(event)"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1002;background:rgba(0,0,0,0.35);justify-content:center;align-items:center;">
+    <div style="background:var(--color-card);padding:32px 42px;border-radius:16px;box-shadow:var(--shadow);min-width:300px;max-width:95vw;position:relative;">
+        <h2 style="margin:0 0 14px 0;">Settings</h2>
+        <div style="margin-bottom:18px;">
+            <label style="font-weight:500;">Theme:</label>
+            <button class="filter-btn" onclick="toggleTheme()">Toggle Dark/Light</button>
+        </div>
+        <div>
+            <strong>Storage Usage:</strong>
+            <div id="modalStorageInfo" style="margin-top:6px;color:#1976d2;"></div>
+        </div>
+        <button class="filter-btn" onclick="closeSettings()" style="margin-top:28px;"><span class="material-symbols-outlined">close</span>Close</button>
+    </div>
+</div>
 
 <script>
-// -------------------- Navigation --------------------
-function openManager(type){
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    if(type === 'local'){ document.getElementById('localDashboard').classList.add('active'); }
-    else if(type === 'cloud'){ document.getElementById('cloudPage').classList.add('active'); }
+// Page Navigation & Sidebar
+function showPage(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('#sidebar button').forEach(b=>b.classList.remove('active'));
+    if(id==='homePage') document.getElementById('navHome').classList.add('active');
+    if(id==='localDashboard') document.getElementById('navLocal').classList.add('active');
+    if(id==='cloudPage') document.getElementById('navCloud').classList.add('active');
+    if(id==='localDashboard') updateStorageInfo();
 }
-function exitToHome(){
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('homePage').classList.add('active');
-}
-function hideAllPages(){ document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
-function openLocalFileManager(){ hideAllPages(); document.getElementById('localPage').classList.add('active'); renderFiles(); }
-function goBackManager(){ hideAllPages(); document.getElementById('localDashboard').classList.add('active'); activeFilter=null; clearFilterButtons(); }
+function exitToHome(){ showPage('homePage'); }
+function openLocalFileManager(){ showPage('localPage'); renderFiles(); }
+function goBackManager(){ showPage('localDashboard'); activeFilter=null; clearFilterButtons(); }
+function clearFilters(){ activeFilter=null; clearFilterButtons(); openLocalFileManager(); }
 
-// -------------------- Files --------------------
+// Theme
+function toggleTheme(){
+    document.body.classList.toggle('dark');
+    document.getElementById('themeIcon').innerText=document.body.classList.contains('dark')?'dark_mode':'light_mode';
+    localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light');
+}
+if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark');document.getElementById('themeIcon').innerText='dark_mode';}
+
+// Settings modal
+function openSettings(){
+    document.getElementById('settingsModal').style.display='flex';
+    updateStorageInfo();
+    document.getElementById('modalStorageInfo').innerText=document.getElementById('storageInfo').innerText;
+}
+function closeSettings(){ document.getElementById('settingsModal').style.display='none'; }
+
+// Storage
+function updateStorageInfo(){
+    let used=calculateStorageUsed();
+    document.getElementById('storageInfo').innerText = `Used: ${used} / Total: 100 MB`;
+    if(document.getElementById('modalStorageInfo')) document.getElementById('modalStorageInfo').innerText = `Used: ${used} / Total: 100 MB`;
+}
+function calculateStorageUsed(){
+    let total=0;
+    let filesFlat=flattenFiles(files['/']);
+    filesFlat.forEach(f=>{ if(f.size)total+=f.size; });
+    let mb=(total/(1024*1024)).toFixed(2)+' MB';
+    return mb;
+}
+function flattenFiles(obj){
+    let arr=[];
+    for(let k in obj){
+        if(typeof obj[k]==='object'){
+            if(obj[k].content) arr.push(obj[k]);
+            else arr=arr.concat(flattenFiles(obj[k]));
+        }
+    }
+    return arr;
+}
+
+// Files
 let files=JSON.parse(localStorage.getItem('files')||'{"\/":{}}');
-let path=['/'], selectedItems=[], activeFilter=null, isGrid=false, searchQuery='';
+let path=['/'], selectedItems=[], activeFilter=null, isGrid=false, searchQuery='', sortOrder='name';
 
 function getCurrentFolder(){ let f=files; for(let i=1;i<path.length;i++) f=f[path[i]]; return f; }
 function clearFilterButtons(){ document.querySelectorAll('.filter-btn').forEach(btn=>btn.classList.remove('active')); }
@@ -162,12 +403,11 @@ function highlightFilterButton(type){
     else if(type==='videos') document.getElementById('filterVideos').classList.add('active');
     else if(type==='others') document.getElementById('filterOthers').classList.add('active');
 }
-
-// -------------------- File Manager Functions --------------------
 function renderBreadcrumb(){
     const bc=document.getElementById('breadcrumb'); bc.innerHTML='';
     path.forEach((p,i)=>{
         let span=document.createElement('span'); span.innerText=(i === 0 ? "Root" : p);
+        span.style.cursor='pointer'; span.style.color='var(--color-primary)';
         span.onclick=()=>navigateTo(i); bc.appendChild(span);
         if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
@@ -175,149 +415,202 @@ function renderBreadcrumb(){
 function navigateTo(i){ path=path.slice(0,i+1); renderFiles(); }
 function renderFiles(){
     renderBreadcrumb();
+    updateStorageInfo();
     const fileArea=document.getElementById('fileArea'); fileArea.innerHTML='';
     selectedItems=[]; updateFabIcon(); toggleFileOperations(false);
     let folderObj=getCurrentFolder();
-    Object.keys(folderObj).forEach(name=>{
+    let items=Object.keys(folderObj).map(name=>{
         let isFolder=typeof folderObj[name]==='object' && !folderObj[name].content;
-        if(!isFolder && activeFilter){
-            let ext=name.split('.').pop().toLowerCase();
-            if(activeFilter==='images' && !['jpg','jpeg','png','gif'].includes(ext)) return;
-            if(activeFilter==='documents' && !['pdf','docx','txt','xlsx'].includes(ext)) return;
-            if(activeFilter==='videos' && !['mp4','mov','avi'].includes(ext)) return;
-            if(activeFilter==='others' && ['jpg','jpeg','png','gif','pdf','docx','txt','xlsx','mp4','mov','avi'].includes(ext)) return;
+        return {name,isFolder,obj:folderObj[name]};
+    });
+    // Filter
+    items=items.filter(item=>{
+        if(!item.isFolder && activeFilter){
+            let ext=item.name.split('.').pop().toLowerCase();
+            if(activeFilter==='images' && !['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) return false;
+            if(activeFilter==='documents' && !['pdf','docx','doc','txt','xlsx','xls','pptx','csv','md'].includes(ext)) return false;
+            if(activeFilter==='videos' && !['mp4','mov','avi','webm','mkv'].includes(ext)) return false;
+            if(activeFilter==='others' && ['jpg','jpeg','png','gif','webp','svg','bmp','pdf','docx','doc','txt','xlsx','xls','pptx','csv','md','mp4','mov','avi','webm','mkv'].includes(ext)) return false;
         }
-        if(searchQuery && !name.toLowerCase().includes(searchQuery.toLowerCase())) return;
+        if(searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        return true;
+    });
+    // Sort
+    if(sortOrder==='name') items.sort((a,b)=>a.name.localeCompare(b.name));
+    else if(sortOrder==='date'){ /* future: sort by date (needs added metadata) */ }
+    // Render
+    items.forEach(item=>{
         const div=document.createElement('div'); div.className='file-item';
-        div.innerHTML=`<div style="display:flex;align-items:center;cursor:pointer;">
-            <span class="file-icon">${getFileIcon(name,isFolder)}</span>
+        div.innerHTML = `
+            <span class="file-checkbox"><input type="checkbox" onchange="toggleSelect(this,'${item.name}',${item.isFolder})"></span>
+            <span class="file-icon">${getFileIcon(item.name,item.isFolder)}</span>
             <div class="file-info">
-                <span class="file-name">${name}</span>
-                <span class="file-meta">${isFolder ? 'Folder' : (folderObj[name].size ? (folderObj[name].size + ' bytes') : '')}</span>
+                <span class="file-name">${item.name}</span>
+                <span class="file-meta">${item.isFolder ? 'Folder' : (item.obj.size ? (formatBytes(item.obj.size)) : '')}</span>
             </div>
-        </div>
-        <input type="checkbox" class="checkbox" onchange="toggleSelect(this,'${name}',${isFolder})">`;
-        if(isFolder) div.querySelector('.file-icon').parentElement.onclick=e=>{ if(e.target.tagName!=='INPUT'){ path.push(name); renderFiles(); } };
+        `;
+        if(item.isFolder) div.querySelector('.file-icon').onclick = ()=>{ path.push(item.name); renderFiles(); };
+        else div.querySelector('.file-info').onclick = ()=>{ previewFile(item.name); };
         fileArea.appendChild(div);
     });
-    document.body.classList.toggle('grid-view', isGrid);
+    document.getElementById('fileArea').style.gridTemplateColumns=isGrid?'repeat(auto-fill,minmax(180px,1fr))':'repeat(auto-fill,minmax(240px,1fr))';
+    document.getElementById('viewIcon').innerText=isGrid?'grid_view':'view_list';
 }
 function getFileIcon(name,isFolder){
-    if(isFolder) return '📁';
+    if(isFolder) return '<span class="material-symbols-outlined">folder</span>';
     let ext=name.split('.').pop().toLowerCase();
-    if(['jpg','jpeg','png','gif'].includes(ext)) return '🖼️';
-    if(['pdf','doc','docx','txt','xlsx'].includes(ext)) return '📄';
-    if(['mp4','mov','avi'].includes(ext)) return '🎬';
-    return '📄';
+    if(['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) return '<span class="material-symbols-outlined">image</span>';
+    if(['pdf','doc','docx','txt','xlsx','xls','pptx','csv','md'].includes(ext)) return '<span class="material-symbols-outlined">description</span>';
+    if(['mp4','mov','avi','webm','mkv'].includes(ext)) return '<span class="material-symbols-outlined">movie</span>';
+    return '<span class="material-symbols-outlined">insert_drive_file</span>';
+}
+function formatBytes(bytes){
+    if(bytes<1024) return bytes+' B';
+    else if(bytes<1024*1024) return (bytes/1024).toFixed(1)+' KB';
+    else return (bytes/(1024*1024)).toFixed(2)+' MB';
 }
 function searchFiles(q){ searchQuery=q; renderFiles(); }
 function toggleView(){ isGrid=!isGrid; renderFiles(); }
+function sortFiles(){ sortOrder=sortOrder==='name'?'date':'name'; renderFiles(); showToast('Sorted by '+sortOrder); }
 
-// -------------------- FAB / File Operations --------------------
+// FAB & File Operations
 function fabAction(){
-    const fabBtn=document.getElementById('fabBtn');
-    const fabMenu=document.getElementById('fabMenu');
-    const fileOps=document.getElementById('fileOperations');
-    const rect=fabBtn.getBoundingClientRect();
-    const top=Math.max(window.scrollY + rect.top - 5,5);
-    const left=Math.min(window.scrollX + rect.left, window.innerWidth - 180 -5);
     if(selectedItems.length>0){
-        fileOps.style.display='flex'; fileOps.style.top=(top-fileOps.offsetHeight)+'px'; fileOps.style.left=left+'px'; fabMenu.style.display='none';
+        document.getElementById('fileOperations').style.display='flex';
+        document.getElementById('fabMenu').style.display='none';
     } else {
-        fabMenu.style.display=fabMenu.style.display==='flex'?'none':'flex'; fabMenu.style.top=(top-fabMenu.offsetHeight)+'px'; fabMenu.style.left=left+'px';
-        fileOps.style.display='none';
+        document.getElementById('fabMenu').style.display=document.getElementById('fabMenu').style.display==='flex'?'none':'flex';
+        document.getElementById('fileOperations').style.display='none';
     }
 }
-function updateFabIcon(){ document.getElementById('fabBtn').innerText=selectedItems.length>0?'✎':'+'; }
+function updateFabIcon(){
+    document.getElementById('fabBtn').innerHTML = selectedItems.length>0 ? '<span class="material-symbols-outlined">edit</span>' : '<span class="material-symbols-outlined">add</span>';
+}
 function toggleSelect(cb,name,isFolder){
-    selectedItems=cb.checked?[...selectedItems,{name,isFolder}]:selectedItems.filter(i=>i.name!==name||i.isFolder!==isFolder);
+    if(cb.checked) selectedItems.push({name,isFolder});
+    else selectedItems=selectedItems.filter(i=>i.name!==name||i.isFolder!==isFolder);
     updateFabIcon(); toggleFileOperations(false);
 }
 function toggleFileOperations(show){ document.getElementById('fileOperations').style.display=show?'flex':'none'; }
 function cancelSelection(){ selectedItems=[]; document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false); updateFabIcon(); toggleFileOperations(false); }
 
-// -------------------- Folder / File Operations --------------------
-function createFolder(){ 
-    const name=prompt('Folder Name:'); 
-    if(!name||name.includes('/')) return alert('Invalid name'); 
-    const f=getCurrentFolder(); 
-    if(f[name]) return alert('Already exists'); 
-    f[name]={}; 
-    localStorage.setItem('files',JSON.stringify(files)); 
-    renderFiles(); 
+// Folder / File Operations
+function createFolder(){
+    const name=prompt('Folder Name:');
+    if(!name||name.includes('/')) return showToast('Invalid folder name');
+    const f=getCurrentFolder();
+    if(f[name]) return showToast('Already exists');
+    f[name]={};
+    localStorage.setItem('files',JSON.stringify(files));
+    renderFiles();
+    showToast('Folder created');
 }
-function uploadFile(){ document.getElementById('fileInput').click(); document.getElementById('fabMenu').style.display='none'; }
-function handleFileUpload(e){ 
-    const f=getCurrentFolder(); 
-    for(const file of e.target.files){ 
-        const reader=new FileReader(); 
-        reader.onload=function(ev){ 
-            f[file.name]={content:ev.target.result,size:file.size}; 
-            localStorage.setItem('files',JSON.stringify(files)); 
-            renderFiles(); 
-        }; 
-        reader.readAsDataURL(file); 
+function uploadFile(){
+    document.getElementById('fileInput').click();
+    document.getElementById('fabMenu').style.display='none';
+}
+function handleFileUpload(e){
+    const f=getCurrentFolder();
+    for(const file of e.target.files){
+        const reader=new FileReader();
+        reader.onload=function(ev){
+            f[file.name]={content:ev.target.result,size:file.size};
+            localStorage.setItem('files',JSON.stringify(files));
+            renderFiles();
+            showToast('File uploaded: '+file.name);
+        };
+        reader.readAsDataURL(file);
     }
     e.target.value = '';
 }
-function deleteSelected(){ 
-    if(!confirm('Delete selected?')) return; 
-    const f=getCurrentFolder(); 
-    selectedItems.forEach(i=>delete f[i.name]); 
-    selectedItems=[]; 
-    localStorage.setItem('files',JSON.stringify(files)); 
+function deleteSelected(){
+    if(!confirm('Delete selected?')) return;
+    const f=getCurrentFolder();
+    selectedItems.forEach(i=>delete f[i.name]);
+    selectedItems=[];
+    localStorage.setItem('files',JSON.stringify(files));
     renderFiles();
+    showToast('Deleted');
 }
-function renameSelected(){ 
-    if(selectedItems.length!==1) return alert('Select only one item'); 
-    const oldName=selectedItems[0].name; 
-    const newName=prompt('New name:',oldName); 
-    if(!newName||newName.includes('/')) return alert('Invalid name'); 
-    const f=getCurrentFolder(); 
-    if(f[newName]) return alert('Name already exists'); 
-    f[newName]=f[oldName]; 
-    delete f[oldName]; 
-    localStorage.setItem('files',JSON.stringify(files)); 
+function renameSelected(){
+    if(selectedItems.length!==1) return showToast('Select only one item');
+    const oldName=selectedItems[0].name;
+    const newName=prompt('New name:',oldName);
+    if(!newName||newName.includes('/')) return showToast('Invalid name');
+    const f=getCurrentFolder();
+    if(f[newName]) return showToast('Name already exists');
+    f[newName]=f[oldName];
+    delete f[oldName];
+    localStorage.setItem('files',JSON.stringify(files));
     renderFiles();
+    showToast('Renamed');
 }
-function downloadSelected(){ 
-    selectedItems.forEach(i=>{ 
-        const f=getCurrentFolder()[i.name]; 
-        if(!i.isFolder){ 
-            const a=document.createElement('a'); 
-            a.href=f.content; 
-            a.download=i.name; 
+function downloadSelected(){
+    selectedItems.forEach(i=>{
+        const f=getCurrentFolder()[i.name];
+        if(!i.isFolder){
+            const a=document.createElement('a');
+            a.href=f.content;
+            a.download=i.name;
             document.body.appendChild(a);
-            a.click(); 
+            a.click();
             document.body.removeChild(a);
-        } 
-    }); 
+        }
+    });
     cancelSelection();
+    showToast('Downloaded');
 }
-function previewSelected(){ 
-    if(selectedItems.length!==1) return alert('Select only one item'); 
-    const i=selectedItems[0]; 
-    const f=getCurrentFolder()[i.name]; 
+function previewSelected(){
+    if(selectedItems.length!==1) return showToast('Select only one item');
+    previewFile(selectedItems[0].name);
+    selectedItems=[]; updateFabIcon(); toggleFileOperations(false);
+}
+function previewFile(name){
+    const f=getCurrentFolder()[name];
     const modal=document.getElementById('previewModal');
     const content=document.getElementById('previewContent');
-    content.innerHTML = '';
-    let ext = i.name.split('.').pop().toLowerCase();
-    if(['jpg','jpeg','png','gif'].includes(ext)) {
-        content.innerHTML = `<img src="${f.content}" alt="${i.name}" />`;
+    content.innerHTML = `<h4>${name}</h4>`;
+    let ext = name.split('.').pop().toLowerCase();
+    if(['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) {
+        content.innerHTML += `<img src="${f.content}" alt="${name}" style="border-radius:12px;box-shadow:0 4px 18px rgba(25,118,210,0.13);"/>`;
     } else if(['pdf'].includes(ext)) {
-        content.innerHTML = `<iframe src="${f.content}" style="width:100%;height:80vh;"></iframe>`;
+        content.innerHTML += `<iframe src="${f.content}" style="width:100%;height:70vh;border:none;"></iframe>`;
     } else {
-        content.innerHTML = `<pre>${f.content}</pre>`;
+        content.innerHTML += `<pre style="width:100%;max-height:60vh;">${f.content}</pre>`;
     }
-    modal.style.display = 'flex'; 
-    selectedItems = []; 
-    updateFabIcon(); 
-    toggleFileOperations(false);
+    modal.style.display = 'flex';
+}
+function closePreview(e){
+    if(!e || e.target===document.getElementById('previewModal') || e.target===document.getElementById('previewClose'))
+        document.getElementById('previewModal').style.display='none';
 }
 
-function closePreview(){ 
-    document.getElementById('previewModal').style.display='none'; 
+// Drag & Drop upload
+document.addEventListener('dragover',function(e){e.preventDefault();},false);
+document.addEventListener('drop',function(e){
+    if(document.getElementById('localPage').classList.contains('active')){
+        e.preventDefault();
+        if(e.dataTransfer.files && e.dataTransfer.files.length){
+            document.getElementById('fileInput').files = e.dataTransfer.files;
+            handleFileUpload({target:{files:e.dataTransfer.files}});
+        }
+    }
+},false);
+
+// Toast notifications
+function showToast(msg){
+    const t=document.getElementById('toast');
+    t.innerText=msg;
+    t.style.display='block';
+    setTimeout(()=>{t.style.display='none';},1800);
 }
+
+// Initial page load
+if(window.location.hash){
+    let page=window.location.hash.replace('#','');
+    if(document.getElementById(page)) showPage(page);
+} else showPage('homePage');
+
 </script>
 </body>
 </html>

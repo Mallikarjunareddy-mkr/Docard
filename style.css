@@ -207,3 +207,51 @@ body.dark .menu-floating { background:var(--color-card-dark); }
   #searchBar { width:100%; }
   .home-actions { flex-direction:column; }
 }
+
+/* ==== Home Page Styles ==== */
+.home-main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.docard-title {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--text);
+  text-shadow: 0 0 15px cyan, 0 0 30px blue;
+  animation: thunder 2s infinite;
+  margin-bottom: 2rem;
+}
+
+.home-options {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.home-btn {
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+}
+
+.home-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px cyan;
+}
+
+.top-toolbar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}

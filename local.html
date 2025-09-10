@@ -6,81 +6,70 @@
 <title>Docard - Local Storage</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-<script defer src="script.js"></script>
 </head>
 <body>
-
-<header>
-    <div class="header-left">
-        <button onclick="goBackManager()" class="material-symbols-outlined">arrow_back</button>
-        <span id="storageInfo">Used: 0 / 100 MB</span>
+  <!-- Top Bar: Storage & Settings -->
+  <header class="local-header">
+    <div class="storage-info" id="storageInfo">Used: 0 MB / Total: 100 MB</div>
+    <div class="top-toolbar">
+      <button onclick="openSettings()" title="Settings">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
     </div>
-    <div class="toolbar">
-        <button onclick="exitToHome()" class="material-symbols-outlined">dashboard</button>
-        <button onclick="openSettings()" class="material-symbols-outlined">settings</button>
-        <button onclick="toggleTheme()" id="themeIcon" class="material-symbols-outlined">light_mode</button>
-    </div>
-</header>
+  </header>
 
-<div id="breadcrumb-wrapper">
+  <!-- Folder Path -->
+  <div id="breadcrumb-wrapper">
     <div id="breadcrumb"></div>
-</div>
+  </div>
 
-<div class="main-content">
-    <input type="text" placeholder="Search files..." id="searchBar" oninput="searchFiles(this.value)">
-    <div class="filters">
-        <button id="filterImages" class="filter-btn" onclick="filterFiles('images')">
-            <span class="material-symbols-outlined">image</span> Images
-        </button>
-        <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')">
-            <span class="material-symbols-outlined">description</span> Documents
-        </button>
-        <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')">
-            <span class="material-symbols-outlined">movie</span> Videos
-        </button>
-        <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')">
-            <span class="material-symbols-outlined">insert_drive_file</span> Others
-        </button>
-    </div>
-
+  <!-- File Manager Area -->
+  <main class="main-content">
     <div id="fileArea"></div>
-</div>
+  </main>
 
-<input type="file" id="fileInput" multiple style="display:none" onchange="handleFileUpload(event)">
+  <!-- Floating Button (Add/Upload) -->
+  <div id="fabMenu" class="fab" onclick="fabAction()" title="Add File/Folder">
+    <span class="material-symbols-outlined" id="fabBtn">add</span>
+  </div>
 
-<!-- FAB -->
-<div class="fab" id="fabBtn" onclick="fabAction()">
-    <span class="material-symbols-outlined">add</span>
-</div>
-
-<!-- FAB Menus -->
-<div id="fabMenu">
-    <button onclick="uploadFile()"><span class="material-symbols-outlined">file_upload</span> Upload File</button>
-    <button onclick="createFolder()"><span class="material-symbols-outlined">create_new_folder</span> New Folder</button>
-</div>
-
-<div id="fileOperations">
-    <button onclick="previewSelected()"><span class="material-symbols-outlined">preview</span> Preview</button>
+  <!-- File Operations Menu -->
+  <div id="fileOperations">
+    <button onclick="previewSelected()"><span class="material-symbols-outlined">visibility</span> Preview</button>
     <button onclick="renameSelected()"><span class="material-symbols-outlined">edit</span> Rename</button>
     <button onclick="downloadSelected()"><span class="material-symbols-outlined">download</span> Download</button>
     <button onclick="confirmDeleteSelected()"><span class="material-symbols-outlined">delete</span> Delete</button>
     <button onclick="cancelSelection()"><span class="material-symbols-outlined">close</span> Cancel</button>
-</div>
+  </div>
 
-<!-- Preview Modal -->
-<div id="previewModal" onclick="closePreview(event)">
+  <!-- File Upload Input -->
+  <input type="file" id="fileInput" style="display:none" multiple onchange="handleFileUpload(event)">
+
+  <!-- Modals -->
+  <div id="previewModal" class="modal" onclick="closePreview(event)">
     <div id="previewContent">
-        <button id="previewClose" onclick="closePreview(event)">close</button>
+      <button id="previewClose" onclick="closePreview(event)">&times;</button>
     </div>
-</div>
+  </div>
 
-<!-- Details Modal -->
-<div id="detailsModal" onclick="closeDetailsModal()">
-    <div id="detailsContent"></div>
-</div>
+  <div id="detailsModal" class="modal">
+    <div id="detailsContent">
+      <button onclick="closeDetailsModal()">&times;</button>
+      <div id="detailsContentInner"></div>
+    </div>
+  </div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <h3>Settings</h3>
+      <p id="modalStorageInfo">Used: 0 MB / Total: 100 MB</p>
+      <button onclick="toggleTheme()" id="themeIcon"><span class="material-symbols-outlined">light_mode</span> Toggle Theme</button>
+      <button onclick="closeSettings()">Close</button>
+    </div>
+  </div>
 
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
 </body>
 </html>

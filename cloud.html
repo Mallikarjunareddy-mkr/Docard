@@ -1,56 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Docard - Cloud Storage</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Docard — Cloud</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <div class="logo">Docard</div>
+    <div class="header-left"><a href="index.html" class="home-link">Docard</a></div>
     <div class="toolbar">
-      <button onclick="toggleTheme()"><span id="themeIcon" class="material-symbols-outlined">light_mode</span></button>
-      <button onclick="openHelpModal()"><span class="material-symbols-outlined">help</span></button>
-      <button onclick="openSettings()"><span class="material-symbols-outlined">settings</span></button>
-      <a href="index.html"><span class="material-symbols-outlined">home</span></a>
+      <button class="icon-btn" id="helpBtnCloud" title="Help"><span class="material-symbols-outlined">help</span></button>
+      <button class="icon-btn" id="themeToggleCloud" title="Toggle theme"><span id="themeIconCloud" class="material-symbols-outlined">light_mode</span></button>
+      <button class="icon-btn" id="settingsBtnCloud" title="Settings"><span class="material-symbols-outlined">settings</span></button>
     </div>
   </header>
 
-  <main class="page active" id="cloudPage">
-    <div class="card">
+  <main class="main-content">
+    <div class="card" style="text-align:center;">
+      <span class="material-symbols-outlined" style="font-size:44px;color:var(--color-accent)">cloud</span>
       <h3>Cloud Storage</h3>
-      <p>Integration coming soon.</p>
-      <div class="providers">
-        <button class="provider-btn"><span class="material-symbols-outlined">cloud</span>Google Drive</button>
-        <button class="provider-btn"><span class="material-symbols-outlined">cloud</span>Dropbox</button>
-        <button class="provider-btn"><span class="material-symbols-outlined">cloud</span>OneDrive</button>
+      <p>Integration coming soon — Google Drive, Dropbox, OneDrive and more.</p>
+      <div style="margin-top:12px;">
+        <button class="btn" disabled>Connect Google Drive</button>
+        <button class="btn" disabled>Connect Dropbox</button>
       </div>
     </div>
-    <div id="fabBtn" class="fab disabled"><span class="material-symbols-outlined">add</span></div>
   </main>
 
-  <!-- Help Modal -->
-  <div id="helpModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeHelpModal()" class="close">&times;</span>
-      <h2>Help</h2>
-      <p>Cloud storage support will be added in future updates.</p>
-    </div>
-  </div>
-
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeSettings()" class="close">&times;</span>
-      <h2>Settings</h2>
-      <p id="modalStorageInfo">Used: 0 / Total: 100 MB</p>
-    </div>
-  </div>
-
-  <div id="toast"></div>
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

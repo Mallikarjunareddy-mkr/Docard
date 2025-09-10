@@ -1,31 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Android-Style File Manager</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Android-Style File Manager</title>
+<style>
     body { font-family: Arial, sans-serif; margin:0; padding:0; }
     header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-wrap:wrap; }
     header span { margin-right:5px; cursor:pointer; color:blue; }
-    #fileArea { padding:10px; display:flex; flex-wrap:wrap; gap:12px; }
-    .folder, .file { 
-      min-width:150px; max-width:220px;
-      padding:14px 12px; 
-      border:1px solid #eee; border-radius:7px;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:#fbfbfb;
-      box-shadow: 0 2px 6px #0001;
-      position:relative;
-      transition:background 0.15s;
-    }
-    .folder:hover, .file:hover { background:#f5f8ff; }
-    .file input[type=checkbox] { position:absolute; top:8px; right:8px; }
+    #fileArea { padding:10px; }
+    .folder, .file { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+    .folder:hover, .file:hover { background:#f9f9f9; }
     .fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
     #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
     #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
-    #fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; z-index:10; }
-  </style>
+    #fileOperations { display:none; position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px; display:flex; gap:5px; }
+</style>
 </head>
 <body>
 
@@ -36,19 +26,19 @@
 <!-- Floating + Button -->
 <div class="fab" onclick="toggleFab()">+</div>
 <div id="fabMenu">
-  <button onclick="createFolder()">Create Folder</button>
-  <button onclick="uploadFile()">Upload File</button>
+    <button onclick="createFolder()">Create Folder</button>
+    <button onclick="uploadFile()">Upload File</button>
 </div>
 
 <!-- File Operations Toolbar -->
 <div id="fileOperations">
-  <button onclick="downloadSelected()">Download</button>
-  <button onclick="renameSelected()">Rename</button>
-  <button onclick="deleteSelected()">Delete</button>
-  <button onclick="cancelSelection()">Cancel</button>
+    <button onclick="downloadSelected()">Download</button>
+    <button onclick="renameSelected()">Rename</button>
+    <button onclick="deleteSelected()">Delete</button>
+    <button onclick="cancelSelection()">Cancel</button>
 </div>
 
-<input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
+<input type="file" id="fileInput" style="display:none;" onchange="handleFileUpload(event)">
 
 <script>
 // State
@@ -58,223 +48,138 @@ let selectedFiles = [];
 
 // Utility to get current folder object
 function getCurrentFolder() {
-  let folder = files;
-  for (let i = 0; i < path.length; i++) {
-    folder = folder[path[i]];
-  }
-  return folder;
+    let folder = files;
+    path.forEach(p => folder = folder[p]);
+    return folder;
 }
 
 // Render breadcrumb
 function renderBreadcrumb() {
-  const bc = document.getElementById('breadcrumb');
-  bc.innerHTML = '';
-  path.forEach((p, index) => {
-    let span = document.createElement('span');
-    span.innerText = (index === 0 ? 'Home' : p);
-    span.onclick = () => navigateTo(index);
-    bc.appendChild(span);
-    if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
-  });
+    const bc = document.getElementById('breadcrumb');
+    bc.innerHTML = '';
+    path.forEach((p, index) => {
+        let span = document.createElement('span');
+        span.innerText = p;
+        span.onclick = () => navigateTo(index);
+        bc.appendChild(span);
+        if(index < path.length-1) bc.appendChild(document.createTextNode(' / '));
+    });
 }
 
 // Navigate to a folder in breadcrumb
 function navigateTo(index) {
-  path = path.slice(0,index+1);
-  renderFiles();
+    path = path.slice(0,index+1);
+    renderFiles();
 }
 
-// Render files and folders side by side, neatly
+// Render files and folders
 function renderFiles() {
-  renderBreadcrumb();
-  const fileArea = document.getElementById('fileArea');
-  fileArea.innerHTML = '';
-  const folderObj = getCurrentFolder();
-  selectedFiles = [];
-  toggleFileOperations(false);
+    renderBreadcrumb();
+    const fileArea = document.getElementById('fileArea');
+    fileArea.innerHTML = '';
+    const folderObj = getCurrentFolder();
+    selectedFiles = [];
+    toggleFileOperations(false);
 
-  // Show folders first, then files, both arranged line by line, side by side
-  let folders = [];
-  let filesArr = [];
-  for(let name in folderObj){
-    if(typeof folderObj[name] === 'object' && !folderObj[name].content) folders.push(name);
-    else filesArr.push(name);
-  }
-
-  folders.forEach(name => {
-    const div = document.createElement('div');
-    div.className = 'folder';
-    div.innerHTML = `<span style="font-size:2em;">📁</span>
-      <span style="margin-top:7px; font-weight:500;">${name}</span>`;
-    div.onclick = () => { path.push(name); renderFiles(); };
-    fileArea.appendChild(div);
-  });
-
-  filesArr.forEach(name => {
-    const div = document.createElement('div');
-    div.className = 'file';
-    div.innerHTML = `<span style="font-size:2em;">📄</span>
-      <span style="margin-top:7px; font-weight:500;">${name}</span>
-      <input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
-    div.onclick = function(e){
-      // Prevent checkbox click from triggering preview
-      if(e.target.tagName !== 'INPUT') previewFile(name);
-    };
-    fileArea.appendChild(div);
-  });
+    for(let name in folderObj){
+        if(typeof folderObj[name] === 'object'){ // folder
+            const div = document.createElement('div');
+            div.className = 'folder';
+            div.innerText = '📁 ' + name;
+            div.onclick = () => { path.push(name); renderFiles(); };
+            fileArea.appendChild(div);
+        } else { // file
+            const div = document.createElement('div');
+            div.className = 'file';
+            div.innerHTML = `<span>📄 ${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}')">`;
+            fileArea.appendChild(div);
+        }
+    }
 }
 
 // Floating button
 function toggleFab() {
-  const menu = document.getElementById('fabMenu');
-  menu.style.display = menu.style.display==='flex'?'none':'flex';
+    const menu = document.getElementById('fabMenu');
+    menu.style.display = menu.style.display==='flex'?'none':'flex';
 }
 
 // Create folder
 function createFolder() {
-  const name = prompt('Folder Name:');
-  if(!name) return;
-  const folderObj = getCurrentFolder();
-  if(folderObj[name]){ alert('Folder already exists'); return; }
-  folderObj[name] = {};
-  localStorage.setItem('files', JSON.stringify(files));
-  renderFiles();
-  toggleFab();
+    const name = prompt('Folder Name:');
+    if(!name) return;
+    const folderObj = getCurrentFolder();
+    if(folderObj[name]){ alert('Folder already exists'); return; }
+    folderObj[name] = {};
+    localStorage.setItem('files', JSON.stringify(files));
+    renderFiles();
 }
 
 // Upload file
 function uploadFile() {
-  document.getElementById('fileInput').click();
-  toggleFab();
+    document.getElementById('fileInput').click();
+    toggleFab();
 }
 
-// Handle file upload (multiple)
+// Handle file upload
 function handleFileUpload(event){
-  const folderObj = getCurrentFolder();
-  for(const file of event.target.files){
+    const file = event.target.files[0];
     const reader = new FileReader();
     reader.onload = function(){
-      folderObj[file.name] = {
-        content: reader.result,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
-      };
-      localStorage.setItem('files', JSON.stringify(files));
-      renderFiles();
+        const folderObj = getCurrentFolder();
+        folderObj[file.name] = reader.result;
+        localStorage.setItem('files', JSON.stringify(files));
+        renderFiles();
     };
     reader.readAsDataURL(file);
-  }
-  event.target.value = '';
 }
 
 // File selection
 function toggleSelect(checkbox,name){
-  if(checkbox.checked) selectedFiles.push(name);
-  else selectedFiles = selectedFiles.filter(n=>n!==name);
-  toggleFileOperations(selectedFiles.length>0);
+    if(checkbox.checked) selectedFiles.push(name);
+    else selectedFiles = selectedFiles.filter(n=>n!==name);
+    toggleFileOperations(selectedFiles.length>0);
 }
 
 // Show/hide file operations
 function toggleFileOperations(show){
-  document.getElementById('fileOperations').style.display = show?'flex':'none';
+    document.getElementById('fileOperations').style.display = show?'flex':'none';
 }
 
 // File operations
 function downloadSelected(){
-  const folderObj = getCurrentFolder();
-  selectedFiles.forEach(name=>{
-    let fileObj = folderObj[name];
-    if(fileObj && fileObj.content){
-      const a = document.createElement('a');
-      a.href = fileObj.content;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  });
-  cancelSelection();
+    const folderObj = getCurrentFolder();
+    selectedFiles.forEach(name=>{
+        const a = document.createElement('a');
+        a.href = folderObj[name];
+        a.download = name;
+        a.click();
+    });
+    cancelSelection();
 }
 function deleteSelected(){
-  if(!confirm('Delete selected files?')) return;
-  const folderObj = getCurrentFolder();
-  selectedFiles.forEach(name=>delete folderObj[name]);
-  localStorage.setItem('files', JSON.stringify(files));
-  cancelSelection();
-  renderFiles();
+    if(!confirm('Delete selected files?')) return;
+    const folderObj = getCurrentFolder();
+    selectedFiles.forEach(name=>delete folderObj[name]);
+    localStorage.setItem('files', JSON.stringify(files));
+    cancelSelection();
+    renderFiles();
 }
 function renameSelected(){
-  if(selectedFiles.length!==1){ alert('Select only 1 file to rename'); return; }
-  const oldName = selectedFiles[0];
-  const newName = prompt('New name:',oldName);
-  if(!newName) return;
-  const folderObj = getCurrentFolder();
-  if(folderObj[newName]){ alert('Name already exists'); return; }
-  folderObj[newName] = folderObj[oldName];
-  delete folderObj[oldName];
-  localStorage.setItem('files', JSON.stringify(files));
-  cancelSelection();
-  renderFiles();
+    if(selectedFiles.length!==1){ alert('Select only 1 file to rename'); return; }
+    const oldName = selectedFiles[0];
+    const newName = prompt('New name:',oldName);
+    if(!newName) return;
+    const folderObj = getCurrentFolder();
+    folderObj[newName] = folderObj[oldName];
+    delete folderObj[oldName];
+    localStorage.setItem('files', JSON.stringify(files));
+    cancelSelection();
+    renderFiles();
 }
 function cancelSelection(){
-  selectedFiles=[];
-  document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
-  toggleFileOperations(false);
-}
-
-// Preview file (basic for images/text)
-function previewFile(name){
-  const folderObj = getCurrentFolder();
-  const fileObj = folderObj[name];
-  if(!fileObj || !fileObj.content) return;
-  let ext = name.split('.').pop().toLowerCase();
-  let isImage = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext);
-  let isText = ['txt','md','js','json','css','html','csv'].includes(ext);
-  if(isImage){
-    let modal = document.createElement('div');
-    modal.style.position='fixed'; modal.style.top=0; modal.style.left=0;
-    modal.style.width='100vw'; modal.style.height='100vh';
-    modal.style.background='rgba(0,0,0,0.7)';
-    modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center';
-    modal.style.zIndex='999';
-    modal.innerHTML = `<div style="background:#fff;padding:1.1em;border-radius:12px;max-width:90vw;max-height:80vh;overflow:auto;">
-      <img src="${fileObj.content}" alt="${name}" style="max-width:500px;max-height:70vh;">
-      <div style="margin-top:0.8em;text-align:center;font-weight:500;">${name}</div>
-      <button style="margin-top:1em;float:right;background:#1976d2;color:#fff;border:none;border-radius:6px;padding:0.5em 1.3em;cursor:pointer;" onclick="this.parentNode.parentNode.remove()">Close</button>
-    </div>`;
-    document.body.appendChild(modal);
-  } else if(isText){
-    let reader = new FileReader();
-    reader.onload = function(ev){
-      let modal = document.createElement('div');
-      modal.style.position='fixed'; modal.style.top=0; modal.style.left=0;
-      modal.style.width='100vw'; modal.style.height='100vh';
-      modal.style.background='rgba(0,0,0,0.7)';
-      modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center';
-      modal.style.zIndex='999';
-      modal.innerHTML = `<div style="background:#fff;padding:1.1em;border-radius:12px;max-width:90vw;max-height:80vh;overflow:auto;">
-        <div style="font-weight:bold;margin-bottom:0.7em;">${name}</div>
-        <pre style="white-space:pre-wrap;word-break:break-all;font-size:1em;">${ev.target.result}</pre>
-        <button style="margin-top:1em;float:right;background:#1976d2;color:#fff;border:none;border-radius:6px;padding:0.5em 1.3em;cursor:pointer;" onclick="this.parentNode.parentNode.remove()">Close</button>
-      </div>`;
-      document.body.appendChild(modal);
-    };
-    reader.readAsText(dataURLtoBlob(fileObj.content));
-  } else {
-    alert('Preview not available for this file type.');
-  }
-}
-
-// Utility: DataURL to Blob for text preview
-function dataURLtoBlob(dataurl) {
-  let arr = dataurl.split(',');
-  let mime = arr[0].match(/:(.*?);/)[1];
-  let bstr = atob(arr[1]);
-  let n = bstr.length;
-  let u8arr = new Uint8Array(n);
-  while (n--) { u8arr[n] = bstr.charCodeAt(n); }
-  return new Blob([u8arr], { type: mime });
+    selectedFiles=[];
+    document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
+    toggleFileOperations(false);
 }
 
 // Initial render

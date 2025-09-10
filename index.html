@@ -3,615 +3,276 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Docard - Professional Web File Manager</title>
+<title>Docard - File Manager</title>
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet" />
 <style>
 :root {
-    --primary: #1E88E5;
-    --primary-dark: #1565C0;
-    --accent: #00BCD4;
-    --bg: #F7F9FC;
-    --bg-dark: #181825;
-    --card: #FFFFFF;
-    --card-dark: #232436;
-    --text: #222;
-    --text-dark: #E3EAFc;
-    --muted: #666;
-    --muted-dark: #B3B9CC;
-    --border: #DDD;
-    --border-dark: #3A3C52;
-    --shadow: 0 4px 20px rgba(0,0,0,0.08);
-    --radius: 14px;
-    --transition: 0.2s;
-    --header-height: 60px;
+    --color-primary: #1976d2;
+    --color-primary-dark: #1565c0;
+    --color-accent: #00bcd4;
+    --color-bg: #f5f7fa;
+    --color-bg-dark: #181825;
+    --color-card: #fff;
+    --color-card-dark: #232436;
+    --color-text: #222;
+    --color-text-dark: #e3eafc;
+    --color-muted: #666;
+    --color-muted-dark: #b3b9cc;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --radius: 12px;
+    --header-height: 56px;
+    --transition: .2s;
 }
 
 body {
-    margin:0; font-family:'Roboto', sans-serif;
-    background: var(--bg); color: var(--text);
+    margin:0; font-family:'Roboto',Arial,sans-serif; background: var(--color-bg); color: var(--color-text);
     transition: background .3s, color .3s;
 }
-body.dark {
-    background: var(--bg-dark); color: var(--text-dark);
-}
+body.dark { background: var(--color-bg-dark); color: var(--color-text-dark); }
 
 /* Header */
 header {
-    height: var(--header-height);
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 24px;
-    background: var(--card);
-    box-shadow: var(--shadow);
-    position: sticky; top:0; z-index:100;
-    border-bottom:1px solid var(--border);
+    height: var(--header-height); display:flex; align-items:center; justify-content:space-between;
+    padding:0 20px; background:var(--color-card); box-shadow:var(--shadow); position:sticky; top:0; z-index:10;
     transition: background .3s, color .3s;
 }
-body.dark header { background: var(--card-dark); border-color: var(--border-dark); color: var(--text-dark);}
-header h1 { font-size:1.8em; letter-spacing:1px; font-weight:bold; color: var(--primary); }
-
-/* Toolbar Buttons */
-.toolbar { display:flex; gap:12px; }
-.toolbar button {
-    background:none; border:none; cursor:pointer;
-    font-size:20px; color: var(--primary);
-    padding:6px; border-radius:50%;
-    transition: background var(--transition), color var(--transition);
+body.dark header { background: var(--color-card-dark); color:var(--color-text-dark); }
+header .title { font-size:1.8em; font-weight:bold; letter-spacing:2px; color:var(--color-primary); }
+header .toolbar button {
+    background:none; border:none; color:var(--color-primary);
+    padding:6px; border-radius:50%; font-size:22px; cursor:pointer;
+    transition: background var(--transition);
 }
-.toolbar button:hover { background: #E3F2FD; }
-body.dark .toolbar button { color: var(--accent); }
-body.dark .toolbar button:hover { background:#21243A; color: var(--primary-dark); }
+header .toolbar button:hover { background:#e3f2fd; }
+body.dark header .toolbar button { color:var(--color-accent); }
+body.dark header .toolbar button:hover { background:#21243a; }
 
-/* Sidebar */
-#sidebar {
-    position:fixed; left:0; top:var(--header-height);
-    width:220px; height:calc(100% - var(--header-height));
-    background: var(--card); box-shadow: 2px 0 12px rgba(0,0,0,0.06);
-    display:flex; flex-direction:column; z-index:90;
+/* Pages */
+.page { display:none; padding:20px; animation:fadeIn .5s; }
+.page.active { display:block; }
+@keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
+
+/* Home page */
+.home-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; gap:40px; }
+.home-screen h1 { font-size:2.8em; color:var(--color-primary); font-weight:bold; letter-spacing:2px; }
+.home-screen .home-options { display:flex; gap:30px; flex-wrap:wrap; }
+.home-options button {
+    background:var(--color-primary); color:#fff; border:none; border-radius:16px;
+    padding:18px 36px; font-size:1.2em; display:flex; align-items:center; gap:10px; cursor:pointer;
+    transition: background var(--transition);
 }
-body.dark #sidebar { background: var(--card-dark);}
-#sidebar button {
-    background:none; border:none; padding:16px 24px; text-align:left;
-    font-size:16px; font-weight:500; color: var(--text); display:flex; align-items:center; gap:12px;
-    transition: background var(--transition), color var(--transition);
-    border-radius:0 20px 20px 0;
-}
-#sidebar button.active, #sidebar button:hover { background: var(--primary); color:#fff; }
-body.dark #sidebar button.active, body.dark #sidebar button:hover { background: var(--primary-dark); color:#fff; }
+.home-options button:hover { background:var(--color-primary-dark); }
+body.dark .home-options button { background:var(--color-accent); }
+body.dark .home-options button:hover { background:var(--color-primary-dark); }
 
-/* Main Content */
-.main-content { margin-left:220px; padding:28px 20px 60px 20px; transition:margin .3s;}
-@media(max-width:900px){ #sidebar{position:static;width:100%;height:auto;} .main-content{margin-left:0;} }
-
-/* Page Cards */
+/* Local Storage Dashboard */
 .card {
-    background: var(--card); box-shadow: var(--shadow); border-radius: var(--radius);
-    padding:20px; margin-bottom:20px;
-    display:flex; align-items:center; gap:18px; transition: background var(--transition), box-shadow var(--transition);
-    color: var(--text);
+    background:var(--color-card); box-shadow:var(--shadow); border-radius:var(--radius);
+    padding:18px; margin-bottom:18px; transition:.2s; display:flex; align-items:center; gap:18px;
+    color: var(--color-text);
 }
-body.dark .card { background: var(--card-dark); color: var(--text-dark);}
-.card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.12);}
-.card h3 {margin:0;font-size:18px; font-weight:500;}
-.card p {margin:4px 0 0 0; color: var(--muted);}
-body.dark .card p { color: var(--muted-dark); }
-.card .material-symbols-outlined { font-size:32px; color: var(--primary);}
-body.dark .card .material-symbols-outlined { color: var(--accent); }
+body.dark .card { background:var(--color-card-dark); color:var(--color-text-dark); }
+.card h3 { margin:0; font-size:18px; font-weight:500; }
+.card p { margin:4px 0 0; color:var(--color-muted); }
+body.dark .card p { color:var(--color-muted-dark); }
 
-/* Home Page Buttons */
+.filters { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
 .filter-btn {
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    padding:16px 32px; border-radius:28px; border:none;
-    background: var(--primary); color:#fff; font-size:1.1em; cursor:pointer;
-    box-shadow: 0 4px 16px rgba(30,136,229,0.25); transition: transform .2s;
+    display:flex; align-items:center; gap:6px; padding:8px 14px; border:none;
+    background:#e3f2fd; border-radius:18px; cursor:pointer; color:var(--color-primary); transition:.2s;
 }
-.filter-btn:hover { transform: translateY(-2px); }
-body.dark .filter-btn { background: var(--accent); color: var(--card-dark);}
-body.dark .filter-btn:hover { transform: translateY(-2px); }
+.filter-btn:hover { background:var(--color-primary); color:#fff; }
+body.dark .filter-btn { background:#21243a; color:var(--color-accent);}
+body.dark .filter-btn:hover { background:var(--color-primary-dark); color:#fff; }
 
-/* Local Storage File Area */
-#fileArea {
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-    gap:20px; padding-top:16px;
-}
-.file-item {
-    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-    padding:14px; display:flex; flex-direction:column; gap:10px;
-    cursor:pointer; transition: background var(--transition), transform .2s;
-    position:relative;
-}
-body.dark .file-item { background: var(--card-dark); color: var(--text-dark);}
-.file-item:hover { transform: translateY(-2px); background:#E3F2FD; }
-body.dark .file-item:hover { background:#21243A; color:var(--accent);}
-.file-icon { font-size:36px; color: var(--accent);}
-body.dark .file-icon { color:#4DD0E1;}
-.file-name { font-weight:500; word-break:break-all; }
-.file-meta { font-size:13px; color: var(--muted);}
-body.dark .file-meta { color: var(--muted-dark);}
-.file-checkbox { position:absolute; top:10px; right:10px; transform:scale(1.3); }
+/* File Area */
+#fileArea { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:22px; margin-top:10px; }
+.file-item { background:var(--color-card); border-radius:var(--radius); padding:16px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; cursor:pointer; color: var(--color-text); }
+body.dark .file-item { background:var(--color-card-dark); color:var(--color-text-dark);}
+.file-item:hover { box-shadow:0 6px 20px rgba(25,118,210,0.14);}
+.file-icon { font-size:36px; color:var(--color-accent); }
+body.dark .file-icon { color:#4dd0e1; }
+.file-name { font-weight:500; font-size:15px; word-break:break-word; }
+.file-meta { font-size:12px; color:var(--color-muted); }
+body.dark .file-meta { color:var(--color-muted-dark); }
 
-/* FAB */
+/* Cloud Storage Pending */
+.cloud-pending { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; text-align:center; gap:16px; }
+.cloud-pending h2 { font-size:2em; color:var(--color-accent); }
+.cloud-pending p { color:var(--color-muted); font-size:16px; }
+
+/* Buttons */
+.back-btn {
+    background:var(--color-primary); color:#fff; border:none; padding:10px 16px; border-radius:14px; cursor:pointer;
+    display:flex; align-items:center; gap:6px; margin-top:20px;
+}
+.back-btn:hover { background:var(--color-primary-dark); }
+body.dark .back-btn { background:var(--color-accent); }
+body.dark .back-btn:hover { background:var(--color-primary-dark); }
+
+/* Add File Button */
 .fab {
-    position:fixed; bottom:28px; right:28px; width:60px; height:60px;
-    border-radius:50%; background:var(--primary); color:#fff; font-size:36px;
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    box-shadow:0 6px 18px rgba(30,136,229,0.25); transition: background .2s;
+    position:fixed; bottom:24px; right:24px; width:56px; height:56px; background:var(--color-primary);
+    border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px;
+    color:#fff; border:none; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.2);
+    transition:.2s;
 }
-.fab:hover { background: var(--primary-dark); }
-body.dark .fab { background: var(--accent); color: var(--card-dark); }
-body.dark .fab:hover { background: var(--primary-dark); color:#fff; }
+.fab:hover { background:var(--color-primary-dark); }
+body.dark .fab { background:var(--color-accent); }
+body.dark .fab:hover { background:var(--color-primary-dark); }
 
-/* Modals */
-#previewModal, #detailsModal, #settingsModal, #helpModal {
-    display:none; position:fixed; top:0; left:0; width:100vw; height:100vh;
-    background: rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:999;
-}
-#previewContent, #detailsContent, #settingsModal > div, #helpModal > div {
-    background: var(--card); padding:28px 36px; border-radius: var(--radius);
-    max-width: 90vw; max-height: 90vh; overflow:auto;
-    color: var(--text);
-    box-shadow: 0 8px 32px rgba(30,136,229,0.2);
-}
-body.dark #previewContent, body.dark #detailsContent, body.dark #settingsModal > div, body.dark #helpModal > div {
-    background: var(--card-dark); color: var(--text-dark);
-}
-#previewClose { position:absolute; top:20px; right:20px; font-size:28px; cursor:pointer; background:none; border:none; color:var(--primary); }
-body.dark #previewClose { color: var(--accent); }
-
-/* Breadcrumb */
-#breadcrumb-wrapper { position: sticky; top:0; background:inherit; z-index:90; padding:6px 0; }
-#breadcrumb { display:flex; gap:4px; font-size:14px; color: var(--text); overflow-x:auto; white-space:nowrap;}
-body.dark #breadcrumb { color: var(--text-dark);}
-#breadcrumb span { cursor:pointer; color: var(--primary); transition: color .2s;}
-body.dark #breadcrumb span { color: var(--accent);}
-
-/* Toast */
-.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background: var(--primary); color:#fff; padding:12px 24px; border-radius:25px; font-size:15px; box-shadow:0 4px 18px rgba(30,136,229,0.2);
-    display:none; z-index:999; animation:fadeIn .4s;
-}
-body.dark .toast { background: var(--primary-dark); }
-
-/* Animations */
-@keyframes fadeIn {from{opacity:0;} to{opacity:1;}}
+/* Misc */
+.material-symbols-outlined { font-variation-settings: 'wght' 400; }
 </style>
 </head>
 <body>
+
 <!-- Header -->
 <header>
-    <h1>Docard</h1>
+    <div class="title">Docard</div>
     <div class="toolbar">
-        <button title="Help" onclick="openHelpModal()"><span class="material-symbols-outlined">help</span></button>
-        <button title="Toggle Theme" onclick="toggleTheme()"><span class="material-symbols-outlined" id="themeIcon">light_mode</span></button>
-        <button title="Settings" onclick="openSettings()"><span class="material-symbols-outlined">settings</span></button>
-        <button title="Exit" onclick="exitToHome()"><span class="material-symbols-outlined">logout</span></button>
+        <button title="Toggle Theme" onclick="toggleTheme()">
+            <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
+        </button>
     </div>
 </header>
 
-<!-- Sidebar -->
-<div id="sidebar" style="display:none;">
-    <button id="navHome" class="active" onclick="showPage('homePage')"><span class="material-symbols-outlined">home</span> Home</button>
-    <button id="navLocal" onclick="showPage('localDashboard')"><span class="material-symbols-outlined">folder</span> Local Storage</button>
-    <button id="navCloud" onclick="showPage('cloudPage')"><span class="material-symbols-outlined">cloud</span> Cloud Storage</button>
-</div>
+<!-- Pages -->
 
-<!-- Main Content -->
-<div class="main-content">
-    <!-- Home -->
-    <div id="homePage" class="page active" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:30px;">
-        <h2 style="font-size:2.2em;color:var(--primary);font-weight:bold;">Welcome to Docard</h2>
-        <div style="display:flex;gap:24px;flex-wrap:wrap;">
-            <button class="filter-btn" onclick="showPage('localDashboard')"><span class="material-symbols-outlined">storage</span> Local Storage</button>
-            <button class="filter-btn" onclick="showPendingCloud()"><span class="material-symbols-outlined">cloud</span> Cloud Storage</button>
-        </div>
-    </div>
-
-    <!-- Local Dashboard -->
-    <div id="localDashboard" class="page">
-        <div class="card">
-            <span class="material-symbols-outlined">storage</span>
-            <div>
-                <h3>Storage Usage</h3>
-                <p id="storageInfo">Used: ... / Total: 100 MB</p>
-            </div>
-        </div>
-        <div class="card" style="flex-direction:column;gap:10px;">
-            <h3>Filters</h3>
-            <div class="filters">
-                <button id="filterImages" class="filter-btn" onclick="filterFiles('images')"><span class="material-symbols-outlined">image</span> Images</button>
-                <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')"><span class="material-symbols-outlined">description</span> Documents</button>
-                <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')"><span class="material-symbols-outlined">movie</span> Videos</button>
-                <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')"><span class="material-symbols-outlined">folder</span> Others</button>
-                <button class="filter-btn" onclick="clearFilters()"><span class="material-symbols-outlined">clear_all</span> All</button>
-            </div>
-        </div>
-        <div class="card all-files-block" onclick="openLocalFileManager()">
-            <span class="material-symbols-outlined">folder_open</span>
-            <div>
-                <h3>All Files</h3>
-                <p>Open full file manager</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cloud Page -->
-    <div id="cloudPage" class="page">
-        <div class="card" style="flex-direction:column;align-items:center;text-align:center;">
-            <span class="material-symbols-outlined" style="font-size:54px;color:var(--accent);">cloud</span>
-            <h2>Cloud Storage</h2>
-            <p style="color:var(--muted);">Integration pending.<br>Coming soon.</p>
-            <button class="filter-btn" style="margin-top:16px;" onclick="showPage('homePage')">
-                <span class="material-symbols-outlined">arrow_back</span> Back to Home
+<!-- Home -->
+<div id="homePage" class="page active">
+    <div class="home-screen">
+        <h1>Docard</h1>
+        <div class="home-options">
+            <button onclick="showPage('localPage')">
+                <span class="material-symbols-outlined">storage</span> Local Storage
+            </button>
+            <button onclick="showPage('cloudPage')">
+                <span class="material-symbols-outlined">cloud</span> Cloud Storage
             </button>
         </div>
     </div>
 </div>
+
+<!-- Local Storage Dashboard -->
+<div id="localPage" class="page">
+    <div class="card">
+        <span class="material-symbols-outlined">storage</span>
+        <div>
+            <h3>Storage Usage</h3>
+            <p id="storageInfo">Used: 0 / 100 MB</p>
+        </div>
+    </div>
+    <div class="card" style="flex-direction:column;">
+        <h3>Filters</h3>
+        <div class="filters">
+            <button class="filter-btn" onclick="filterFiles('image')"><span class="material-symbols-outlined">image</span>Images</button>
+            <button class="filter-btn" onclick="filterFiles('document')"><span class="material-symbols-outlined">description</span>Documents</button>
+            <button class="filter-btn" onclick="filterFiles('video')"><span class="material-symbols-outlined">movie</span>Videos</button>
+            <button class="filter-btn" onclick="filterFiles('other')"><span class="material-symbols-outlined">folder</span>Others</button>
+            <button class="filter-btn" onclick="clearFilters()"><span class="material-symbols-outlined">clear_all</span>All</button>
+        </div>
+    </div>
+    <div id="fileArea"></div>
+    <button class="back-btn" onclick="showPage('homePage')">
+        <span class="material-symbols-outlined">arrow_back</span> Back
+    </button>
+    <button class="fab" onclick="addFile()">
+        <span class="material-symbols-outlined">add</span>
+    </button>
+</div>
+
+<!-- Cloud Storage Pending -->
+<div id="cloudPage" class="page">
+    <div class="cloud-pending">
+        <span class="material-symbols-outlined" style="font-size:60px;">cloud</span>
+        <h2>Cloud Storage</h2>
+        <p>Integration pending.<br>Coming soon.</p>
+        <button class="back-btn" onclick="showPage('homePage')">
+            <span class="material-symbols-outlined">arrow_back</span> Back to Home
+        </button>
+    </div>
+</div>
+
 <script>
-// Page Navigation & Sidebar
-function updateSidebarVisibility(pageId) {
-    const sidebar = document.getElementById('sidebar');
-    // Only show sidebar except on home page
-    sidebar.style.display = (pageId === 'homePage') ? 'none' : 'flex';
-}
+// Page Navigation
 function showPage(id){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    updateSidebarVisibility(id);
-    if(id==='localDashboard') updateStorageInfo();
 }
-function openHelpModal(){
-    document.getElementById('helpModal').style.display='flex';
-}
-function closeHelpModal(){
-    document.getElementById('helpModal').style.display='none';
-}
-function exitToHome(){ showPage('homePage'); }
-function openLocalFileManager(){ showPage('localPage'); renderFiles(); }
-function clearFilters(){ activeFilter=null; clearFilterButtons(); openLocalFileManager(); }
-function showPendingCloud(){ showPage('cloudPage'); }
 
-// Theme
+// Theme toggle
 function toggleTheme(){
     document.body.classList.toggle('dark');
     document.getElementById('themeIcon').innerText=document.body.classList.contains('dark')?'dark_mode':'light_mode';
-    localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light');
+    localStorage.setItem('theme', document.body.classList.contains('dark')?'dark':'light');
 }
 if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark');document.getElementById('themeIcon').innerText='dark_mode';}
 
-// Settings modal
-function openSettings(){
-    document.getElementById('settingsModal').style.display='flex';
-    updateStorageInfo();
-    document.getElementById('modalStorageInfo').innerText=document.getElementById('storageInfo').innerText;
-}
-function closeSettings(){ document.getElementById('settingsModal').style.display='none'; }
+// Local Storage File Manager
+let files = JSON.parse(localStorage.getItem('docardFiles') || '[]');
 
-// Storage
 function updateStorageInfo(){
-    let used=calculateStorageUsed();
-    document.getElementById('storageInfo').innerText = `Used: ${used} / Total: 100 MB`;
-    if(document.getElementById('modalStorageInfo')) document.getElementById('modalStorageInfo').innerText = `Used: ${used} / Total: 100 MB`;
+    const used = files.length*0.5; // example: each file 0.5MB
+    document.getElementById('storageInfo').innerText=`Used: ${used.toFixed(1)} / 100 MB`;
 }
-function calculateStorageUsed(){
-    let total=0;
-    let filesFlat=flattenFiles(files['/']);
-    filesFlat.forEach(f=>{ if(f.size)total+=f.size; });
-    let mb=(total/(1024*1024)).toFixed(2)+' MB';
-    return mb;
-}
-function flattenFiles(obj){
-    let arr=[];
-    for(let k in obj){
-        if(typeof obj[k]==='object'){
-            if(obj[k].content) arr.push(obj[k]);
-            else arr=arr.concat(flattenFiles(obj[k]));
-        }
+
+function renderFiles(filter='all'){
+    const fileArea = document.getElementById('fileArea');
+    fileArea.innerHTML='';
+    let displayFiles = files;
+    if(filter!=='all'){
+        displayFiles = files.filter(f=>f.type===filter);
     }
-    return arr;
-}
-
-// Files
-let files=JSON.parse(localStorage.getItem('files')||'{"\/":{}}');
-let path=['/'], selectedItems=[], activeFilter=null, isGrid=false, searchQuery='', sortOrder='name';
-
-// --- BACK BUTTON LOGIC ---
-function goBackManager(){
-    // If we're in a folder (length > 1), go up one folder
-    if (document.getElementById('localPage').classList.contains('active')) {
-        if(path.length > 1) {
-            path.pop();
-            renderFiles();
-        } else {
-            // At root: go to dashboard
-            showPage('localDashboard');
-        }
+    if(displayFiles.length===0){
+        fileArea.innerHTML='<p style="color:var(--color-muted);">No files to display.</p>';
         return;
     }
-    // If we're at dashboard, go to home
-    if (document.getElementById('localDashboard').classList.contains('active')) {
-        showPage('homePage');
-        return;
-    }
-    // If we're at homePage, do nothing (or could navigate elsewhere if desired)
-}
-
-function getCurrentFolder(){ let f=files; for(let i=1;i<path.length;i++) f=f[path[i]]; return f; }
-function clearFilterButtons(){ document.querySelectorAll('.filter-btn').forEach(btn=>btn.classList.remove('active')); }
-function filterFiles(type){ activeFilter=type; highlightFilterButton(type); openLocalFileManager(); }
-function highlightFilterButton(type){
-    clearFilterButtons();
-    if(type==='images') document.getElementById('filterImages').classList.add('active');
-    else if(type==='documents') document.getElementById('filterDocs').classList.add('active');
-    else if(type==='videos') document.getElementById('filterVideos').classList.add('active');
-    else if(type==='others') document.getElementById('filterOthers').classList.add('active');
-}
-function renderBreadcrumb(){
-    const bc=document.getElementById('breadcrumb'); bc.innerHTML='';
-    path.forEach((p,i)=>{
-        let span=document.createElement('span'); span.innerText=(i === 0 ? "Root" : p);
-        span.onclick=()=>navigateTo(i); bc.appendChild(span);
-        if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
-    });
-}
-function navigateTo(i){ path=path.slice(0,i+1); renderFiles(); }
-function renderFiles(){
-    renderBreadcrumb();
-    updateStorageInfo();
-    const fileArea=document.getElementById('fileArea'); fileArea.innerHTML='';
-    selectedItems=[]; updateFabIcon(); toggleFileOperations(false);
-    let folderObj=getCurrentFolder();
-    let items=Object.keys(folderObj).map(name=>{
-        let isFolder=typeof folderObj[name]==='object' && !folderObj[name].content;
-        return {name,isFolder,obj:folderObj[name]};
-    });
-    // Filter
-    items=items.filter(item=>{
-        if(!item.isFolder && activeFilter){
-            let ext=item.name.split('.').pop().toLowerCase();
-            if(activeFilter==='images' && !['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) return false;
-            if(activeFilter==='documents' && !['pdf','docx','doc','txt','xlsx','xls','pptx','csv','md'].includes(ext)) return false;
-            if(activeFilter==='videos' && !['mp4','mov','avi','webm','mkv'].includes(ext)) return false;
-            if(activeFilter==='others' && ['jpg','jpeg','png','gif','webp','svg','bmp','pdf','docx','doc','txt','xlsx','xls','pptx','csv','md','mp4','mov','avi','webm','mkv'].includes(ext)) return false;
-        }
-        if(searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-        return true;
-    });
-    // Sort
-    if(sortOrder==='name') items.sort((a,b)=>a.name.localeCompare(b.name));
-    else if(sortOrder==='size') items.sort((a,b)=>(b.obj.size||0)-(a.obj.size||0));
-    // Render
-    items.forEach(item=>{
-        const div=document.createElement('div'); div.className='file-item'; div.tabIndex=0;
-        div.innerHTML = `
-            <span class="file-checkbox"><input type="checkbox" onchange="toggleSelect(this,'${item.name}',${item.isFolder})"></span>
-            <span class="file-icon">${getFileIcon(item.name,item.isFolder)}</span>
-            <div class="file-info">
-                <span class="file-name">${item.name}</span>
-                <span class="file-meta">${item.isFolder ? 'Folder' : (item.obj.size ? (formatBytes(item.obj.size)) : '')}</span>
-            </div>
+    displayFiles.forEach((f,i)=>{
+        const div=document.createElement('div');
+        div.className='file-item';
+        div.innerHTML=`
+            <span class="material-symbols-outlined file-icon">${getIcon(f.type)}</span>
+            <div class="file-name">${f.name}</div>
+            <div class="file-meta">${f.size} MB</div>
         `;
-        // Folder: click anywhere
-        if(item.isFolder) {
-            div.onclick = (e) => {
-                if(e.target.tagName.toLowerCase()!=='input') {
-                    path.push(item.name); renderFiles();
-                }
-            };
-        } else {
-            div.querySelector('.file-info').onclick = ()=>{ previewFile(item.name); };
-            div.querySelector('.file-icon').onclick = ()=>{ previewFile(item.name); };
-            div.onkeydown = (e) => {
-                if(e.key==='Enter') previewFile(item.name);
-            };
-        }
-        div.querySelector('.file-info').ondblclick = ()=>{ showDetails(item.name, item.isFolder); };
+        div.onclick=()=>{ if(confirm('Delete this file?')){ files.splice(i,1); saveFiles(); } };
         fileArea.appendChild(div);
     });
-    document.getElementById('fileArea').style.gridTemplateColumns=isGrid?'repeat(auto-fill,minmax(180px,1fr))':'repeat(auto-fill,minmax(240px,1fr))';
-    document.getElementById('viewIcon').innerText=isGrid?'grid_view':'view_list';
-}
-function getFileIcon(name,isFolder){
-    if(isFolder) return '<span class="material-symbols-outlined" aria-label="Folder">folder</span>';
-    let ext=name.split('.').pop().toLowerCase();
-    if(['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) return '<span class="material-symbols-outlined" aria-label="Image">image</span>';
-    if(['pdf','doc','docx','txt','xlsx','xls','pptx','csv','md'].includes(ext)) return '<span class="material-symbols-outlined" aria-label="Document">description</span>';
-    if(['mp4','mov','avi','webm','mkv'].includes(ext)) return '<span class="material-symbols-outlined" aria-label="Video">movie</span>';
-    return '<span class="material-symbols-outlined" aria-label="File">insert_drive_file</span>';
-}
-function formatBytes(bytes){
-    if(bytes<1024) return bytes+' B';
-    else if(bytes<1024*1024) return (bytes/1024).toFixed(1)+' KB';
-    else return (bytes/(1024*1024)).toFixed(2)+' MB';
-}
-function searchFiles(q){ searchQuery=q; renderFiles(); }
-function toggleView(){ isGrid=!isGrid; renderFiles(); }
-function sortFiles(){ 
-    sortOrder=sortOrder==='name'?'size':'name'; 
-    renderFiles(); 
-    showToast('Sorted by '+(sortOrder==='name'?'Name':'Size')); 
+    updateStorageInfo();
 }
 
-// FAB & File Operations
-function fabAction(){
-    if(selectedItems.length>0){
-        document.getElementById('fileOperations').style.display='flex';
-        document.getElementById('fabMenu').style.display='none';
-    } else {
-        document.getElementById('fabMenu').style.display=document.getElementById('fabMenu').style.display==='flex'?'none':'flex';
-        document.getElementById('fileOperations').style.display='none';
+function getIcon(type){
+    switch(type){
+        case 'image': return 'image';
+        case 'video': return 'movie';
+        case 'document': return 'description';
+        default: return 'folder';
     }
 }
-function updateFabIcon(){
-    document.getElementById('fabBtn').innerHTML = selectedItems.length>0 ? '<span class="material-symbols-outlined">edit</span>' : '<span class="material-symbols-outlined">add</span>';
-}
-function toggleSelect(cb,name,isFolder){
-    if(cb.checked) selectedItems.push({name,isFolder});
-    else selectedItems=selectedItems.filter(i=>i.name!==name||i.isFolder!==isFolder);
-    updateFabIcon(); toggleFileOperations(false);
-}
-function toggleFileOperations(show){ document.getElementById('fileOperations').style.display=show?'flex':'none'; }
-function cancelSelection(){ selectedItems=[]; document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false); updateFabIcon(); toggleFileOperations(false); }
 
-// Folder / File Operations
-function createFolder(){
-    const name=prompt('Folder Name:');
-    if(!name||name.includes('/')) return showToast('Invalid folder name');
-    const f=getCurrentFolder();
-    if(f[name]) return showToast('Already exists');
-    f[name]={};
-    localStorage.setItem('files',JSON.stringify(files));
-    renderFiles();
-    showToast('Folder created');
-}
-function uploadFile(){
-    document.getElementById('fileInput').click();
-    document.getElementById('fabMenu').style.display='none';
-}
-function handleFileUpload(e){
-    const f=getCurrentFolder();
-    for(const file of e.target.files){
-        const reader=new FileReader();
-        reader.onload=function(ev){
-            f[file.name]={content:ev.target.result,size:file.size,type:file.type,lastModified:file.lastModified};
-            localStorage.setItem('files',JSON.stringify(files));
-            renderFiles();
-            showToast('File uploaded: '+file.name);
-        };
-        reader.readAsDataURL(file);
-    }
-    e.target.value = '';
-}
-function confirmDeleteSelected() {
-    if(selectedItems.length===0) return showToast('No items selected');
-    if(confirm('Are you sure you want to delete selected items?')) {
-        deleteSelected();
-    }
-}
-function deleteSelected(){
-    const f=getCurrentFolder();
-    selectedItems.forEach(i=>delete f[i.name]);
-    selectedItems=[];
-    localStorage.setItem('files',JSON.stringify(files));
-    renderFiles();
-    showToast('Deleted');
-}
-function renameSelected(){
-    if(selectedItems.length!==1) return showToast('Select only one item');
-    const oldName=selectedItems[0].name;
-    const newName=prompt('New name:',oldName);
-    if(!newName||newName.includes('/')) return showToast('Invalid name');
-    const f=getCurrentFolder();
-    if(f[newName]) return showToast('Name already exists');
-    f[newName]=f[oldName];
-    delete f[oldName];
-    localStorage.setItem('files',JSON.stringify(files));
-    renderFiles();
-    showToast('Renamed');
-}
-function downloadSelected(){
-    selectedItems.forEach(i=>{
-        const f=getCurrentFolder()[i.name];
-        if(!i.isFolder){
-            const a=document.createElement('a');
-            a.href=f.content;
-            a.download=i.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-    });
-    cancelSelection();
-    showToast('Downloaded');
-}
-function previewSelected(){
-    if(selectedItems.length!==1) return showToast('Select only one item');
-    previewFile(selectedItems[0].name);
-    selectedItems=[]; updateFabIcon(); toggleFileOperations(false);
-}
-function previewFile(name){
-    const f=getCurrentFolder()[name];
-    if(!f) return showToast('File not found!');
-    const modal=document.getElementById('previewModal');
-    const content=document.getElementById('previewContent');
-    content.innerHTML = `<h4>${name}</h4>`;
-    let ext = name.split('.').pop().toLowerCase();
-    let isTextFile = ['txt','md','js','json','css','html','csv'].includes(ext);
-    let isImage = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext);
-    if(isImage) {
-        content.innerHTML += `<img src="${f.content}" alt="${name}" style="border-radius:12px;box-shadow:0 4px 18px rgba(25,118,210,0.13);"/>`;
-    } else if(['pdf'].includes(ext)) {
-        content.innerHTML += `<iframe src="${f.content}" style="width:100%;height:70vh;border:none;"></iframe>`;
-    } else if(isTextFile) {
-        let reader = new FileReader();
-        reader.onload = function(ev) {
-            content.innerHTML += `<pre style="width:100%;max-height:60vh;">${ev.target.result}</pre>`;
-        }
-        reader.readAsText(dataURLtoBlob(f.content));
-    } else {
-        content.innerHTML += `<p style="color:var(--color-muted);">Preview not available for this file type.</p><a href="${f.content}" download="${name}" class="filter-btn" style="margin-top:12px;">Download</a>`;
-    }
-    modal.style.display = 'flex';
-}
-function closePreview(e){
-    if(!e || e.target===document.getElementById('previewModal') || e.target===document.getElementById('previewClose'))
-        document.getElementById('previewModal').style.display='none';
+function addFile(){
+    const name = prompt('Enter file name:');
+    if(!name) return;
+    const type = prompt('Enter type (image/document/video/other):','other');
+    const size = (Math.random()*5+0.1).toFixed(1); // random size
+    files.push({name,type,size});
+    saveFiles();
 }
 
-// File Details Modal
-function showDetailsSelected() {
-    if(selectedItems.length!==1) return showToast('Select only one item');
-    showDetails(selectedItems[0].name, selectedItems[0].isFolder);
-}
-function showDetails(name, isFolder) {
-    const f=getCurrentFolder()[name];
-    if(!f) return showToast('File not found!');
-    let html = `<h3>Details for: ${name}</h3>`;
-    html += `<ul style="font-size:15px;line-height:1.6;margin:14px 0 0 0;">`;
-    html += `<li>Type: ${isFolder?'Folder':(f.type||'Unknown')}</li>`;
-    html += `<li>Size: ${isFolder?'N/A':formatBytes(f.size||0)}</li>`;
-    html += `<li>Last Modified: ${isFolder?'N/A':(f.lastModified?new Date(f.lastModified).toLocaleString():'N/A')}</li>`;
-    html += `<li>Path: ${path.join('/')}/${name}</li>`;
-    html += `</ul>`;
-    document.getElementById('detailsContent').innerHTML = html;
-    document.getElementById('detailsModal').style.display='flex';
-}
-function closeDetailsModal(){
-    document.getElementById('detailsModal').style.display='none';
+function saveFiles(){
+    localStorage.setItem('docardFiles',JSON.stringify(files));
+    renderFiles(currentFilter);
 }
 
-// Utility: DataURL to Blob
-function dataURLtoBlob(dataurl) {
-    var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-    while(n--){ u8arr[n] = bstr.charCodeAt(n); }
-    return new Blob([u8arr], {type:mime});
-}
+let currentFilter='all';
+function filterFiles(type){ currentFilter=type; renderFiles(type); }
+function clearFilters(){ currentFilter='all'; renderFiles(); }
 
-// Drag & Drop upload
-document.addEventListener('dragover',function(e){e.preventDefault();},false);
-document.addEventListener('drop',function(e){
-    if(document.getElementById('localPage').classList.contains('active')){
-        e.preventDefault();
-        if(e.dataTransfer.files && e.dataTransfer.files.length){
-            document.getElementById('fileInput').files = e.dataTransfer.files;
-            handleFileUpload({target:{files:e.dataTransfer.files}});
-        }
-    }
-},false);
-
-// Toast notifications
-function showToast(msg){
-    const t=document.getElementById('toast');
-    t.innerText=msg;
-    t.style.display='block';
-    setTimeout(()=>{t.style.display='none';},1800);
-}
-
-// Initial page load
-if(window.location.hash){
-    let page=window.location.hash.replace('#','');
-    if(document.getElementById(page)) showPage(page);
-} else showPage('homePage');
+// Initial render
+updateStorageInfo();
+renderFiles();
 </script>
 </body>
 </html>

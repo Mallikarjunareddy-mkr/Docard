@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docard - Local Storage</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet" />
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <span style="font-size:2em;color:var(--color-primary);font-weight:bold;">Docard</span>
+    <div class="toolbar">
+        <button title="Help" onclick="openHelpModal()" aria-label="Help">
+            <span class="material-symbols-outlined">help</span>
+        </button>
+        <button title="Toggle Dark Mode" onclick="toggleTheme()" aria-label="Toggle Theme">
+            <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
+        </button>
+        <button title="Settings" onclick="openSettings()" aria-label="Settings">
+            <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button title="Exit" onclick="window.location.href='index.html'" aria-label="Exit">
+            <span class="material-symbols-outlined">logout</span>
+        </button>
+    </div>
+</header>
+<div id="sidebar">
+    <button onclick="window.location.href='index.html'"><span class="material-symbols-outlined">home</span> Home</button>
+    <button class="active"><span class="material-symbols-outlined">folder</span> Local Storage</button>
+    <button onclick="window.location.href='cloud.html'"><span class="material-symbols-outlined">cloud</span> Cloud Storage</button>
+</div>
+<div class="main-content">
+    <!-- Local Dashboard -->
+    <div id="localDashboard" class="page active">
+        <div class="card">
+            <span class="material-symbols-outlined">storage</span>
+            <div>
+                <h3>Storage Usage</h3>
+                <p id="storageInfo">Used: ... / Total: 100 MB</p>
+            </div>
+        </div>
+        <div class="card" style="flex-direction:column;gap:10px;">
+            <h3>Filters</h3>
+            <div class="filters">
+                <button id="filterImages" class="filter-btn" onclick="filterFiles('images')"><span class="material-symbols-outlined">image</span>Images</button>
+                <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')"><span class="material-symbols-outlined">description</span>Documents</button>
+                <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')"><span class="material-symbols-outlined">movie</span>Videos</button>
+                <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')"><span class="material-symbols-outlined">folder</span>Others</button>
+                <button class="filter-btn" onclick="clearFilters()"><span class="material-symbols-outlined">clear_all</span>All</button>
+            </div>
+        </div>
+        <div class="card all-files-block" onclick="openLocalFileManager()">
+            <span class="material-symbols-outlined">folder_open</span>
+            <div>
+                <h3>All Files</h3>
+                <p>Open full file manager</p>
+            </div>
+        </div>
+    </div>
+    <!-- File Manager -->
+    <div id="localPage" class="page">
+        <div id="breadcrumb-wrapper">
+            <div id="breadcrumb"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button class="filter-btn" id="backBtn" onclick="goBackManager()">
+                <span class="material-symbols-outlined">arrow_back</span>Back
+            </button>
+            <input type="text" id="searchBar" placeholder="Search files..." oninput="searchFiles(this.value)">
+            <div style="margin-left:auto;display:flex;gap:8px;">
+                <button class="filter-btn" id="toggleGridBtn" onclick="toggleView()">
+                    <span class="material-symbols-outlined" id="viewIcon">view_list</span>
+                </button>
+                <button class="filter-btn" onclick="sortFiles()">
+                    <span class="material-symbols-outlined">sort</span>
+                </button>
+            </div>
+        </div>
+        <div id="fileArea" tabindex="0"></div>
+        <div class="fab" id="fabBtn" onclick="fabAction()"><span class="material-symbols-outlined">add</span></div>
+        <div id="fabMenu">
+            <button onclick="createFolder()"><span class="material-symbols-outlined">create_new_folder</span> Create Folder</button>
+            <button onclick="uploadFile()"><span class="material-symbols-outlined">upload_file</span> Upload File</button>
+        </div>
+        <div id="fileOperations">
+            <button onclick="previewSelected()"><span class="material-symbols-outlined">preview</span>Preview</button>
+            <button onclick="showDetailsSelected()"><span class="material-symbols-outlined">info</span>Details</button>
+            <button onclick="downloadSelected()"><span class="material-symbols-outlined">download</span>Download</button>
+            <button onclick="renameSelected()"><span class="material-symbols-outlined">edit</span>Rename</button>
+            <button onclick="confirmDeleteSelected()"><span class="material-symbols-outlined">delete</span>Delete</button>
+            <button onclick="cancelSelection()"><span class="material-symbols-outlined">cancel</span>Cancel</button>
+        </div>
+    </div>
+</div>
+<!-- Modals and file input -->
+<input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
+<div id="previewModal" onclick="closePreview()">
+    <div id="previewContent"></div>
+    <button id="previewClose" onclick="closePreview(event)"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div id="detailsModal">
+    <div id="detailsContent"></div>
+    <button class="filter-btn" onclick="closeDetailsModal()" style="margin-top:18px;width:100%;"><span class="material-symbols-outlined">close</span>Close</button>
+</div>
+<div class="toast" id="toast"></div>
+<!-- Settings Modal -->
+<div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1002;background:rgba(0,0,0,0.35);justify-content:center;align-items:center;">
+    <div style="background:var(--color-card);padding:32px 42px;border-radius:16px;box-shadow:var(--shadow);min-width:300px;max-width:95vw;position:relative;color:var(--color-text);">
+        <h2 style="margin:0 0 14px 0;">Settings</h2>
+        <div style="margin-bottom:18px;">
+            <label style="font-weight:500;">Theme:</label>
+            <button class="filter-btn" onclick="toggleTheme()">Toggle Dark/Light</button>
+        </div>
+        <div>
+            <strong>Storage Usage:</strong>
+            <div id="modalStorageInfo" style="margin-top:6px;color:var(--color-primary);"></div>
+        </div>
+        <div style="margin-top:18px;">
+            <strong>About:</strong>
+            <p style="font-size:14px;color:var(--color-muted);">Docard is a professional web file manager built for productivity and privacy.</p>
+        </div>
+        <button class="filter-btn" onclick="closeSettings()" style="margin-top:28px;"><span class="material-symbols-outlined">close</span>Close</button>
+    </div>
+</div>
+<!-- Help Modal (shared) -->
+<div id="helpModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1002;background:rgba(0,0,0,0.35);justify-content:center;align-items:center;">
+    <div style="background:var(--color-card);padding:32px 42px;border-radius:16px;box-shadow:var(--shadow);min-width:320px;max-width:95vw;position:relative;color:var(--color-text);">
+        <h2 style="margin:0 0 14px 0;">How to use Docard</h2>
+        <ul style="font-size:15px;line-height:1.7;color:var(--color-muted);margin-bottom:18px;">
+            <li>Navigate between folders by clicking on their card.</li>
+            <li>Click file name or icon for preview, or use the checkbox for bulk actions.</li>
+            <li>Use the FAB (+) for quick folder creation/upload.</li>
+            <li>Filter by file type, search, sort, and bulk select for actions.</li>
+            <li>All files are stored locally in your browser for privacy.</li>
+            <li>Use settings for theme and storage details.</li>
+        </ul>
+        <button class="filter-btn" onclick="closeHelpModal()" style="margin-top:10px;"><span class="material-symbols-outlined">close</span>Close</button>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,101 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Docard - Local Storage</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Docard — Local Storage</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- header -->
   <header>
-    <div class="logo">Docard</div>
+    <div class="header-left">
+      <a href="index.html" class="home-link">Docard</a>
+    </div>
     <div class="toolbar">
-      <button onclick="toggleTheme()"><span id="themeIcon" class="material-symbols-outlined">light_mode</span></button>
-      <button onclick="openHelpModal()"><span class="material-symbols-outlined">help</span></button>
-      <button onclick="openSettings()"><span class="material-symbols-outlined">settings</span></button>
-      <a href="index.html"><span class="material-symbols-outlined">home</span></a>
+      <button class="icon-btn" id="helpBtnLocal" title="Help"><span class="material-symbols-outlined">help</span></button>
+      <button class="icon-btn" id="themeToggleLocal" title="Toggle theme"><span id="themeIconLocal" class="material-symbols-outlined">light_mode</span></button>
+      <button class="icon-btn" id="settingsBtnLocal" title="Settings"><span class="material-symbols-outlined">settings</span></button>
     </div>
   </header>
 
-  <!-- Dashboard -->
-  <main class="page active" id="localDashboard">
-    <div class="card">
-      <h3>Local Storage</h3>
-      <p id="storageInfo">Used: 0 / Total: 100 MB</p>
-      <button class="home-btn" onclick="openLocalFileManager()">Open File Manager</button>
+  <!-- breadcrumb -->
+  <div id="breadcrumb-wrapper">
+    <div id="breadcrumb"></div>
+  </div>
+
+  <!-- controls -->
+  <main class="main-content">
+    <div class="controls-row">
+      <input type="text" id="searchBar" placeholder="Search files..." oninput="searchFiles(this.value)" />
+      <div class="controls-right">
+        <button class="filter-btn" id="toggleGridBtn" onclick="toggleView()"><span id="viewIcon" class="material-symbols-outlined">view_list</span></button>
+        <button class="filter-btn" onclick="sortFiles()"><span class="material-symbols-outlined">sort</span></button>
+      </div>
     </div>
+
+    <div class="card filters-card">
+      <div class="filters">
+        <button id="filterAll" class="filter-btn active" onclick="filterFiles(null)"><span class="material-symbols-outlined">folder</span>All</button>
+        <button id="filterImages" class="filter-btn" onclick="filterFiles('images')"><span class="material-symbols-outlined">image</span>Images</button>
+        <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')"><span class="material-symbols-outlined">description</span>Documents</button>
+        <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')"><span class="material-symbols-outlined">movie</span>Videos</button>
+        <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')"><span class="material-symbols-outlined">folder_open</span>Others</button>
+      </div>
+    </div>
+
+    <!-- storage / open manager card -->
+    <div class="card storage-card">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span class="material-symbols-outlined" style="font-size:36px">storage</span>
+        <div>
+          <h3 style="margin:0;">Storage</h3>
+          <p id="storageInfo">Used: 0 / Total: 100 MB</p>
+        </div>
+      </div>
+      <div style="margin-left:auto">
+        <button class="btn" onclick="openLocalFileManager()">Open File Manager</button>
+      </div>
+    </div>
+
+    <!-- file area -->
+    <section id="fileArea"></section>
   </main>
 
-  <!-- File Manager -->
-  <main class="page" id="localPage">
-    <div class="filters">
-      <button id="filterImages" class="filter-btn" onclick="filterFiles('images')">Images</button>
-      <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')">Docs</button>
-      <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')">Videos</button>
-      <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')">Others</button>
-      <button onclick="clearFilters()">Clear</button>
-    </div>
-    <div id="breadcrumb" class="breadcrumb"></div>
-    <div id="fileArea"></div>
-    <input type="file" id="fileInput" multiple style="display:none" onchange="handleFileUpload(event)">
+  <!-- floating actions -->
+  <input type="file" id="fileInput" style="display:none" multiple onchange="handleFileUpload(event)">
+  <div id="fabBtn" class="fab" onclick="fabAction()"><span class="material-symbols-outlined">add</span></div>
 
-    <div id="fabBtn" class="fab" onclick="fabAction()">
-      <span class="material-symbols-outlined">add</span>
-    </div>
+  <div id="fabMenu" class="menu-floating">
+    <button onclick="createFolder()"><span class="material-symbols-outlined">create_new_folder</span> Create Folder</button>
+    <button onclick="uploadFile()"><span class="material-symbols-outlined">upload_file</span> Upload File</button>
+  </div>
 
-    <!-- FAB Menu -->
-    <div id="fabMenu" class="fab-menu">
-      <button onclick="createFolder()">New Folder</button>
-      <button onclick="uploadFile()">Upload File</button>
-    </div>
+  <div id="fileOperations" class="menu-floating">
+    <button onclick="previewSelected()"><span class="material-symbols-outlined">preview</span> Preview</button>
+    <button onclick="renameSelected()"><span class="material-symbols-outlined">edit</span> Rename</button>
+    <button onclick="downloadSelected()"><span class="material-symbols-outlined">download</span> Download</button>
+    <button onclick="confirmDeleteSelected()"><span class="material-symbols-outlined">delete</span> Delete</button>
+    <button onclick="cancelSelection()"><span class="material-symbols-outlined">cancel</span> Cancel</button>
+  </div>
 
-    <!-- File Operations -->
-    <div id="fileOperations" class="fab-menu">
-      <button onclick="previewSelected()">Preview</button>
-      <button onclick="renameSelected()">Rename</button>
-      <button onclick="downloadSelected()">Download</button>
-      <button onclick="confirmDeleteSelected()">Delete</button>
-      <button onclick="cancelSelection()">Cancel</button>
-    </div>
-  </main>
-
-  <!-- Preview Modal -->
+  <!-- preview modal -->
   <div id="previewModal" class="modal" onclick="closePreview(event)">
-    <div class="modal-content">
-      <span id="previewClose" class="close" onclick="closePreview()">&times;</span>
-      <div id="previewContent"></div>
+    <div id="previewContent" class="modal-card">
+      <button id="previewClose" class="close-btn" onclick="closePreview(event)"><span class="material-symbols-outlined">close</span></button>
     </div>
   </div>
 
-  <!-- Details Modal -->
+  <!-- details modal -->
   <div id="detailsModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeDetailsModal()" class="close">&times;</span>
-      <div id="detailsContent"></div>
-    </div>
+    <div id="detailsContent" class="modal-card"></div>
   </div>
 
-  <!-- Help Modal -->
-  <div id="helpModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeHelpModal()" class="close">&times;</span>
-      <h2>Help</h2>
-      <p>Use the filters to view specific file types. You can create folders, upload files, and manage them fully.</p>
-    </div>
-  </div>
-
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeSettings()" class="close">&times;</span>
-      <h2>Settings</h2>
-      <p id="modalStorageInfo">Used: 0 / Total: 100 MB</p>
-    </div>
-  </div>
-
-  <div id="toast"></div>
+  <div id="toast" class="toast"></div>
   <script src="script.js"></script>
 </body>
 </html>

@@ -3,73 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Docard - Local Storage</title>
+<title>Docard - Local File Manager</title>
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 </head>
 <body>
-  <!-- Top Bar: Storage & Settings -->
-  <header class="local-header">
-    <div class="storage-info" id="storageInfo">Used: 0 MB / Total: 100 MB</div>
-    <div class="top-toolbar">
-      <button onclick="openSettings()" title="Settings">
-        <span class="material-symbols-outlined">settings</span>
-      </button>
-    </div>
-  </header>
 
-  <!-- Folder Path -->
-  <div id="breadcrumb-wrapper">
-    <div id="breadcrumb"></div>
+<!-- ==== Header ==== -->
+<div class="local-header">
+  <div id="storageInfo">Used: 0 / Total: 100 MB</div>
+  <div class="top-toolbar">
+    <button onclick="toggleTheme()" id="themeIcon">light_mode</button>
+    <button onclick="openSettings()">settings</button>
   </div>
+</div>
 
-  <!-- File Manager Area -->
-  <main class="main-content">
-    <div id="fileArea"></div>
-  </main>
+<!-- ==== Breadcrumb ==== -->
+<div id="breadcrumb-wrapper">
+  <div id="breadcrumb"></div>
+</div>
 
-  <!-- Floating Button (Add/Upload) -->
-  <div id="fabMenu" class="fab" onclick="fabAction()" title="Add File/Folder">
-    <span class="material-symbols-outlined" id="fabBtn">add</span>
+<!-- ==== Main File Area ==== -->
+<div class="main-content">
+  <div id="fileArea"></div>
+</div>
+
+<!-- ==== Floating Button ==== -->
+<div class="fab" id="fabBtn" onclick="fabAction()"><span class="material-symbols-outlined">add</span></div>
+
+<!-- ==== File Operations Menu ==== -->
+<div id="fileOperations">
+  <button onclick="createFolder()">New Folder</button>
+  <button onclick="uploadFile()">Upload File</button>
+  <button onclick="renameSelected()">Rename</button>
+  <button onclick="downloadSelected()">Download</button>
+  <button onclick="confirmDeleteSelected()">Delete</button>
+</div>
+
+<!-- ==== File Input for Upload ==== -->
+<input type="file" id="fileInput" multiple style="display:none;" onchange="handleFileUpload(event)">
+
+<!-- ==== Preview Modal ==== -->
+<div id="previewModal" class="modal" onclick="closePreview(event)">
+  <div id="previewContent">
+    <button id="previewClose" onclick="closePreview(event)">close</button>
   </div>
+</div>
 
-  <!-- File Operations Menu -->
-  <div id="fileOperations">
-    <button onclick="previewSelected()"><span class="material-symbols-outlined">visibility</span> Preview</button>
-    <button onclick="renameSelected()"><span class="material-symbols-outlined">edit</span> Rename</button>
-    <button onclick="downloadSelected()"><span class="material-symbols-outlined">download</span> Download</button>
-    <button onclick="confirmDeleteSelected()"><span class="material-symbols-outlined">delete</span> Delete</button>
-    <button onclick="cancelSelection()"><span class="material-symbols-outlined">close</span> Cancel</button>
+<!-- ==== Details Modal ==== -->
+<div id="detailsModal" class="modal">
+  <div id="detailsContent">
+    <button onclick="closeDetailsModal()">close</button>
   </div>
+</div>
 
-  <!-- File Upload Input -->
-  <input type="file" id="fileInput" style="display:none" multiple onchange="handleFileUpload(event)">
+<!-- ==== Toast ==== -->
+<div class="toast" id="toast"></div>
 
-  <!-- Modals -->
-  <div id="previewModal" class="modal" onclick="closePreview(event)">
-    <div id="previewContent">
-      <button id="previewClose" onclick="closePreview(event)">&times;</button>
-    </div>
-  </div>
-
-  <div id="detailsModal" class="modal">
-    <div id="detailsContent">
-      <button onclick="closeDetailsModal()">&times;</button>
-      <div id="detailsContentInner"></div>
-    </div>
-  </div>
-
-  <div id="settingsModal" class="modal">
-    <div class="modal-content">
-      <h3>Settings</h3>
-      <p id="modalStorageInfo">Used: 0 MB / Total: 100 MB</p>
-      <button onclick="toggleTheme()" id="themeIcon"><span class="material-symbols-outlined">light_mode</span> Toggle Theme</button>
-      <button onclick="closeSettings()">Close</button>
-    </div>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
-  <script src="script.js"></script>
+<script src="local.js"></script>
 </body>
 </html>

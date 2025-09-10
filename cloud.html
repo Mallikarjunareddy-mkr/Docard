@@ -1,35 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Docard — Cloud</title>
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docard - Cloud Storage</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<script defer src="script.js"></script>
 </head>
 <body>
-  <header>
-    <div class="header-left"><a href="index.html" class="home-link">Docard</a></div>
+
+<header>
+    <div class="header-left">
+        <button onclick="goBackManager()" class="material-symbols-outlined">arrow_back</button>
+        <span id="storageInfo">Used: 0 / 100 MB</span>
+    </div>
     <div class="toolbar">
-      <button class="icon-btn" id="helpBtnCloud" title="Help"><span class="material-symbols-outlined">help</span></button>
-      <button class="icon-btn" id="themeToggleCloud" title="Toggle theme"><span id="themeIconCloud" class="material-symbols-outlined">light_mode</span></button>
-      <button class="icon-btn" id="settingsBtnCloud" title="Settings"><span class="material-symbols-outlined">settings</span></button>
+        <button onclick="exitToHome()" class="material-symbols-outlined">dashboard</button>
+        <button onclick="openSettings()" class="material-symbols-outlined">settings</button>
+        <button onclick="toggleTheme()" id="themeIcon" class="material-symbols-outlined">light_mode</button>
     </div>
-  </header>
+</header>
 
-  <main class="main-content">
-    <div class="card" style="text-align:center;">
-      <span class="material-symbols-outlined" style="font-size:44px;color:var(--color-accent)">cloud</span>
-      <h3>Cloud Storage</h3>
-      <p>Integration coming soon — Google Drive, Dropbox, OneDrive and more.</p>
-      <div style="margin-top:12px;">
-        <button class="btn" disabled>Connect Google Drive</button>
-        <button class="btn" disabled>Connect Dropbox</button>
-      </div>
+<div id="breadcrumb-wrapper">
+    <div id="breadcrumb"></div>
+</div>
+
+<div class="main-content">
+    <input type="text" placeholder="Search files..." id="searchBar" oninput="searchFiles(this.value)">
+    <div class="filters">
+        <button id="filterImages" class="filter-btn" onclick="filterFiles('images')">
+            <span class="material-symbols-outlined">cloud</span> Images
+        </button>
+        <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')">
+            <span class="material-symbols-outlined">description</span> Documents
+        </button>
+        <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')">
+            <span class="material-symbols-outlined">movie</span> Videos
+        </button>
+        <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')">
+            <span class="material-symbols-outlined">insert_drive_file</span> Others
+        </button>
     </div>
-  </main>
 
-<script src="script.js"></script>
+    <div id="fileArea"></div>
+</div>
+
+<input type="file" id="fileInput" multiple style="display:none" onchange="handleFileUpload(event)">
+
+<!-- FAB -->
+<div class="fab" id="fabBtn" onclick="fabAction()">
+    <span class="material-symbols-outlined">add</span>
+</div>
+
+<!-- FAB Menus -->
+<div id="fabMenu">
+    <button onclick="uploadFile()"><span class="material-symbols-outlined">file_upload</span> Upload File</button>
+    <button onclick="createFolder()"><span class="material-symbols-outlined">create_new_folder</span> New Folder</button>
+</div>
+
+<div id="fileOperations">
+    <button onclick="previewSelected()"><span class="material-symbols-outlined">preview</span> Preview</button>
+    <button onclick="renameSelected()"><span class="material-symbols-outlined">edit</span> Rename</button>
+    <button onclick="downloadSelected()"><span class="material-symbols-outlined">download</span> Download</button>
+    <button onclick="confirmDeleteSelected()"><span class="material-symbols-outlined">delete</span> Delete</button>
+    <button onclick="cancelSelection()"><span class="material-symbols-outlined">close</span> Cancel</button>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal" onclick="closePreview(event)">
+    <div id="previewContent">
+        <button id="previewClose" onclick="closePreview(event)">close</button>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" onclick="closeDetailsModal()">
+    <div id="detailsContent"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 </body>
 </html>

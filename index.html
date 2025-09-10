@@ -264,8 +264,8 @@ body.dark #breadcrumb span { color: var(--color-accent);}
     </div>
 </header>
 
-<!-- Sidebar -->
-<div id="sidebar">
+<!-- Sidebar (hidden on home page) -->
+<div id="sidebar" style="display:none;">
     <button id="navHome" class="active" onclick="showPage('homePage')">
         <span class="material-symbols-outlined">home</span> Home
     </button>
@@ -280,18 +280,14 @@ body.dark #breadcrumb span { color: var(--color-accent);}
 <!-- Main Content -->
 <div class="main-content">
     <!-- Home Page -->
-    <div id="homePage" class="page active">
-        <div class="card" style="justify-content:center;flex-direction:column;align-items:center;">
-            <span class="material-symbols-outlined" style="font-size:54px;color:var(--color-primary);">folder_open</span>
-            <h1 style="font-size:2.1em;margin:12px 0 0 0;">Docard File Manager</h1>
-            <p style="font-size:17px;color:var(--color-muted);margin-top:10px;">A modern, secure file manager for your browser. Manage your files like you do on Android or desktop, with cloud and local support.</p>
-        </div>
-        <div style="display:flex;gap:18px;margin-top:32px;flex-wrap:wrap;">
-            <button class="filter-btn" style="font-size:1.1em;" onclick="showPage('localDashboard')">
-                <span class="material-symbols-outlined">storage</span> Local Storage
+    <div id="homePage" class="page active" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;">
+        <h1 style="font-size:2.5em;margin:42px 0 38px 0;letter-spacing:2px;color:var(--color-primary);font-weight:bold;">Docard</h1>
+        <div style="display:flex;gap:30px;flex-wrap:wrap;">
+            <button class="filter-btn" style="font-size:1.2em;padding:18px 34px;" onclick="showPage('localDashboard')">
+                <span class="material-symbols-outlined" style="font-size:28px;">storage</span> Local Storage
             </button>
-            <button class="filter-btn" style="font-size:1.1em;" onclick="showPage('cloudPage')">
-                <span class="material-symbols-outlined">cloud</span> Cloud Storage
+            <button class="filter-btn" style="font-size:1.2em;padding:18px 34px;" onclick="showPendingCloud()">
+                <span class="material-symbols-outlined" style="font-size:28px;">cloud</span> Cloud Storage
             </button>
         </div>
     </div>
@@ -359,13 +355,15 @@ body.dark #breadcrumb span { color: var(--color-accent);}
         </div>
     </div>
 
-    <!-- Cloud Storage -->
+    <!-- Cloud Storage: Pending Page -->
     <div id="cloudPage" class="page">
         <div class="card" style="flex-direction:column;align-items:center;text-align:center;">
             <span class="material-symbols-outlined" style="font-size:54px;color:var(--color-accent);">cloud</span>
             <h2 style="margin-top:8px;">Cloud Storage</h2>
-            <p style="color:var(--color-muted);">Integration coming soon!<br>Stay tuned for Google Drive, Dropbox, OneDrive and more.</p>
-            <button class="filter-btn" style="margin-top:22px;" onclick="showPage('homePage')"><span class="material-symbols-outlined">arrow_back</span>Back to Home</button>
+            <p style="color:var(--color-muted);font-size:17px;">Integration pending.<br>Coming soon.</p>
+            <button class="filter-btn" style="margin-top:22px;" onclick="showPage('homePage')">
+                <span class="material-symbols-outlined">arrow_back</span>Back to Home
+            </button>
         </div>
     </div>
 </div>
@@ -446,11 +444,8 @@ body.dark #helpModal ul {color:var(--color-muted-dark)!important;}
 // Page Navigation & Sidebar
 function updateSidebarVisibility(pageId) {
     const sidebar = document.getElementById('sidebar');
-    if (pageId === 'homePage') {
-        sidebar.style.display = 'flex';
-    } else {
-        sidebar.style.display = 'none';
-    }
+    // Only show sidebar except on home page
+    sidebar.style.display = (pageId === 'homePage') ? 'none' : 'flex';
 }
 function showPage(id){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -467,6 +462,7 @@ function closeHelpModal(){
 function exitToHome(){ showPage('homePage'); }
 function openLocalFileManager(){ showPage('localPage'); renderFiles(); }
 function clearFilters(){ activeFilter=null; clearFilterButtons(); openLocalFileManager(); }
+function showPendingCloud(){ showPage('cloudPage'); }
 
 // Theme
 function toggleTheme(){

@@ -306,7 +306,9 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
             <div id="breadcrumb"></div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
-            <button class="filter-btn" onclick="goBackManager()"><span class="material-symbols-outlined">arrow_back</span>Back</button>
+            <button class="filter-btn" id="backBtn" onclick="goBackManager()">
+                <span class="material-symbols-outlined">arrow_back</span>Back
+            </button>
             <input type="text" id="searchBar" placeholder="Search files..." oninput="searchFiles(this.value)">
             <div style="margin-left:auto;display:flex;gap:8px;">
                 <button class="filter-btn" id="toggleGridBtn" onclick="toggleView()">
@@ -415,7 +417,6 @@ function closeHelpModal(){
 }
 function exitToHome(){ showPage('homePage'); }
 function openLocalFileManager(){ showPage('localPage'); renderFiles(); }
-function goBackManager(){ showPage('localDashboard'); activeFilter=null; clearFilterButtons(); }
 function clearFilters(){ activeFilter=null; clearFilterButtons(); openLocalFileManager(); }
 
 // Theme
@@ -461,6 +462,27 @@ function flattenFiles(obj){
 // Files
 let files=JSON.parse(localStorage.getItem('files')||'{"\/":{}}');
 let path=['/'], selectedItems=[], activeFilter=null, isGrid=false, searchQuery='', sortOrder='name';
+
+// --- BACK BUTTON LOGIC ---
+function goBackManager(){
+    // If we're in a folder (length > 1), go up one folder
+    if (document.getElementById('localPage').classList.contains('active')) {
+        if(path.length > 1) {
+            path.pop();
+            renderFiles();
+        } else {
+            // At root: go to dashboard
+            showPage('localDashboard');
+        }
+        return;
+    }
+    // If we're at dashboard, go to home
+    if (document.getElementById('localDashboard').classList.contains('active')) {
+        showPage('homePage');
+        return;
+    }
+    // If we're at homePage, do nothing (or could navigate elsewhere if desired)
+}
 
 function getCurrentFolder(){ let f=files; for(let i=1;i<path.length;i++) f=f[path[i]]; return f; }
 function clearFilterButtons(){ document.querySelectorAll('.filter-btn').forEach(btn=>btn.classList.remove('active')); }

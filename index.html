@@ -8,44 +8,94 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    .glow-title {
-      font-size: 3rem;
-      font-weight: 700;
-      text-align: center;
-      margin: 2rem 0;
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
+      font-family: "Roboto", sans-serif;
       color: #fff;
-      text-shadow: 0 0 10px #00bcd4, 0 0 20px #00bcd4, 0 0 40px #00bcd4;
-      animation: glow 2s ease-in-out infinite alternate;
+      overflow: hidden;
     }
-    @keyframes glow {
-      from { text-shadow: 0 0 10px #00bcd4, 0 0 20px #00bcd4; }
-      to { text-shadow: 0 0 20px #00e5ff, 0 0 40px #00e5ff, 0 0 60px #00e5ff; }
+    .home-container {
+      text-align: center;
+      animation: fadeIn 1.2s ease;
+    }
+    .glow-title {
+      font-size: 4rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      animation: thunder 3s infinite;
+    }
+    @keyframes thunder {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow: 0 0 5px #00e5ff, 
+                     0 0 15px #00e5ff, 
+                     0 0 30px #00ffff, 
+                     0 0 60px #00ffff;
+        color: #fff;
+      }
+      20%, 24%, 55% {
+        text-shadow: 0 0 2px #fff, 
+                     0 0 10px #fff, 
+                     0 0 20px #00ffff, 
+                     0 0 40px #00e5ff;
+        color: #e0f7fa;
+      }
+    }
+    .tagline {
+      font-size: 1.2rem;
+      color: #ccc;
+      margin-bottom: 2.5rem;
     }
     .home-options {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1rem;
-      margin-top: 2rem;
+      gap: 1.2rem;
     }
     .home-options a {
-      width: 220px;
-      text-align: center;
-      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 250px;
       padding: 1rem;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #00bcd4, #0097a7);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .home-options a:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    .home-options a span {
+      font-size: 1.6rem;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <!-- Center Content -->
-  <main class="main-content center">
+  <div class="home-container">
     <h1 class="glow-title">Docard</h1>
+    <p class="tagline">Your Smart File Manager</p>
     <div class="home-options">
-      <a href="local.html" class="filter-btn"><span class="material-symbols-outlined">storage</span> Local Storage</a>
-      <a href="cloud.html" class="filter-btn"><span class="material-symbols-outlined">cloud</span> Cloud Storage</a>
+      <a href="local.html"><span class="material-symbols-outlined">storage</span> Local Storage</a>
+      <a href="cloud.html"><span class="material-symbols-outlined">cloud</span> Cloud Storage</a>
     </div>
-  </main>
-
-  <script src="script.js"></script>
+  </div>
 </body>
 </html>

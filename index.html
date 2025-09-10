@@ -1,63 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Docard — Home</title>
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docard - Home</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<script defer src="script.js"></script>
 </head>
 <body>
-  <!-- top tools (help + theme) -->
-  <div class="top-tools">
-    <button class="icon-btn" id="helpBtn" title="Help"><span class="material-symbols-outlined">help</span></button>
-    <button class="icon-btn" id="themeToggle" title="Toggle theme"><span id="themeIcon" class="material-symbols-outlined">light_mode</span></button>
-    <button class="icon-btn" id="settingsBtn" title="Settings"><span class="material-symbols-outlined">settings</span></button>
-  </div>
+<div class="top-toolbar">
+    <button onclick="openSettings()" class="material-symbols-outlined">settings</button>
+    <button onclick="openHelpModal()" class="material-symbols-outlined">help</button>
+    <button onclick="toggleTheme()" id="themeIcon" class="material-symbols-outlined">light_mode</button>
+</div>
 
-  <!-- big centered splash -->
-  <main class="home-main">
-    <h1 class="docard-title thunder">Docard</h1>
-    <p class="home-tag">Your smart local & cloud file manager</p>
-    <div class="home-actions">
-      <a class="home-action" href="local.html">Local Storage<span class="material-symbols-outlined">storage</span></a>
-      <a class="home-action" href="cloud.html">Cloud Storage<span class="material-symbols-outlined">cloud</span></a>
+<div class="home-main">
+    <div class="docard-title">Docard</div>
+    <div class="home-options">
+        <a href="local.html" class="home-btn">Local Storage</a>
+        <a href="cloud.html" class="home-btn">Cloud Storage</a>
     </div>
-  </main>
+</div>
 
-  <!-- Help modal -->
-  <div id="helpModal" class="modal" role="dialog" aria-hidden="true">
-    <div class="modal-card">
-      <h3>How to use Docard</h3>
-      <ul>
-        <li>Open <strong>Local Storage</strong> to manage files saved in your browser.</li>
-        <li>Use the FAB (+) to create folders or upload files.</li>
-        <li>Select items (checkbox) to show edit actions (rename, delete, download, details).</li>
-        <li>Files persist in localStorage so they survive page reloads.</li>
-      </ul>
-      <div class="modal-actions">
-        <button class="btn" onclick="closeHelpModal()">Close</button>
-      </div>
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <h3>Settings</h3>
+        <p id="modalStorageInfo"></p>
+        <button onclick="closeSettings()">Close</button>
     </div>
-  </div>
+</div>
 
-  <!-- Settings modal -->
-  <div id="settingsModal" class="modal" role="dialog" aria-hidden="true">
-    <div class="modal-card">
-      <h3>Settings</h3>
-      <div style="margin:10px 0;">
-        <button class="btn" onclick="toggleTheme()">Toggle Light / Dark</button>
-      </div>
-      <div style="margin-top:12px;color:var(--color-muted);font-size:14px;">
-        Theme and files are stored locally in your browser.
-      </div>
-      <div class="modal-actions">
-        <button class="btn" onclick="closeSettings()">Close</button>
-      </div>
+<!-- Help Modal -->
+<div id="helpModal" class="modal">
+    <div class="modal-content">
+        <h3>Help</h3>
+        <p>Welcome to Docard. Use Local or Cloud storage to manage your files.</p>
+        <button onclick="closeHelpModal()">Close</button>
     </div>
-  </div>
-
-<script src="script.js"></script>
+</div>
 </body>
 </html>

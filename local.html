@@ -1,99 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Docard — Local Storage</title>
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docard - Local File Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- header -->
-  <header>
-    <div class="header-left">
-      <a href="index.html" class="home-link">Docard</a>
-    </div>
-    <div class="toolbar">
-      <button class="icon-btn" id="helpBtnLocal" title="Help"><span class="material-symbols-outlined">help</span></button>
-      <button class="icon-btn" id="themeToggleLocal" title="Toggle theme"><span id="themeIconLocal" class="material-symbols-outlined">light_mode</span></button>
-      <button class="icon-btn" id="settingsBtnLocal" title="Settings"><span class="material-symbols-outlined">settings</span></button>
-    </div>
-  </header>
 
-  <!-- breadcrumb -->
-  <div id="breadcrumb-wrapper">
-    <div id="breadcrumb"></div>
+<!-- ====== Top Bar ====== -->
+<header class="filemanager-header">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button onclick="goBackManager()" class="material-symbols-outlined">arrow_back</button>
+    <button onclick="goToDashboard()" class="material-symbols-outlined">home</button>
+    <span id="storageInfo" style="margin-left:12px;font-weight:500;">Used: 0 / Total: 100 MB</span>
   </div>
-
-  <!-- controls -->
-  <main class="main-content">
-    <div class="controls-row">
-      <input type="text" id="searchBar" placeholder="Search files..." oninput="searchFiles(this.value)" />
-      <div class="controls-right">
-        <button class="filter-btn" id="toggleGridBtn" onclick="toggleView()"><span id="viewIcon" class="material-symbols-outlined">view_list</span></button>
-        <button class="filter-btn" onclick="sortFiles()"><span class="material-symbols-outlined">sort</span></button>
-      </div>
-    </div>
-
-    <div class="card filters-card">
-      <div class="filters">
-        <button id="filterAll" class="filter-btn active" onclick="filterFiles(null)"><span class="material-symbols-outlined">folder</span>All</button>
-        <button id="filterImages" class="filter-btn" onclick="filterFiles('images')"><span class="material-symbols-outlined">image</span>Images</button>
-        <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')"><span class="material-symbols-outlined">description</span>Documents</button>
-        <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')"><span class="material-symbols-outlined">movie</span>Videos</button>
-        <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')"><span class="material-symbols-outlined">folder_open</span>Others</button>
-      </div>
-    </div>
-
-    <!-- storage / open manager card -->
-    <div class="card storage-card">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <span class="material-symbols-outlined" style="font-size:36px">storage</span>
-        <div>
-          <h3 style="margin:0;">Storage</h3>
-          <p id="storageInfo">Used: 0 / Total: 100 MB</p>
-        </div>
-      </div>
-      <div style="margin-left:auto">
-        <button class="btn" onclick="openLocalFileManager()">Open File Manager</button>
-      </div>
-    </div>
-
-    <!-- file area -->
-    <section id="fileArea"></section>
-  </main>
-
-  <!-- floating actions -->
-  <input type="file" id="fileInput" style="display:none" multiple onchange="handleFileUpload(event)">
-  <div id="fabBtn" class="fab" onclick="fabAction()"><span class="material-symbols-outlined">add</span></div>
-
-  <div id="fabMenu" class="menu-floating">
-    <button onclick="createFolder()"><span class="material-symbols-outlined">create_new_folder</span> Create Folder</button>
-    <button onclick="uploadFile()"><span class="material-symbols-outlined">upload_file</span> Upload File</button>
+  <div class="toolbar">
+    <button onclick="openSettings()" class="material-symbols-outlined">settings</button>
+    <button onclick="toggleTheme()" id="themeIcon" class="material-symbols-outlined">light_mode</button>
+    <button onclick="openHelpModal()" class="material-symbols-outlined">help</button>
   </div>
+</header>
 
-  <div id="fileOperations" class="menu-floating">
-    <button onclick="previewSelected()"><span class="material-symbols-outlined">preview</span> Preview</button>
-    <button onclick="renameSelected()"><span class="material-symbols-outlined">edit</span> Rename</button>
-    <button onclick="downloadSelected()"><span class="material-symbols-outlined">download</span> Download</button>
-    <button onclick="confirmDeleteSelected()"><span class="material-symbols-outlined">delete</span> Delete</button>
-    <button onclick="cancelSelection()"><span class="material-symbols-outlined">cancel</span> Cancel</button>
+<!-- ====== Breadcrumb / Folder Path ====== -->
+<div id="breadcrumb-wrapper">
+  <div id="breadcrumb"></div>
+</div>
+
+<!-- ====== Main File Area ====== -->
+<div class="main-content">
+  <div id="fileArea"></div>
+
+  <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFileUpload(event)">
+</div>
+
+<!-- ====== Floating Action Button ====== -->
+<div class="fab" id="fabBtn" onclick="fabAction()">
+  <span class="material-symbols-outlined">add</span>
+</div>
+
+<!-- FAB Menu -->
+<div id="fabMenu">
+  <button onclick="uploadFile()">Upload File</button>
+  <button onclick="createFolder()">New Folder</button>
+</div>
+
+<!-- File Operations Panel -->
+<div id="fileOperations">
+  <button onclick="previewSelected()">Preview</button>
+  <button onclick="renameSelected()">Rename</button>
+  <button onclick="downloadSelected()">Download</button>
+  <button onclick="confirmDeleteSelected()">Delete</button>
+  <button onclick="cancelSelection()">Cancel</button>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal" onclick="closePreview(event)">
+  <div id="previewContent">
+    <button id="previewClose" onclick="closePreview(event)">close</button>
   </div>
+</div>
 
-  <!-- preview modal -->
-  <div id="previewModal" class="modal" onclick="closePreview(event)">
-    <div id="previewContent" class="modal-card">
-      <button id="previewClose" class="close-btn" onclick="closePreview(event)"><span class="material-symbols-outlined">close</span></button>
-    </div>
+<!-- File Details Modal -->
+<div id="detailsModal">
+  <div id="detailsContent">
+    <button onclick="closeDetailsModal()" class="material-symbols-outlined" style="position:absolute;top:12px;right:12px;">close</button>
+    <div id="detailsContentInner"></div>
   </div>
+</div>
 
-  <!-- details modal -->
-  <div id="detailsModal" class="modal">
-    <div id="detailsContent" class="modal-card"></div>
+<!-- Settings Modal -->
+<div id="settingsModal">
+  <div style="background:var(--color-card);padding:24px;border-radius:16px;position:relative;">
+    <button onclick="closeSettings()" class="material-symbols-outlined" style="position:absolute;top:12px;right:12px;">close</button>
+    <h3>Settings</h3>
+    <p id="modalStorageInfo">Used: 0 / Total: 100 MB</p>
   </div>
+</div>
 
-  <div id="toast" class="toast"></div>
-  <script src="script.js"></script>
+<!-- Help Modal -->
+<div id="helpModal">
+  <div style="background:var(--color-card);padding:24px;border-radius:16px;position:relative;">
+    <button onclick="closeHelpModal()" class="material-symbols-outlined" style="position:absolute;top:12px;right:12px;">close</button>
+    <h3>Help</h3>
+    <p>Drag & drop files here or use the upload button. Click folders to navigate inside them. Select files for operations like rename, download, or delete.</p>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<script src="script.js"></script>
+<script>
+// ====== Page Load ======
+document.addEventListener('DOMContentLoaded', ()=>{
+    showPage('localPage');
+    renderFiles();
+    document.getElementById('fabMenu').style.display='none';
+    document.getElementById('fileOperations').style.display='none';
+});
+
+// ====== Dashboard Button ======
+function goToDashboard(){
+    if(confirm("Return to Dashboard? Unsaved changes will remain.")){
+        window.location.href="index.html";
+    }
+}
+</script>
 </body>
 </html>

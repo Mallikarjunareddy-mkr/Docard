@@ -3,46 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web File Manager</title>
+<title>Android-Style Web File Manager</title>
 <style>
 body { margin:0; font-family: Arial, sans-serif; background:#fafafa; }
-.page { display:none; padding:20px; }
+.page { display:none; padding:0; }
 .page.active { display:block; }
 button { cursor:pointer; }
+
 header { padding:10px; background:#f0f0f0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; }
 #backBtn { cursor:pointer; color:#0d6efd; font-weight:bold; }
 #backBtn.disabled { color:#aaa; cursor:default; }
+
 #breadcrumb { display:flex; flex-wrap:wrap; gap:5px; font-size:14px; }
 #breadcrumb span { cursor:pointer; color:#0d6efd; }
+
 #fileArea { padding:10px; }
 .folder, .file { display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:5px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.05); border-radius:4px; }
 .folder:hover, .file:hover { background:#e8f0fe; }
 .folder span:first-child::before { content:"📁"; margin-right:8px; }
 .file span:first-child::before { content:"📄"; margin-right:8px; }
+
 .fab { position:fixed; bottom:30px; right:30px; width:60px; height:60px; border-radius:50%; background:#0d6efd; color:#fff; font-size:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:100; transition:0.2s; }
 #fabMenu, #fileOperations { position:fixed; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; width:160px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:101; }
 #fabMenu button, #fileOperations button { padding:10px 15px; text-align:left; border:none; background:none; cursor:pointer; font-size:14px; }
 #fabMenu button:hover, #fileOperations button:hover { background:#f0f0f0; }
 
+.block { padding:20px; border-radius:8px; margin-bottom:15px; cursor:pointer; }
+.block h3 { margin:0 0 5px 0; }
+.block p { margin:0; }
+
+.storage-block { background:#e3f2fd; }
+.filter-block { background:#fff3e0; }
+.all-files-block { background:#e8f5e9; }
+
 /* Preview Modal */
 #previewModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:200; }
 #previewContent { max-width:90%; max-height:90%; background:#fff; padding:10px; border-radius:5px; overflow:auto; }
 #previewContent img, #previewContent iframe, #previewContent pre { max-width:100%; max-height:100%; display:block; margin:0 auto; }
+
+button.filter-btn { background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px 10px; font-size:14px; }
+button.filter-btn:hover { background:#f0f0f0; }
+
 </style>
 </head>
 <body>
 
 <!-- Home Page -->
-<div id="homePage" class="page active">
+<div id="homePage" class="page active" style="padding:20px;">
     <h1>Web File Manager</h1>
-    <button onclick="openManager('local')">Local Storage</button>
-    <button onclick="openManager('cloud')">Cloud Storage</button>
+    <div style="margin-top:20px;">
+        <button onclick="openManager('local')" style="padding:15px 20px; font-size:16px; margin-bottom:10px;">Local Storage</button>
+        <button onclick="openManager('cloud')" style="padding:15px 20px; font-size:16px;">Cloud Storage</button>
+    </div>
 </div>
 
-<!-- Local Storage Page -->
+<!-- Local Storage Dashboard -->
+<div id="localDashboard" class="page" style="padding:20px;">
+    <header>
+        <span id="backBtn" onclick="exitToHome()">⬅ Back</span>
+        <h2 style="margin-left:10px;">Local Storage</h2>
+    </header>
+    <div style="margin-top:20px;">
+        <!-- Storage Overview -->
+        <div class="block storage-block">
+            <h3>Storage</h3>
+            <p>Used: 16 MB / Total: 100 MB</p>
+        </div>
+        <!-- Filters -->
+        <div class="block filter-block">
+            <h3>Filters</h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="filter-btn" onclick="filterFiles('images')">Images</button>
+                <button class="filter-btn" onclick="filterFiles('documents')">Documents</button>
+                <button class="filter-btn" onclick="filterFiles('videos')">Videos</button>
+                <button class="filter-btn" onclick="filterFiles('others')">Others</button>
+            </div>
+        </div>
+        <!-- All Files -->
+        <div class="block all-files-block" onclick="openLocalFileManager()">
+            <h3>All Files</h3>
+            <p>Open full file manager</p>
+        </div>
+    </div>
+</div>
+
+<!-- Local Storage File Manager -->
 <div id="localPage" class="page">
     <header>
-        <span id="backBtn" class="disabled" onclick="goBack()">⬅ Back</span>
+        <span id="backBtnFile" class="disabled" onclick="goBack()">⬅ Back</span>
         <div id="breadcrumb"></div>
         <button onclick="exitToHome()" style="margin-left:auto;">Exit</button>
     </header>
@@ -62,7 +110,7 @@ header { padding:10px; background:#f0f0f0; display:flex; align-items:center; gap
 </div>
 
 <!-- Cloud Storage Page -->
-<div id="cloudPage" class="page">
+<div id="cloudPage" class="page" style="padding:20px;">
     <h2>Cloud Storage</h2>
     <p>Integration coming soon!</p>
     <button onclick="exitToHome()">⬅ Back to Home</button>
@@ -76,17 +124,29 @@ header { padding:10px; background:#f0f0f0; display:flex; align-items:center; gap
 </div>
 
 <script>
+// File Manager Data
 let path=['/'], files=JSON.parse(localStorage.getItem('files')||'{"\/":{}}'), selectedItems=[];
 
 // Navigation
 function openManager(type){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    if(type==='local'){ document.getElementById('localPage').classList.add('active'); renderFiles(); }
-    else document.getElementById('cloudPage').classList.add('active');
+    if(type==='local'){ 
+        document.getElementById('localDashboard').classList.add('active'); 
+    } else {
+        document.getElementById('cloudPage').classList.add('active');
+    }
 }
 function exitToHome(){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('homePage').classList.add('active'); }
+function openLocalFileManager(){ 
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('localPage').classList.add('active');
+    renderFiles(); 
+}
 function goBack(){ if(path.length>1){ path.pop(); renderFiles(); } }
 function navigateTo(i){ path=path.slice(0,i+1); renderFiles(); }
+
+// Filters (optional)
+function filterFiles(type){ alert('Filter '+type+' clicked (implement in file manager if needed)'); }
 
 // Breadcrumb
 function renderBreadcrumb(){
@@ -96,16 +156,15 @@ function renderBreadcrumb(){
         bc.appendChild(span);
         if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
-    document.getElementById('backBtn').classList.toggle('disabled',path.length===1);
+    document.getElementById('backBtnFile').classList.toggle('disabled',path.length===1);
 }
 
-// Local Storage
+// File Manager
 function getCurrentFolder(){ let f=files; for(let i=1;i<path.length;i++) f=f[path[i]]; return f; }
 function renderFiles(){
     renderBreadcrumb();
     const fileArea=document.getElementById('fileArea'); fileArea.innerHTML='';
     selectedItems=[]; updateFabIcon(); toggleFileOperations(false);
-
     const folderObj=getCurrentFolder();
     for(let name in folderObj){
         const isFolder=typeof folderObj[name]==='object';
@@ -126,13 +185,11 @@ function fabAction(){
     const left=Math.min(window.scrollX + rect.left, window.innerWidth - 160 - 5);
 
     if(selectedItems.length>0){
-        // Edit mode
         fileOps.style.display='flex';
         fileOps.style.top=(top - fileOps.offsetHeight) + 'px';
         fileOps.style.left=left + 'px';
         fabMenu.style.display='none';
     } else {
-        // + mode
         fabMenu.style.display=fabMenu.style.display==='flex'?'none':'flex';
         fabMenu.style.top=(top - fabMenu.offsetHeight) + 'px';
         fabMenu.style.left=left + 'px';

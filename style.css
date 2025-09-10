@@ -233,3 +233,72 @@ body.dark #breadcrumb span { color: var(--color-accent);}
     background:inherit;
     padding-bottom:6px;
 }
+
+/* === Extra update === */
+
+/* Glowing title */
+header.glow-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-shadow: 0 0 6px rgba(25, 118, 210, 0.6);
+    letter-spacing: 0.5px;
+}
+body.dark header.glow-title {
+    color: var(--color-accent);
+    text-shadow: 0 0 6px rgba(0, 188, 212, 0.6);
+}
+
+/* Storage usage bar */
+.storage-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 6px;
+    background: var(--color-border);
+    overflow: hidden;
+    margin: 10px 0;
+}
+.storage-bar .used {
+    height: 100%;
+    background: var(--color-primary);
+    width: 40%;
+    transition: width 0.3s;
+}
+body.dark .storage-bar { background: var(--color-border-dark); }
+body.dark .storage-bar .used { background: var(--color-accent); }
+
+/* Settings dropdown */
+.settings-dropdown {
+    position: absolute;
+    top: var(--header-height);
+    right: 16px;
+    min-width: 180px;
+    background: var(--color-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: none;
+    flex-direction: column;
+    z-index: 1005;
+    color: var(--color-text);
+}
+.settings-dropdown.show { display: flex; }
+body.dark .settings-dropdown {
+    background: var(--color-card-dark);
+    color: var(--color-text-dark);
+}
+.settings-dropdown button {
+    padding: 12px 18px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 15px;
+}
+.settings-dropdown button:hover {
+    background: #e3f2fd;
+    color: var(--color-primary);
+}
+body.dark .settings-dropdown button:hover {
+    background: #21243a;
+    color: var(--color-accent);
+}

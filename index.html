@@ -6,39 +6,48 @@
 <title>Docard - Home</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-<script defer src="script.js"></script>
 </head>
 <body>
-<div class="top-toolbar">
-    <button onclick="openSettings()" class="material-symbols-outlined">settings</button>
-    <button onclick="openHelpModal()" class="material-symbols-outlined">help</button>
-    <button onclick="toggleTheme()" id="themeIcon" class="material-symbols-outlined">light_mode</button>
-</div>
+  <div class="home-main">
+    <!-- Top buttons -->
+    <div class="top-toolbar">
+      <button onclick="openHelpModal()" title="Help">
+        <span class="material-symbols-outlined">help</span>
+      </button>
+      <button onclick="openSettings()" title="Settings">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+      <button onclick="toggleTheme()" title="Toggle Theme" id="themeIcon">
+        <span class="material-symbols-outlined">light_mode</span>
+      </button>
+    </div>
 
-<div class="home-main">
-    <div class="docard-title">Docard</div>
+    <!-- Thunder Effect Title -->
+    <h1 class="docard-title">Docard</h1>
+
+    <!-- Options -->
     <div class="home-options">
-        <a href="local.html" class="home-btn">Local Storage</a>
-        <a href="cloud.html" class="home-btn">Cloud Storage</a>
+      <a href="local.html" class="home-btn">Local Storage</a>
+      <a href="cloud.html" class="home-btn">Cloud Storage</a>
     </div>
-</div>
+  </div>
 
-<!-- Settings Modal -->
-<div id="settingsModal" class="modal">
+  <!-- Modals -->
+  <div id="helpModal" class="modal">
     <div class="modal-content">
-        <h3>Settings</h3>
-        <p id="modalStorageInfo"></p>
-        <button onclick="closeSettings()">Close</button>
+      <h3>Help</h3>
+      <p>Welcome to Docard! Use Local Storage or Cloud Storage to manage your files.</p>
+      <button onclick="closeHelpModal()">Close</button>
     </div>
-</div>
+  </div>
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <h3>Settings</h3>
+      <p id="modalStorageInfo"></p>
+      <button onclick="closeSettings()">Close</button>
+    </div>
+  </div>
 
-<!-- Help Modal -->
-<div id="helpModal" class="modal">
-    <div class="modal-content">
-        <h3>Help</h3>
-        <p>Welcome to Docard. Use Local or Cloud storage to manage your files.</p>
-        <button onclick="closeHelpModal()">Close</button>
-    </div>
-</div>
+  <script src="script.js"></script>
 </body>
 </html>

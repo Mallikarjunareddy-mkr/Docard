@@ -10,13 +10,11 @@ body { margin:0; font-family:'Roboto', Arial, sans-serif; background:#fafafa; }
 .page.active { display:block; }
 button { cursor:pointer; font-family: inherit; }
 
-/* Header / Breadcrumb */
 header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 #backBtnFile, #backBtnDashboard { cursor:pointer; color:#0d6efd; font-weight:bold; }
 #breadcrumb { display:flex; flex-wrap:wrap; gap:5px; font-size:14px; }
 #breadcrumb span { cursor:pointer; color:#0d6efd; }
 
-/* File area */
 #fileArea { padding:10px; display:grid; grid-template-columns: 1fr; gap:10px; }
 .file-item { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:0.2s; }
 .file-item:hover { background:#e0f2ff; }
@@ -26,19 +24,16 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
 .file-meta { font-size:12px; color:#555; }
 .checkbox { margin-left:10px; }
 
-/* Grid view */
 .grid-view #fileArea { grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); }
 .grid-view .file-item { flex-direction:column; align-items:center; text-align:center; }
 .grid-view .file-meta { display:none; }
 .grid-view .checkbox { margin:5px 0 0 0; }
 
-/* FAB */
-.fab { position:fixed; bottom:30px; right:30px; width:60px; height:60px; border-radius:50%; background:#0d6efd; color:#fff; font-size:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 8px rgba(0,0,0,0.3); z-index:100; transition:0.2s; }
-#fabMenu, #fileOperations { position:fixed; background:#fff; border:1px solid #ccc; border-radius:8px; display:none; flex-direction:column; width:180px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:101; }
+.fab { position:fixed; bottom:30px; right:30px; width:60px; height:60px; border-radius:50%; background:#0d6efd; color:#fff; font-size:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:100; }
+#fabMenu, #fileOperations { position:fixed; background:#fff; border:1px solid #ccc; border-radius:8px; display:none; flex-direction:column; width:180px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:120;}
 #fabMenu button, #fileOperations button { padding:12px 16px; text-align:left; border:none; background:none; cursor:pointer; font-size:14px; }
 #fabMenu button:hover, #fileOperations button:hover { background:#f0f0f0; }
 
-/* Dashboard cards */
 .dashboard { padding:20px; display:flex; flex-direction:column; gap:15px; }
 .card { padding:20px; border-radius:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer; display:flex; align-items:center; gap:15px; transition:0.2s; }
 .card:hover { box-shadow:0 4px 12px rgba(0,0,0,0.2); transform: translateY(-2px); }
@@ -46,17 +41,14 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
 .card p { margin:0; color:#555; }
 .card i { font-size:28px; color:#0d6efd; }
 
-/* Filters */
 .filters { display:flex; gap:12px; flex-wrap:wrap; }
 .filter-btn { display:flex; align-items:center; gap:8px; padding:8px 12px; border:none; background:#f0f0f0; border-radius:20px; font-size:14px; cursor:pointer; transition:0.2s; }
 .filter-btn.active { background:#0d6efd; color:#fff; }
 .filter-btn i { font-size:18px; color:#0d6efd; }
 .filter-btn.active i { color:#fff; }
 
-/* Search */
-#searchBar { margin:10px 10px 0 10px; padding:8px; width:calc(100%-20px); border-radius:20px; border:1px solid #ccc; }
+#searchBar { margin:10px 10px 0 10px; padding:8px; width:calc(100% - 20px); border-radius:20px; border:1px solid #ccc; }
 
-/* Preview Modal */
 #previewModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:200; }
 #previewContent { max-width:90%; max-height:90%; background:#fff; padding:15px; border-radius:8px; overflow:auto; box-shadow:0 4px 12px rgba(0,0,0,0.3);}
 #previewContent img, #previewContent iframe, #previewContent pre { max-width:100%; max-height:100%; display:block; margin:0 auto; }
@@ -175,7 +167,7 @@ function highlightFilterButton(type){
 function renderBreadcrumb(){
     const bc=document.getElementById('breadcrumb'); bc.innerHTML='';
     path.forEach((p,i)=>{
-        let span=document.createElement('span'); span.innerText=p;
+        let span=document.createElement('span'); span.innerText=(i === 0 ? "Root" : p);
         span.onclick=()=>navigateTo(i); bc.appendChild(span);
         if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
@@ -197,7 +189,14 @@ function renderFiles(){
         }
         if(searchQuery && !name.toLowerCase().includes(searchQuery.toLowerCase())) return;
         const div=document.createElement('div'); div.className='file-item';
-        div.innerHTML=`<div style="display:flex;align-items:center;cursor:pointer;"><span class="file-icon">${getFileIcon(name,isFolder)}</span><div class="file-info"><span class="file-name">${name}</span><span class="file-meta">${isFolder?'Folder':'File'} | ${folderObj[name]?.size||'-'} | ${folderObj[name]?.date||'-'}</span></div></div><input type="checkbox" class="checkbox" onchange="toggleSelect(this,'${name}',${isFolder})">`;
+        div.innerHTML=`<div style="display:flex;align-items:center;cursor:pointer;">
+            <span class="file-icon">${getFileIcon(name,isFolder)}</span>
+            <div class="file-info">
+                <span class="file-name">${name}</span>
+                <span class="file-meta">${isFolder ? 'Folder' : (folderObj[name].size ? (folderObj[name].size + ' bytes') : '')}</span>
+            </div>
+        </div>
+        <input type="checkbox" class="checkbox" onchange="toggleSelect(this,'${name}',${isFolder})">`;
         if(isFolder) div.querySelector('.file-icon').parentElement.onclick=e=>{ if(e.target.tagName!=='INPUT'){ path.push(name); renderFiles(); } };
         fileArea.appendChild(div);
     });
@@ -238,17 +237,80 @@ function toggleFileOperations(show){ document.getElementById('fileOperations').s
 function cancelSelection(){ selectedItems=[]; document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false); updateFabIcon(); toggleFileOperations(false); }
 
 // -------------------- Folder / File Operations --------------------
-function createFolder(){ const name=prompt('Folder Name:'); if(!name||name.includes('/')) return alert('Invalid name'); const f=getCurrentFolder(); if(f[name]) return alert('Already exists'); f[name]={date:new Date().toLocaleDateString()}; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); document.getElementById('fabMenu').style.display='none'; }
+function createFolder(){ 
+    const name=prompt('Folder Name:'); 
+    if(!name||name.includes('/')) return alert('Invalid name'); 
+    const f=getCurrentFolder(); 
+    if(f[name]) return alert('Already exists'); 
+    f[name]={}; 
+    localStorage.setItem('files',JSON.stringify(files)); 
+    renderFiles(); 
+}
 function uploadFile(){ document.getElementById('fileInput').click(); document.getElementById('fabMenu').style.display='none'; }
-function handleFileUpload(e){ const f=getCurrentFolder(); for(const file of e.target.files){ const reader=new FileReader(); reader.onload=function(ev){ f[file.name]={content:ev.target.result,size=file.size+' B',date:new Date().toLocaleDateString()}; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); } reader.readAsDataURL(file); } e.target.value=''; }
-function deleteSelected(){ if(!confirm('Delete selected?')) return; const f=getCurrentFolder(); selectedItems.forEach(i=>delete f[i.name]); selectedItems=[]; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); toggleFileOperations(false); }
-function renameSelected(){ if(selectedItems.length!==1) return alert('Select only one item'); const oldName=selectedItems[0].name; const newName=prompt('New name:',oldName); if(!newName||newName.includes('/')) return alert('Invalid name'); const f=getCurrentFolder(); f[newName]=f[oldName]; delete f[oldName]; selectedItems=[]; localStorage.setItem('files',JSON.stringify(files)); renderFiles(); toggleFileOperations(false); }
-function downloadSelected(){ selectedItems.forEach(i=>{ const f=getCurrentFolder()[i.name]; if(!i.isFolder){ const a=document.createElement('a'); a.href=f.content; a.download=i.name; a.click(); } }); selectedItems=[]; toggleFileOperations(false); }
-function previewSelected(){ if(selectedItems.length!==1) return alert('Select only one item'); const i=selectedItems[0]; const f=getCurrentFolder()[i.name]; const modal=document.getElementById('previewModal'); const content=document.getElementById('previewContent'); content.innerHTML=''; if(i.isFolder) content.innerText='Folder cannot be previewed'; else{ if(i.name.match(/\.(jpg|jpeg|png|gif)$/i)) content.innerHTML=`<img src="${f.content}">`; else if(i.name.match(/\.pdf$/i)) content.innerHTML=`<iframe src="${f.content}"i.name}" width="100%" height="500px"></iframe>`; 
-        else content.innerHTML=`<pre>${f.content}</pre>`;
+function handleFileUpload(e){ 
+    const f=getCurrentFolder(); 
+    for(const file of e.target.files){ 
+        const reader=new FileReader(); 
+        reader.onload=function(ev){ 
+            f[file.name]={content:ev.target.result,size:file.size}; 
+            localStorage.setItem('files',JSON.stringify(files)); 
+            renderFiles(); 
+        }; 
+        reader.readAsDataURL(file); 
     }
-    modal.style.display='flex'; 
+    e.target.value = '';
+}
+function deleteSelected(){ 
+    if(!confirm('Delete selected?')) return; 
+    const f=getCurrentFolder(); 
+    selectedItems.forEach(i=>delete f[i.name]); 
     selectedItems=[]; 
+    localStorage.setItem('files',JSON.stringify(files)); 
+    renderFiles();
+}
+function renameSelected(){ 
+    if(selectedItems.length!==1) return alert('Select only one item'); 
+    const oldName=selectedItems[0].name; 
+    const newName=prompt('New name:',oldName); 
+    if(!newName||newName.includes('/')) return alert('Invalid name'); 
+    const f=getCurrentFolder(); 
+    if(f[newName]) return alert('Name already exists'); 
+    f[newName]=f[oldName]; 
+    delete f[oldName]; 
+    localStorage.setItem('files',JSON.stringify(files)); 
+    renderFiles();
+}
+function downloadSelected(){ 
+    selectedItems.forEach(i=>{ 
+        const f=getCurrentFolder()[i.name]; 
+        if(!i.isFolder){ 
+            const a=document.createElement('a'); 
+            a.href=f.content; 
+            a.download=i.name; 
+            document.body.appendChild(a);
+            a.click(); 
+            document.body.removeChild(a);
+        } 
+    }); 
+    cancelSelection();
+}
+function previewSelected(){ 
+    if(selectedItems.length!==1) return alert('Select only one item'); 
+    const i=selectedItems[0]; 
+    const f=getCurrentFolder()[i.name]; 
+    const modal=document.getElementById('previewModal');
+    const content=document.getElementById('previewContent');
+    content.innerHTML = '';
+    let ext = i.name.split('.').pop().toLowerCase();
+    if(['jpg','jpeg','png','gif'].includes(ext)) {
+        content.innerHTML = `<img src="${f.content}" alt="${i.name}" />`;
+    } else if(['pdf'].includes(ext)) {
+        content.innerHTML = `<iframe src="${f.content}" style="width:100%;height:80vh;"></iframe>`;
+    } else {
+        content.innerHTML = `<pre>${f.content}</pre>`;
+    }
+    modal.style.display = 'flex'; 
+    selectedItems = []; 
     updateFabIcon(); 
     toggleFileOperations(false);
 }

@@ -57,6 +57,9 @@ body {
     text-decoration: none;
     transition: background .14s;
 }
+#searchBar {
+width: 30%;
+}
 .back-btn:hover, .back-btn:focus {
     background: #182231;
     color: #fff;
@@ -205,7 +208,7 @@ body {
     <div id="breadcrumb"></div>
     <div class="files-toolbar">
         <button id="backBtn" onclick="goBackManager()">
-            <span class="material-symbols-outlined">arrow_back</span>Back
+            <span class="material-symbols-outlined">arrow_back</span>
         </button>
         <input type="text" id="searchBar" placeholder="Search..." oninput="searchFiles(this.value)">
         <button onclick="sortFiles()">

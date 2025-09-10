@@ -15,99 +15,101 @@
       color: #fff;
       margin: 0;
       min-height: 100vh;
+      transition: background 0.3s;
       width: 100vw;
       overflow-x: hidden;
     }
-    .header-bar {
-      display: flex;
-      align-items: center;
-      padding: 1rem 1.3rem 0.7rem 1.3rem;
-      background: #121212;
-      /* Remove box-shadow for flat look */
-      box-shadow: none;
-      gap: 1.2rem;
-      position: relative;
+    body.light {
+      background-color: #f5f5f5;
+      color: #222;
     }
-    .header-bar .icon-btn {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1.85rem;
-      cursor: pointer;
-      padding: 0.2em 0.4em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-      transition: background 0.15s;
-    }
-    .header-bar .icon-btn:hover {
-      background: #222;
-    }
-    .header-bar .docard-title {
-      font-weight: 700;
-      font-size: 1.35rem;
-      letter-spacing: 1px;
-      margin-right: auto;
-      margin-left: 0.6rem;
-    }
-    .header-bar .search-btn,
-    .header-bar .menu-btn {
-      background: none;
-      border: none;
+    .header {
+      background: linear-gradient(to right,#1976d2,#388e3c);
       color: #fff;
       font-size: 1.5rem;
-      cursor: pointer;
-      margin-left: 0.7rem;
-      border-radius: 6px;
-    }
-    .header-bar .search-btn:hover,
-    .header-bar .menu-btn:hover {
-      background: #222;
-    }
-    .header-bar .breadcrumb-block {
+      padding: 1rem 2rem 1rem 2rem;
       display: flex;
       align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      gap: 1rem;
+    }
+    .header .icon-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      border-radius: 7px;
+      padding: 0.2em 0.5em;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .header .icon-btn:hover {
+      background: #388e3c22;
+      opacity: 0.85;
+    }
+    .header .breadcrumb-block {
+      display: flex;
+      align-items: center;
+      font-size: 1rem;
       gap: 0.1em;
-      font-size: 1.08rem;
-      color: #ccc;
-      margin-left: 1rem;
+      color: #bbb;
       min-width: 0;
       overflow-x: auto;
+      margin-right: auto;
     }
-    .header-bar .breadcrumb-block span {
+    .header .breadcrumb-block span {
       cursor: pointer;
       padding: 0 4px;
       border-radius: 4px;
       transition: background .18s;
       white-space: nowrap;
-      color: #4597ff;
     }
-    .header-bar .breadcrumb-block .slash {
+    .header .breadcrumb-block .slash {
       cursor: default;
-      color: #888;
+      color: #eee;
+      font-size: 1.15em;
+      padding: 0 2px;
     }
-    .header-bar .breadcrumb-block span:not(.slash):hover {
-      background: #388e3c22;
+    .header .breadcrumb-block span:not(.slash):hover { background: #388e3c22; }
+    .header .docard-title {
+      font-weight: 700;
+      font-size: 1.18rem;
+      letter-spacing: 1px;
+      margin-left: 0.2rem;
+      margin-right: 0.6rem;
+    }
+    .header .search-btn,
+    .header .settings-btn {
+      background: none;
+      border: none;
       color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      border-radius: 7px;
+      padding: 0.2em 0.5em;
+      margin-left: 0.5rem;
+      transition: color 0.2s, background 0.2s;
     }
-    /* 3 dots and menu */
-    .menu-dropdown {
+    .header .search-btn:hover,
+    .header .settings-btn:hover { color: #ffd600; background: #388e3c22; }
+    .settings-dropdown {
       position: absolute;
+      right: 2rem;
       top: 3.2rem;
-      right: 1.3rem;
       background: #222;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.22);
       display: none;
       flex-direction: column;
       min-width: 180px;
-      z-index: 30;
+      z-index: 10;
     }
-    .menu-dropdown.show {
-      display: flex;
-    }
-    .menu-dropdown button {
+    .settings-dropdown.show { display: flex; }
+    .settings-dropdown button {
       background: none;
       border: none;
       color: #fff;
@@ -117,10 +119,24 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .menu-dropdown button:hover {
-      background: #333;
+    .settings-dropdown button:hover { background: #333; }
+    .storage-bar {
+      width: 98vw;
+      margin: 1rem auto 0.5rem auto;
+      background: #353535;
+      border-radius: 8px;
+      height: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.15);
+      max-width: 720px;
     }
-    /* File area container */
+    .storage-bar .used {
+      background: linear-gradient(90deg,#388e3c,#1976d2 90%);
+      height: 100%;
+      width: 0%;
+      border-radius: 8px;
+      transition: width 0.3s;
+    }
     .manager-container {
       background: #181818;
       border-radius: 12px 12px 0 0;
@@ -130,6 +146,9 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.10);
       padding-bottom: 2.5em;
       width: 98vw;
+    }
+    .manager-toolbar {
+      display: none;
     }
     .folder-list-container {
       padding: 1em 0.7em;
@@ -143,10 +162,10 @@
       display: grid;
       grid-gap: 0.5em;
       outline: none;
+      transition: grid-template-columns 0.2s;
       margin-top: 0.5em;
       width: 100%;
       box-sizing: border-box;
-      grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
     }
     .file-item {
       background: none;
@@ -156,63 +175,27 @@
       align-items: center;
       gap: 0.6em;
       cursor: pointer;
-      transition: background 0.18s;
+      transition: background 0.18s, box-shadow 0.18s;
+      box-shadow: none;
       min-width: 0;
       width: 100%;
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid #232323;
     }
-    .file-item:hover, .file-item:focus {
-      background: #1976d222;
-    }
-    .file-icon {
-      font-size: 2em;
-      color: #4597ff;
-      min-width: 2em;
-    }
+    .file-item:hover, .file-item:focus { background: #1976d222; }
+    .file-icon { font-size: 2em; color: #ffd600; min-width: 2em;}
     .file-info {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 0.1em;
+      cursor: pointer;
       min-width: 0;
       overflow: hidden;
     }
-    .file-name {
-      font-weight: 500;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      font-size: 1.1em;
-      color: #fff;
-    }
-    .file-meta {
-      font-size: 0.92em;
-      color: #aaa;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .file-item .arrow {
-      margin-left: auto;
-      font-size: 1.5em;
-      color: #888;
-    }
-    /* Responsive */
-    @media (max-width: 900px) {
-      .manager-container { max-width: 100vw; }
-      .header-bar { font-size: 1.15rem; padding: 1rem 0.7rem;}
-    }
-    @media (max-width: 600px) {
-      .manager-container { max-width: 100vw; border-radius: 0;}
-      .header-bar { padding: 1rem 0.7rem; flex-direction: column; gap: 0.6rem;}
-      .menu-dropdown { right: 0.7rem;}
-      .breadcrumb-block { font-size: 0.97rem;}
-      .folder-list-container {padding: 0.7em 0.2em;}
-    }
-    @media (max-width: 400px) {
-      .header-bar {font-size: 1rem;}
-    }
-    /* Toast */
+    .file-name { font-weight: 500; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;}
+    .file-meta { font-size: 0.9em; color: #aaa; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;}
+    .arrow { margin-left: auto; color: #888; font-size: 1.5em; }
+    .fab, #fabMenu, #fileOperations { display: none; }
     .toast {
       position: fixed;
       left: 50%;
@@ -232,25 +215,40 @@
       0% { opacity: 0;}
       100% { opacity: 1;}
     }
+    @media (max-width: 900px) {
+      .manager-container { max-width: 100vw; }
+      .header { font-size: 1.18rem; padding: 1rem 0.7rem;}
+      .storage-bar { max-width: 100vw;}
+    }
+    @media (max-width: 600px) {
+      .manager-container { max-width: 100vw; border-radius: 0;}
+      .header { padding: 1rem 0.7rem; flex-direction: column; gap: 0.5rem;}
+      .settings-dropdown { right: 0.7rem;}
+      .breadcrumb-block { font-size: 0.97rem;}
+      .storage-bar {max-width: 100vw;}
+      .folder-list-container {padding: 0.7em 0.2em;}
+    }
+    @media (max-width: 400px) {
+      .header {font-size: 1rem;}
+    }
   </style>
 </head>
 <body>
-  <div class="header-bar">
+  <div class="header">
     <button class="icon-btn" id="homeBtn" title="Home">
       <span class="material-symbols-outlined">home</span>
     </button>
     <button class="icon-btn" id="backBtn" title="Back">
       <span class="material-symbols-outlined">arrow_back</span>
     </button>
-    <span class="docard-title" id="folderTitle">Docard</span>
     <div class="breadcrumb-block" id="breadcrumb"></div>
+    <span class="docard-title">Docard</span>
+    <div style="flex:1"></div>
     <button class="search-btn" id="searchBtn" title="Search">
       <span class="material-symbols-outlined">search</span>
     </button>
-    <button class="menu-btn" id="menuBtn" title="Menu">
-      <span class="material-symbols-outlined">more_vert</span>
-    </button>
-    <div id="menuDropdown" class="menu-dropdown">
+    <button id="settingsBtn" class="settings-btn material-symbols-outlined" aria-label="Settings" title="Menu">more_vert</button>
+    <div id="settingsMenu" class="settings-dropdown">
       <button onclick="location.href='local.html'">📂 Local Storage</button>
       <button onclick="location.href='cloud.html'">☁️ Cloud Storage</button>
       <button onclick="toggleTheme()">🌙 Toggle Theme</button>
@@ -261,55 +259,55 @@
       <button onclick="confirmDeleteSelected()">Delete</button>
     </div>
   </div>
-
+  <div class="storage-bar">
+    <div class="used" id="storageUsed"></div>
+  </div>
   <div class="manager-container">
     <div class="folder-list-container">
       <div id="fileArea" tabindex="0" aria-label="File List"></div>
     </div>
   </div>
-
   <input type="file" id="fileInput" style="display:none;" multiple onchange="handleFileUpload(event)">
   <div class="toast" id="toast"></div>
-
-  <!-- Search modal -->
-  <div id="searchModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:#fff; color:#222; border-radius:10px; max-width:350px; width:90vw; padding:1.2em 1em;">
-      <input type="text" id="searchBar" placeholder="Search..." style="width:90%; font-size:1.1em; padding:0.4em 1em; border-radius:6px; border:none; background:#e0e0e0; color:#222;" autofocus oninput="searchFiles(this.value)">
-      <button style="margin-left:1em; background:#1976d2; color:#fff; border:none; border-radius:6px; padding:0.5em 1.3em; cursor:pointer;" onclick="closeSearchModal()">Close</button>
-    </div>
-  </div>
-
   <script>
-    // ===== Menu Dropdown =====
-    const menuBtn = document.getElementById('menuBtn');
-    const menuDropdown = document.getElementById('menuDropdown');
-    document.body.addEventListener('click', e => {
-      if (!menuDropdown.contains(e.target) && e.target !== menuBtn) menuDropdown.classList.remove('show');
+    // ===== Settings Menu =====
+    const settingsBtn=document.getElementById('settingsBtn');
+    const settingsMenu=document.getElementById('settingsMenu');
+    document.body.addEventListener('click',e=>{
+      if(!settingsMenu.contains(e.target)&&e.target!==settingsBtn){settingsMenu.classList.remove('show');}
     });
-    menuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menuDropdown.classList.toggle('show');
+    settingsBtn.addEventListener('click',(e)=>{
+      e.stopPropagation();settingsMenu.classList.toggle('show');
     });
-
-    // ===== Search Modal =====
-    const searchBtn = document.getElementById('searchBtn');
-    const searchModal = document.getElementById('searchModal');
-    searchBtn.addEventListener('click', () => {
-      searchModal.style.display = 'flex';
-      setTimeout(() => document.getElementById('searchBar').focus(), 150);
-    });
-    function closeSearchModal() {
-      searchModal.style.display = 'none';
-      searchFiles('');
+    // ===== Toolbar Buttons =====
+    document.getElementById('homeBtn').onclick = () => {
+      path = ['/'];
+      renderFiles();
+    };
+    document.getElementById('backBtn').onclick = () => {
+      if (path.length > 1) {
+        path.pop();
+        renderFiles();
+      }
+    };
+    document.getElementById('searchBtn').onclick = () => {
+      document.getElementById('searchBar')?.focus();
+    };
+    // ===== Storage Usage =====
+    function updateStorageUsage(usedPercent){
+      document.getElementById('storageUsed').style.width=usedPercent+"%";
     }
-
+    // ===== Theme Toggle =====
+    function toggleTheme(){
+      document.body.classList.toggle("light");
+      showToast("Theme toggled");
+    }
     // ===== File Manager State =====
     let files = JSON.parse(localStorage.getItem('files') || '{"\/":{}}');
     let path = ['/'];
     let selectedItems = [];
     let searchQuery = '';
     let sortOrder = 'name';
-
     // ===== Helper Functions =====
     function getCurrentFolder() {
       let f = files;
@@ -328,7 +326,6 @@
       let month = d.toLocaleString('default', { month: 'long' });
       return day + ' ' + month;
     }
-
     // ===== Breadcrumb Rendering =====
     function renderBreadcrumb() {
       const bc = document.getElementById('breadcrumb');
@@ -340,55 +337,38 @@
           span.onclick = () => navigateTo(i);
           span.tabIndex = 0;
         } else {
-          span.style.color = "#4597ff";
+          span.style.color = "#ffd600";
         }
         bc.appendChild(span);
         if (i < path.length - 1) {
           let slash = document.createElement('span');
-          slash.innerText = ' ▸ ';
+          slash.innerText = ' / ';
           slash.className = 'slash';
           bc.appendChild(slash);
         }
       });
-      // Set folder title to current folder name
-      document.getElementById('folderTitle').innerText = path[path.length-1] || "Docard";
     }
     function navigateTo(i) {
       path = path.slice(0, i + 1);
       renderFiles();
     }
-    document.getElementById('homeBtn').onclick = () => {
-      path = ['/'];
-      renderFiles();
-    };
-    document.getElementById('backBtn').onclick = () => {
-      if (path.length > 1) {
-        path.pop();
-        renderFiles();
-      }
-    };
-
     // ===== File List Rendering =====
     function renderFiles() {
       renderBreadcrumb();
       const fileArea = document.getElementById('fileArea');
       fileArea.innerHTML = '';
       selectedItems = [];
-
       let folderObj = getCurrentFolder();
       let items = Object.keys(folderObj).map(name => {
         let isFolder = typeof folderObj[name] === 'object' && !folderObj[name].content;
         return { name, isFolder, obj: folderObj[name] };
       });
-
       items = items.filter(item => {
         if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         return true;
       });
-
       if (sortOrder === 'name') items.sort((a, b) => a.name.localeCompare(b.name));
       else if (sortOrder === 'size') items.sort((a, b) => (b.obj.size || 0) - (a.obj.size || 0));
-
       // Show item count
       let countDiv = document.createElement('div');
       countDiv.style.color = "#ccc";
@@ -396,7 +376,6 @@
       countDiv.style.margin = "0.3em 0 0.7em 0.1em";
       countDiv.innerText = items.length + " item" + (items.length !== 1 ? "s" : "") + " in total";
       fileArea.appendChild(countDiv);
-
       items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'file-item';
@@ -423,8 +402,8 @@
         div.ondblclick = () => { showDetails(item.name, item.isFolder); };
         fileArea.appendChild(div);
       });
+      updateStorageBar();
     }
-
     // ===== File Icon =====
     function getFileIcon(name, isFolder) {
       if (isFolder) return '<span class="material-symbols-outlined">folder</span>';
@@ -434,17 +413,20 @@
       if (['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(ext)) return '<span class="material-symbols-outlined">movie</span>';
       return '<span class="material-symbols-outlined">insert_drive_file</span>';
     }
-
+    // ===== Selection logic (for menu actions) =====
+    document.getElementById('fileArea').onclick = function(e) {
+      let itemDiv = e.target.closest('.file-item');
+      if (!itemDiv) return;
+      let name = itemDiv.querySelector('.file-name').innerText;
+      let isFolder = itemDiv.querySelector('.file-icon .material-symbols-outlined').innerText === 'folder';
+      selectedItems = [{ name, isFolder }];
+    };
     // ===== File Actions =====
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.innerText = msg;
       t.style.display = 'block';
       setTimeout(() => { t.style.display = 'none'; }, 1200);
-    }
-    function toggleTheme() {
-      document.body.classList.toggle("light");
-      showToast("Theme toggled");
     }
     function sortFiles() {
       sortOrder = sortOrder === 'name' ? 'size' : 'name';
@@ -541,22 +523,6 @@
       `;
       document.body.appendChild(modal);
     }
-    // ===== Selection logic (for menu actions) =====
-    // For demo, select last clicked file/folder
-    document.getElementById('fileArea').onclick = function(e) {
-      let itemDiv = e.target.closest('.file-item');
-      if (!itemDiv) return;
-      let name = itemDiv.querySelector('.file-name').innerText;
-      let isFolder = itemDiv.querySelector('.file-icon .material-symbols-outlined').innerText === 'folder';
-      selectedItems = [{ name, isFolder }];
-    };
-
-    // ===== Search, Sort =====
-    function searchFiles(q) {
-      searchQuery = q;
-      renderFiles();
-    }
-
     // ===== Utils =====
     function dataURLtoBlob(dataurl) {
       let arr = dataurl.split(',');
@@ -567,7 +533,35 @@
       while (n--) { u8arr[n] = bstr.charCodeAt(n); }
       return new Blob([u8arr], { type: mime });
     }
-
+    // ===== Search =====
+    function searchFiles(q) {
+      searchQuery = q;
+      renderFiles();
+    }
+    // ===== Drag & Drop =====
+    document.addEventListener('dragover', e => e.preventDefault(), false);
+    document.addEventListener('drop', e => {
+      if (document.getElementById('fileArea')) {
+        e.preventDefault();
+        if (e.dataTransfer.files && e.dataTransfer.files.length) {
+          document.getElementById('fileInput').files = e.dataTransfer.files;
+          handleFileUpload({ target: { files: e.dataTransfer.files } });
+        }
+      }
+    }, false);
+    // ===== Storage Bar Calculation =====
+    function updateStorageBar() {
+      let total = 0;
+      function calc(obj) {
+        for (let k in obj) {
+          if (obj[k].content) total += obj[k].size || 0;
+          else calc(obj[k]);
+        }
+      }
+      calc(files['/']);
+      let usedPercent = Math.min(100, (total / (5 * 1024 * 1024)) * 100); // simulate 5MB quota
+      document.getElementById('storageUsed').style.width = usedPercent + "%";
+    }
     // ===== File Upload =====
     function handleFileUpload(e) {
       const f = getCurrentFolder();
@@ -588,9 +582,9 @@
       }
       e.target.value = '';
     }
-
     // ===== Init =====
     renderFiles();
+    updateStorageUsage(40); // Example
   </script>
 </body>
 </html>

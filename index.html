@@ -5,84 +5,99 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Android-Style Web File Manager</title>
 <style>
-body { margin:0; font-family: Arial, sans-serif; background:#fafafa; }
+body { margin:0; font-family: 'Roboto', Arial, sans-serif; background:#fafafa; }
 .page { display:none; padding:0; }
 .page.active { display:block; }
-button { cursor:pointer; }
+button { cursor:pointer; font-family: inherit; }
 
-header { padding:10px; background:#f0f0f0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; }
+/* Header */
+header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 #backBtn { cursor:pointer; color:#0d6efd; font-weight:bold; }
 #backBtn.disabled { color:#aaa; cursor:default; }
-
 #breadcrumb { display:flex; flex-wrap:wrap; gap:5px; font-size:14px; }
 #breadcrumb span { cursor:pointer; color:#0d6efd; }
 
+/* File Area */
 #fileArea { padding:10px; }
-.folder, .file { display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:5px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.05); border-radius:4px; }
-.folder:hover, .file:hover { background:#e8f0fe; }
-.folder span:first-child::before { content:"📁"; margin-right:8px; }
-.file span:first-child::before { content:"📄"; margin-right:8px; }
+.folder, .file { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; margin-bottom:8px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.1); border-radius:8px; transition:0.2s; }
+.folder:hover, .file:hover { background:#e0f2ff; }
+.folder span:first-child::before { content:"📁"; margin-right:10px; }
+.file span:first-child::before { content:"📄"; margin-right:10px; }
 
-.fab { position:fixed; bottom:30px; right:30px; width:60px; height:60px; border-radius:50%; background:#0d6efd; color:#fff; font-size:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:100; transition:0.2s; }
-#fabMenu, #fileOperations { position:fixed; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; width:160px; box-shadow:0 2px 5px rgba(0,0,0,0.3); z-index:101; }
-#fabMenu button, #fileOperations button { padding:10px 15px; text-align:left; border:none; background:none; cursor:pointer; font-size:14px; }
+/* FAB */
+.fab { position:fixed; bottom:30px; right:30px; width:60px; height:60px; border-radius:50%; background:#0d6efd; color:#fff; font-size:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 8px rgba(0,0,0,0.3); z-index:100; transition:0.2s; }
+#fabMenu, #fileOperations { position:fixed; background:#fff; border:1px solid #ccc; border-radius:8px; display:none; flex-direction:column; width:180px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:101; }
+#fabMenu button, #fileOperations button { padding:12px 16px; text-align:left; border:none; background:none; cursor:pointer; font-size:14px; border-radius:0; }
 #fabMenu button:hover, #fileOperations button:hover { background:#f0f0f0; }
-
-.block { padding:20px; border-radius:8px; margin-bottom:15px; cursor:pointer; }
-.block h3 { margin:0 0 5px 0; }
-.block p { margin:0; }
-
-.storage-block { background:#e3f2fd; }
-.filter-block { background:#fff3e0; }
-.all-files-block { background:#e8f5e9; }
 
 /* Preview Modal */
 #previewModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:200; }
-#previewContent { max-width:90%; max-height:90%; background:#fff; padding:10px; border-radius:5px; overflow:auto; }
+#previewContent { max-width:90%; max-height:90%; background:#fff; padding:15px; border-radius:8px; overflow:auto; box-shadow:0 4px 12px rgba(0,0,0,0.3);}
 #previewContent img, #previewContent iframe, #previewContent pre { max-width:100%; max-height:100%; display:block; margin:0 auto; }
 
-button.filter-btn { background:#fff; border:1px solid #ccc; border-radius:5px; padding:5px 10px; font-size:14px; }
-button.filter-btn:hover { background:#f0f0f0; }
+/* Local Storage Dashboard Cards */
+.dashboard { padding:20px; display:flex; flex-direction:column; gap:15px; }
+.card { padding:20px; border-radius:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:15px; }
+.card:hover { box-shadow:0 4px 12px rgba(0,0,0,0.2); transform: translateY(-2px); }
+.card h3 { margin:0; font-size:16px; }
+.card p { margin:0; color:#555; }
+.card i { font-size:28px; color:#0d6efd; }
+
+/* Filters */
+.filters { display:flex; gap:12px; flex-wrap:wrap; }
+.filter-btn { display:flex; align-items:center; gap:8px; padding:8px 12px; border:none; background:#f0f0f0; border-radius:20px; font-size:14px; cursor:pointer; transition:0.2s; }
+.filter-btn:hover { background:#e0e0e0; }
+.filter-btn i { font-size:18px; color:#0d6efd; }
 
 </style>
+<!-- Google Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
 <!-- Home Page -->
 <div id="homePage" class="page active" style="padding:20px;">
     <h1>Web File Manager</h1>
-    <div style="margin-top:20px;">
-        <button onclick="openManager('local')" style="padding:15px 20px; font-size:16px; margin-bottom:10px;">Local Storage</button>
+    <div style="margin-top:20px; display:flex; flex-direction:column; gap:15px;">
+        <button onclick="openManager('local')" style="padding:15px 20px; font-size:16px;">Local Storage</button>
         <button onclick="openManager('cloud')" style="padding:15px 20px; font-size:16px;">Cloud Storage</button>
     </div>
 </div>
 
 <!-- Local Storage Dashboard -->
-<div id="localDashboard" class="page" style="padding:20px;">
+<div id="localDashboard" class="page">
     <header>
         <span id="backBtn" onclick="exitToHome()">⬅ Back</span>
         <h2 style="margin-left:10px;">Local Storage</h2>
     </header>
-    <div style="margin-top:20px;">
+    <div class="dashboard">
         <!-- Storage Overview -->
-        <div class="block storage-block">
-            <h3>Storage</h3>
-            <p>Used: 16 MB / Total: 100 MB</p>
-        </div>
-        <!-- Filters -->
-        <div class="block filter-block">
-            <h3>Filters</h3>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="filter-btn" onclick="filterFiles('images')">Images</button>
-                <button class="filter-btn" onclick="filterFiles('documents')">Documents</button>
-                <button class="filter-btn" onclick="filterFiles('videos')">Videos</button>
-                <button class="filter-btn" onclick="filterFiles('others')">Others</button>
+        <div class="card">
+            <i class="material-icons">storage</i>
+            <div>
+                <h3>Storage</h3>
+                <p>Used: 16 MB / Total: 100 MB</p>
             </div>
         </div>
+
+        <!-- Filters -->
+        <div class="card" style="flex-direction:column; gap:10px;">
+            <h3>Filters</h3>
+            <div class="filters">
+                <button class="filter-btn" onclick="filterFiles('images')"><i class="material-icons">image</i>Images</button>
+                <button class="filter-btn" onclick="filterFiles('documents')"><i class="material-icons">description</i>Documents</button>
+                <button class="filter-btn" onclick="filterFiles('videos')"><i class="material-icons">videocam</i>Videos</button>
+                <button class="filter-btn" onclick="filterFiles('others')"><i class="material-icons">folder</i>Others</button>
+            </div>
+        </div>
+
         <!-- All Files -->
-        <div class="block all-files-block" onclick="openLocalFileManager()">
-            <h3>All Files</h3>
-            <p>Open full file manager</p>
+        <div class="card all-files-block" onclick="openLocalFileManager()">
+            <i class="material-icons">folder_open</i>
+            <div>
+                <h3>All Files</h3>
+                <p>Open full file manager</p>
+            </div>
         </div>
     </div>
 </div>
@@ -145,7 +160,7 @@ function openLocalFileManager(){
 function goBack(){ if(path.length>1){ path.pop(); renderFiles(); } }
 function navigateTo(i){ path=path.slice(0,i+1); renderFiles(); }
 
-// Filters (optional)
+// Filters
 function filterFiles(type){ alert('Filter '+type+' clicked (implement in file manager if needed)'); }
 
 // Breadcrumb
@@ -182,7 +197,7 @@ function fabAction(){
     const fileOps=document.getElementById('fileOperations');
     const rect=fabBtn.getBoundingClientRect();
     const top=Math.max(window.scrollY + rect.top - 5, 5);
-    const left=Math.min(window.scrollX + rect.left, window.innerWidth - 160 - 5);
+    const left=Math.min(window.scrollX + rect.left, window.innerWidth - 180 - 5);
 
     if(selectedItems.length>0){
         fileOps.style.display='flex';

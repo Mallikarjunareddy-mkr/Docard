@@ -12,8 +12,8 @@ button { cursor:pointer; font-family: inherit; }
 
 /* Header */
 header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-#backBtn { cursor:pointer; color:#0d6efd; font-weight:bold; }
-#backBtn.disabled { color:#aaa; cursor:default; }
+#backBtn, #backBtnFile, #backBtnDashboard { cursor:pointer; color:#0d6efd; font-weight:bold; }
+#backBtn.disabled, #backBtnFile.disabled, #backBtnDashboard.disabled { color:#aaa; cursor:default; }
 #breadcrumb { display:flex; flex-wrap:wrap; gap:5px; font-size:14px; }
 #breadcrumb span { cursor:pointer; color:#0d6efd; }
 
@@ -35,7 +35,7 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
 #previewContent { max-width:90%; max-height:90%; background:#fff; padding:15px; border-radius:8px; overflow:auto; box-shadow:0 4px 12px rgba(0,0,0,0.3);}
 #previewContent img, #previewContent iframe, #previewContent pre { max-width:100%; max-height:100%; display:block; margin:0 auto; }
 
-/* Local Storage Dashboard Cards */
+/* Dashboard Cards */
 .dashboard { padding:20px; display:flex; flex-direction:column; gap:15px; }
 .card { padding:20px; border-radius:12px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:15px; }
 .card:hover { box-shadow:0 4px 12px rgba(0,0,0,0.2); transform: translateY(-2px); }
@@ -46,11 +46,10 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
 /* Filters */
 .filters { display:flex; gap:12px; flex-wrap:wrap; }
 .filter-btn { display:flex; align-items:center; gap:8px; padding:8px 12px; border:none; background:#f0f0f0; border-radius:20px; font-size:14px; cursor:pointer; transition:0.2s; }
-.filter-btn:hover { background:#e0e0e0; }
+.filter-btn.active { background:#0d6efd; color:#fff; }
 .filter-btn i { font-size:18px; color:#0d6efd; }
-
+.filter-btn.active i { color:#fff; }
 </style>
-<!-- Google Material Icons -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
@@ -67,7 +66,7 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
 <!-- Local Storage Dashboard -->
 <div id="localDashboard" class="page">
     <header>
-        <span id="backBtn" onclick="exitToHome()">⬅ Back</span>
+        <span id="backBtnDashboard" onclick="exitToHome()">⬅ Back</span>
         <h2 style="margin-left:10px;">Local Storage</h2>
     </header>
     <div class="dashboard">
@@ -84,10 +83,10 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
         <div class="card" style="flex-direction:column; gap:10px;">
             <h3>Filters</h3>
             <div class="filters">
-                <button class="filter-btn" onclick="filterFiles('images')"><i class="material-icons">image</i>Images</button>
-                <button class="filter-btn" onclick="filterFiles('documents')"><i class="material-icons">description</i>Documents</button>
-                <button class="filter-btn" onclick="filterFiles('videos')"><i class="material-icons">videocam</i>Videos</button>
-                <button class="filter-btn" onclick="filterFiles('others')"><i class="material-icons">folder</i>Others</button>
+                <button id="filterImages" class="filter-btn" onclick="filterFiles('images')"><i class="material-icons">image</i>Images</button>
+                <button id="filterDocs" class="filter-btn" onclick="filterFiles('documents')"><i class="material-icons">description</i>Documents</button>
+                <button id="filterVideos" class="filter-btn" onclick="filterFiles('videos')"><i class="material-icons">videocam</i>Videos</button>
+                <button id="filterOthers" class="filter-btn" onclick="filterFiles('others')"><i class="material-icons">folder</i>Others</button>
             </div>
         </div>
 
@@ -105,7 +104,7 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
 <!-- Local Storage File Manager -->
 <div id="localPage" class="page">
     <header>
-        <span id="backBtnFile" class="disabled" onclick="goBack()">⬅ Back</span>
+        <span id="backBtnFile" onclick="goBackManager()">⬅ Back</span>
         <div id="breadcrumb"></div>
         <button onclick="exitToHome()" style="margin-left:auto;">Exit</button>
     </header>
@@ -140,28 +139,40 @@ header { padding:10px; background:#f8f8f8; display:flex; align-items:center; gap
 
 <script>
 // File Manager Data
-let path=['/'], files=JSON.parse(localStorage.getItem('files')||'{"\/":{}}'), selectedItems=[];
+let path=['/'], files=JSON.parse(localStorage.getItem('files')||'{"\/":{}}'), selectedItems=[], activeFilter=null, lastDashboard=true;
 
 // Navigation
 function openManager(type){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     if(type==='local'){ 
         document.getElementById('localDashboard').classList.add('active'); 
+        lastDashboard = true;
     } else {
         document.getElementById('cloudPage').classList.add('active');
     }
 }
-function exitToHome(){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('homePage').classList.add('active'); }
+function exitToHome(){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('homePage').classList.add('active'); activeFilter=null; clearFilterButtons(); }
 function openLocalFileManager(){ 
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById('localPage').classList.add('active');
     renderFiles(); 
+    lastDashboard = false;
 }
-function goBack(){ if(path.length>1){ path.pop(); renderFiles(); } }
-function navigateTo(i){ path=path.slice(0,i+1); renderFiles(); }
 
-// Filters
-function filterFiles(type){ alert('Filter '+type+' clicked (implement in file manager if needed)'); }
+// Filter handling
+function filterFiles(type){
+    activeFilter = type;
+    highlightFilterButton(type);
+    openLocalFileManager();
+}
+function highlightFilterButton(type){
+    document.querySelectorAll('.filter-btn').forEach(btn=>btn.classList.remove('active'));
+    if(type==='images') document.getElementById('filterImages').classList.add('active');
+    else if(type==='documents') document.getElementById('filterDocs').classList.add('active');
+    else if(type==='videos') document.getElementById('filterVideos').classList.add('active');
+    else if(type==='others') document.getElementById('filterOthers').classList.add('active');
+}
+function clearFilterButtons(){ document.querySelectorAll('.filter-btn').forEach(btn=>btn.classList.remove('active')); }
 
 // Breadcrumb
 function renderBreadcrumb(){
@@ -171,18 +182,36 @@ function renderBreadcrumb(){
         bc.appendChild(span);
         if(i<path.length-1) bc.appendChild(document.createTextNode(' / '));
     });
-    document.getElementById('backBtnFile').classList.toggle('disabled',path.length===1);
+    document.getElementById('backBtnFile').classList.toggle('disabled',path.length===1 && lastDashboard);
+}
+
+// Navigate breadcrumb
+function navigateTo(i){ path=path.slice(0,i+1); renderFiles(); }
+
+// Back button handling
+function goBackManager(){
+    if(path.length>1){ path.pop(); renderFiles(); } 
+    else if(!lastDashboard){ document.getElementById('localDashboard').classList.add('active'); document.getElementById('localPage').classList.remove('active'); activeFilter=null; clearFilterButtons(); lastDashboard=true; }
 }
 
 // File Manager
 function getCurrentFolder(){ let f=files; for(let i=1;i<path.length;i++) f=f[path[i]]; return f; }
+
 function renderFiles(){
     renderBreadcrumb();
-    const fileArea=document.getElementById('fileArea'); fileArea.innerHTML='';
+    const fileArea=document.getElementById('fileArea'); 
+    fileArea.innerHTML='';
     selectedItems=[]; updateFabIcon(); toggleFileOperations(false);
     const folderObj=getCurrentFolder();
     for(let name in folderObj){
         const isFolder=typeof folderObj[name]==='object';
+        if(!isFolder && activeFilter){
+            const ext = name.split('.').pop().toLowerCase();
+            if(activeFilter==='images' && !['jpg','jpeg','png','gif'].includes(ext)) continue;
+            if(activeFilter==='documents' && !['pdf','docx','txt','xlsx'].includes(ext)) continue;
+            if(activeFilter==='videos' && !['mp4','mov','avi'].includes(ext)) continue;
+            if(activeFilter==='others' && ['jpg','jpeg','png','gif','pdf','docx','txt','xlsx','mp4','mov','avi'].includes(ext)) continue;
+        }
         const div=document.createElement('div'); div.className=isFolder?'folder':'file';
         div.innerHTML=`<span>${name}</span><input type="checkbox" onchange="toggleSelect(this,'${name}',${isFolder})">`;
         if(isFolder) div.onclick=e=>{ if(e.target.tagName!=='INPUT'){ path.push(name); renderFiles(); } };
@@ -190,7 +219,7 @@ function renderFiles(){
     }
 }
 
-// FAB + / Edit
+// FAB and File Operations
 function fabAction(){
     const fabBtn=document.getElementById('fabBtn');
     const fabMenu=document.getElementById('fabMenu');
@@ -198,7 +227,6 @@ function fabAction(){
     const rect=fabBtn.getBoundingClientRect();
     const top=Math.max(window.scrollY + rect.top - 5, 5);
     const left=Math.min(window.scrollX + rect.left, window.innerWidth - 180 - 5);
-
     if(selectedItems.length>0){
         fileOps.style.display='flex';
         fileOps.style.top=(top - fileOps.offsetHeight) + 'px';
@@ -238,7 +266,7 @@ function previewSelected(){
         const img=document.createElement('img'); img.src=data; content.appendChild(img);
     } else if(item.name.match(/\.(pdf)$/i)){
         const iframe=document.createElement('iframe'); iframe.src=data; iframe.style.width='100%'; iframe.style.height='80vh'; content.appendChild(iframe);
-    } else { const pre=document.createElement('pre'); pre.textContent=atob(data.split(',')[1]); content.appendChild(pre); }
+    } else { const pre=document.createElement('pre'); pre.textContent=atob(data.split(',')[1]||''); content.appendChild(pre); }
     modal.style.display='flex';
 }
 function closePreview(){ document.getElementById('previewModal').style.display='none'; }

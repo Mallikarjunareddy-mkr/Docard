@@ -28,6 +28,7 @@
 body {
     margin:0; font-family:'Roboto',Arial,sans-serif; background: var(--color-bg); color: var(--color-text);
     transition: background .3s, color .3s;
+    overflow-x:hidden;
 }
 body.dark { background: var(--color-bg-dark); color: var(--color-text-dark); }
 
@@ -49,20 +50,22 @@ body.dark header .toolbar button { color:var(--color-accent); }
 body.dark header .toolbar button:hover { background:#21243a; }
 
 /* Pages */
-.page { display:none; padding:20px; animation:fadeIn .5s; }
+.page { display:none; padding:20px; animation:fadeIn .5s; height: calc(100vh - var(--header-height)); overflow-y:auto; }
 .page.active { display:block; }
 @keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
 
 /* Home page */
-.home-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; gap:40px; }
-.home-screen h1 { font-size:2.8em; color:var(--color-primary); font-weight:bold; letter-spacing:2px; }
-.home-screen .home-options { display:flex; gap:30px; flex-wrap:wrap; }
+.home-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:40px; }
+.home-screen h1 { font-size:4em; color:var(--color-primary); font-weight:bold; letter-spacing:4px;
+    text-shadow: 0 0 12px #1976d2, 0 0 24px #1976d2, 0 0 36px #42a5f5;
+}
+.home-screen .home-options { display:flex; gap:30px; flex-wrap:wrap; justify-content:center; }
 .home-options button {
     background:var(--color-primary); color:#fff; border:none; border-radius:16px;
-    padding:18px 36px; font-size:1.2em; display:flex; align-items:center; gap:10px; cursor:pointer;
-    transition: background var(--transition);
+    padding:18px 36px; font-size:1.4em; display:flex; align-items:center; gap:10px; cursor:pointer;
+    transition: background var(--transition), transform .2s;
 }
-.home-options button:hover { background:var(--color-primary-dark); }
+.home-options button:hover { background:var(--color-primary-dark); transform:scale(1.05); }
 body.dark .home-options button { background:var(--color-accent); }
 body.dark .home-options button:hover { background:var(--color-primary-dark); }
 
@@ -87,7 +90,7 @@ body.dark .filter-btn { background:#21243a; color:var(--color-accent);}
 body.dark .filter-btn:hover { background:var(--color-primary-dark); color:#fff; }
 
 /* File Area */
-#fileArea { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:22px; margin-top:10px; }
+#fileArea { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:22px; margin-top:10px; max-height:60vh; overflow-y:auto; }
 .file-item { background:var(--color-card); border-radius:var(--radius); padding:16px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; cursor:pointer; color: var(--color-text); }
 body.dark .file-item { background:var(--color-card-dark); color:var(--color-text-dark);}
 .file-item:hover { box-shadow:0 6px 20px rgba(25,118,210,0.14);}
@@ -214,7 +217,7 @@ if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark');d
 let files = JSON.parse(localStorage.getItem('docardFiles') || '[]');
 
 function updateStorageInfo(){
-    const used = files.length*0.5; // example: each file 0.5MB
+    const used = files.reduce((a,f)=>a+parseFloat(f.size),0);
     document.getElementById('storageInfo').innerText=`Used: ${used.toFixed(1)} / 100 MB`;
 }
 
@@ -237,7 +240,7 @@ function renderFiles(filter='all'){
             <div class="file-name">${f.name}</div>
             <div class="file-meta">${f.size} MB</div>
         `;
-        div.onclick=()=>{ if(confirm('Delete this file?')){ files.splice(i,1); saveFiles(); } };
+        div.onclick=()=>{ if(confirm('Delete this file?')){ files.splice(files.indexOf(f),1); saveFiles(); } };
         fileArea.appendChild(div);
     });
     updateStorageInfo();

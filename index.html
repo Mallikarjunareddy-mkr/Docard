@@ -212,6 +212,12 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
 #breadcrumb span {
     display: inline-block;
 }
+#breadcrumb-wrapper {
+    position:sticky;
+    top:0;z-index:11;
+    background:inherit;
+    padding-bottom:6px;
+}
 </style>
 </head>
 <body>
@@ -296,9 +302,11 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
 
     <!-- File Manager -->
     <div id="localPage" class="page">
+        <div id="breadcrumb-wrapper">
+            <div id="breadcrumb"></div>
+        </div>
         <div style="display:flex;align-items:center;gap:12px;">
             <button class="filter-btn" onclick="goBackManager()"><span class="material-symbols-outlined">arrow_back</span>Back</button>
-            <div id="breadcrumb" style="font-size:15px;"></div>
             <input type="text" id="searchBar" placeholder="Search files..." oninput="searchFiles(this.value)">
             <div style="margin-left:auto;display:flex;gap:8px;">
                 <button class="filter-btn" id="toggleGridBtn" onclick="toggleView()">
@@ -385,16 +393,20 @@ body.dark ::-webkit-scrollbar-thumb{background:#444;}
 
 <script>
 // Page Navigation & Sidebar
+function updateSidebarVisibility(pageId) {
+    const sidebar = document.getElementById('sidebar');
+    if (pageId === 'homePage') {
+        sidebar.style.display = 'flex';
+    } else {
+        sidebar.style.display = 'none';
+    }
+}
 function showPage(id){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    document.querySelectorAll('#sidebar button').forEach(b=>b.classList.remove('active'));
-    if(id==='homePage') document.getElementById('navHome').classList.add('active');
-    if(id==='localDashboard') document.getElementById('navLocal').classList.add('active');
-    if(id==='cloudPage') document.getElementById('navCloud').classList.add('active');
+    updateSidebarVisibility(id);
     if(id==='localDashboard') updateStorageInfo();
 }
-// Help Modal
 function openHelpModal(){
     document.getElementById('helpModal').style.display='flex';
 }

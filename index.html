@@ -8,127 +8,105 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@700" rel="stylesheet" />
 <style>
 :root {
-    --color-primary: #2962ff;
-    --color-accent: #00c4ff;
-    --color-bg: #181825;
-    --color-card: #232436;
-    --color-text: #e3eafc;
-    --color-text-glow: #00c4ff;
-    --color-muted: #b3b9cc;
-    --shadow: 0 4px 22px rgba(41,98,255,0.13);
-    --radius: 18px;
-    --transition: .22s;
-    --max-width: 420px;
+    --primary: #1976d2;
+    --accent: #00bcd4;
+    --bg-dark: #181f2b;
+    --card-dark: #232b3a;
+    --glow: 0 0 14px #00bcd4,0 0 2px #1976d2;
+    --text-glow: 0 0 5px #fff,0 0 2px #00bcd4;
+    --radius: 14px;
+    --shadow: 0 4px 18px rgba(25,118,210,0.11);
 }
 body {
-    margin: 0;
     min-height: 100vh;
-    background: linear-gradient(135deg, #232436 0%, #181825 100%);
-    color: var(--color-text);
+    margin: 0;
+    background: var(--bg-dark);
+    color: #e3eafc;
     font-family: 'Roboto', Arial, sans-serif;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-}
-@media(max-width:600px) {
-    :root { --max-width: 96vw; }
-    .thunder-title { font-size: 2.3em !important; }
+    align-items: center;
 }
 .thunder-title {
-    font-size: 3.3em;
+    font-size: 2.3em;
     font-weight: bold;
-    color: var(--color-primary);
+    color: #fff;
     letter-spacing: 2px;
-    text-shadow: 0 0 22px var(--color-text-glow), 0 2px 18px var(--color-primary);
-    margin-bottom: 34px;
-    transition: font-size .23s;
+    text-shadow: var(--text-glow),0 0 20px #1976d2;
+    margin-bottom: 12px;
+    animation: thunder 1.2s infinite alternate;
+}
+@keyframes thunder {
+    0% { text-shadow: var(--text-glow),0 0 20px #1976d2; }
+    100% { text-shadow: var(--text-glow),0 0 28px #00bcd4; }
+}
+.slogan {
+    font-size: 1em;
+    color: #b3e5fc;
+    margin-bottom: 22px;
+    text-shadow: 0 0 3px #00bcd4;
+    font-weight: 400;
     text-align: center;
-    user-select: none;
-}
-.thunder-title span {
-    color: var(--color-accent);
-    text-shadow: 0 0 11px var(--color-accent), 0 0 22px #fff;
-}
-.card {
-    background: var(--color-card);
-    box-shadow: var(--shadow);
-    border-radius: var(--radius);
-    padding: 34px 18px 30px 18px;
-    max-width: var(--max-width);
-    width: 100%;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-.card p {
-    color: var(--color-muted);
-    margin-top: 14px;
-    font-size: 1.1em;
-    text-shadow: 0 0 8px var(--color-accent);
+    padding: 0 12px;
 }
 .options {
     display: flex;
-    gap: 32px;
-    justify-content: center;
-    margin-top: 36px;
+    gap: 18px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 .option-btn {
-    background: linear-gradient(135deg, var(--color-primary) 60%, var(--color-accent) 100%);
-    color: #fff;
+    background: var(--card-dark);
+    color: #e3eafc;
     border: none;
-    font-size: 1.25em;
+    font-size: 1em;
     font-weight: 700;
-    padding: 20px 38px;
-    border-radius: 16px;
+    padding: 13px 28px;
+    border-radius: var(--radius);
     cursor: pointer;
-    box-shadow: 0 6px 28px var(--color-accent);
+    box-shadow: var(--shadow);
     outline: none;
-    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    transition: background 0.18s, transform 0.15s, box-shadow 0.15s;
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
     text-decoration: none;
-    text-shadow: 0 0 11px var(--color-accent);
-    margin-bottom: 14px;
-}
-.option-btn:hover, .option-btn:focus {
-    transform: scale(1.07);
-    box-shadow: 0 12px 42px var(--color-primary);
-    background: linear-gradient(135deg, var(--color-accent) 40%, var(--color-primary) 100%);
 }
 .option-btn .material-symbols-outlined {
-    font-size: 2em;
-    filter: drop-shadow(0 0 6px var(--color-accent));
+    font-size: 1.45em;
+    color: var(--accent);
+    filter: drop-shadow(0 0 6px #00bcd4);
 }
-@media(max-width:600px) {
-    .options { gap: 16px; }
-    .option-btn { font-size: 1em; padding: 14px 12vw; }
+.option-btn:hover, .option-btn:focus {
+    background: #182231;
+    box-shadow: 0 8px 22px #00bcd4;
+    transform: scale(1.04);
+    color: #fff;
+}
+@media (max-width: 700px) {
+    .thunder-title { font-size: 1.5em; }
+    .option-btn { font-size: 0.92em; padding: 11px 16px; }
+    .options { gap:8px;}
 }
 </style>
 </head>
 <body>
 <div class="thunder-title">
-    Docard <span>⚡</span>
+    Docard <span style="font-size:0.8em;vertical-align:top;">⚡</span>
 </div>
-<div class="card">
-    <span class="material-symbols-outlined" style="font-size:4em;color:var(--color-accent);text-shadow:0 0 18px var(--color-accent);">folder_open</span>
-    <h1 style="margin:10px 0 0 0;font-size:1.6em;text-shadow:0 0 16px var(--color-primary);">Professional File Manager</h1>
-    <p>
-        Modern, secure and fast file manager for web.<br>
-        Manage your files like on Android or desktop, with local & cloud options.
-    </p>
-    <div class="options">
-        <a href="local.html" class="option-btn" title="Local Storage">
-            <span class="material-symbols-outlined">storage</span> Local Storage
-        </a>
-        <a href="cloud.html" class="option-btn" title="Cloud Storage">
-            <span class="material-symbols-outlined">cloud</span> Cloud Storage
-        </a>
-    </div>
+<div class="slogan">
+    Professional, secure file manager. <br>Local and cloud storage.
+</div>
+<div class="options">
+    <a href="local.html" class="option-btn" title="Local Storage">
+        <span class="material-symbols-outlined">folder</span>
+        Local Storage
+    </a>
+    <a href="cloud.html" class="option-btn" title="Cloud Storage">
+        <span class="material-symbols-outlined">cloud</span>
+        Cloud Storage
+    </a>
 </div>
 </body>
 </html>

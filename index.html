@@ -4,82 +4,131 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Docard - Web File Manager</title>
-<link href="https://fonts.googleapis.com/css?family=Roboto:700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto:700,400&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@700" rel="stylesheet" />
 <style>
+:root {
+    --color-primary: #2962ff;
+    --color-accent: #00c4ff;
+    --color-bg: #181825;
+    --color-card: #232436;
+    --color-text: #e3eafc;
+    --color-text-glow: #00c4ff;
+    --color-muted: #b3b9cc;
+    --shadow: 0 4px 22px rgba(41,98,255,0.13);
+    --radius: 18px;
+    --transition: .22s;
+    --max-width: 420px;
+}
 body {
     margin: 0;
-    height: 100vh;
-    background: linear-gradient(135deg,#1976d2 0%,#00bcd4 100%);
+    min-height: 100vh;
+    background: linear-gradient(135deg, #232436 0%, #181825 100%);
+    color: var(--color-text);
+    font-family: 'Roboto', Arial, sans-serif;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    font-family: 'Roboto', Arial, sans-serif;
-    overflow: hidden;
+    justify-content: center;
+}
+@media(max-width:600px) {
+    :root { --max-width: 96vw; }
+    .thunder-title { font-size: 2.3em !important; }
 }
 .thunder-title {
-    font-size: 4em;
+    font-size: 3.3em;
     font-weight: bold;
-    color: #fff;
-    letter-spacing: 4px;
-    position: relative;
-    z-index: 1;
-    text-shadow: 0 0 24px #fff, 0 0 64px #1976d2;
-    animation: thunder 0.5s infinite alternate;
+    color: var(--color-primary);
+    letter-spacing: 2px;
+    text-shadow: 0 0 22px var(--color-text-glow), 0 2px 18px var(--color-primary);
+    margin-bottom: 34px;
+    transition: font-size .23s;
+    text-align: center;
+    user-select: none;
 }
-@keyframes thunder {
-    0% { text-shadow: 0 0 24px #fff, 0 0 64px #1976d2, 0 0 0 #fff; }
-    100% { text-shadow: 0 0 32px #fff, 0 0 80px #00bcd4, 0 0 20px #fff; }
+.thunder-title span {
+    color: var(--color-accent);
+    text-shadow: 0 0 11px var(--color-accent), 0 0 22px #fff;
+}
+.card {
+    background: var(--color-card);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 34px 18px 30px 18px;
+    max-width: var(--max-width);
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.card p {
+    color: var(--color-muted);
+    margin-top: 14px;
+    font-size: 1.1em;
+    text-shadow: 0 0 8px var(--color-accent);
 }
 .options {
-    margin-top: 60px;
     display: flex;
-    gap: 38px;
+    gap: 32px;
+    justify-content: center;
+    margin-top: 36px;
+    flex-wrap: wrap;
 }
 .option-btn {
-    background: #fff;
-    color: #1976d2;
+    background: linear-gradient(135deg, var(--color-primary) 60%, var(--color-accent) 100%);
+    color: #fff;
     border: none;
-    font-size: 1.5em;
+    font-size: 1.25em;
     font-weight: 700;
-    padding: 24px 48px;
-    border-radius: 18px;
+    padding: 20px 38px;
+    border-radius: 16px;
     cursor: pointer;
-    box-shadow: 0 8px 32px rgba(25,118,210,0.21);
+    box-shadow: 0 6px 28px var(--color-accent);
     outline: none;
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
     display: flex;
     align-items: center;
     gap: 18px;
-    position: relative;
-    overflow: hidden;
+    text-decoration: none;
+    text-shadow: 0 0 11px var(--color-accent);
+    margin-bottom: 14px;
 }
-.option-btn:hover {
-    transform: scale(1.06);
-    box-shadow: 0 12px 36px rgba(0,188,212,0.35);
+.option-btn:hover, .option-btn:focus {
+    transform: scale(1.07);
+    box-shadow: 0 12px 42px var(--color-primary);
+    background: linear-gradient(135deg, var(--color-accent) 40%, var(--color-primary) 100%);
 }
 .option-btn .material-symbols-outlined {
     font-size: 2em;
+    filter: drop-shadow(0 0 6px var(--color-accent));
+}
+@media(max-width:600px) {
+    .options { gap: 16px; }
+    .option-btn { font-size: 1em; padding: 14px 12vw; }
 }
 </style>
 </head>
 <body>
 <div class="thunder-title">
-    <span style="position:relative;">
-        Docard
-        <span style="position:absolute;top:50%;left:110%;transform:translateY(-50%);font-size:1.2em;color:#fff;text-shadow:0 0 8px #00bcd4;">⚡</span>
-    </span>
+    Docard <span>⚡</span>
 </div>
-<div class="options">
-    <a href="local.html" class="option-btn" title="Local Storage">
-        <span class="material-symbols-outlined">folder</span>
-        Local Storage
-    </a>
-    <a href="cloud.html" class="option-btn" title="Cloud Storage">
-        <span class="material-symbols-outlined">cloud</span>
-        Cloud Storage
-    </a>
+<div class="card">
+    <span class="material-symbols-outlined" style="font-size:4em;color:var(--color-accent);text-shadow:0 0 18px var(--color-accent);">folder_open</span>
+    <h1 style="margin:10px 0 0 0;font-size:1.6em;text-shadow:0 0 16px var(--color-primary);">Professional File Manager</h1>
+    <p>
+        Modern, secure and fast file manager for web.<br>
+        Manage your files like on Android or desktop, with local & cloud options.
+    </p>
+    <div class="options">
+        <a href="local.html" class="option-btn" title="Local Storage">
+            <span class="material-symbols-outlined">storage</span> Local Storage
+        </a>
+        <a href="cloud.html" class="option-btn" title="Cloud Storage">
+            <span class="material-symbols-outlined">cloud</span> Cloud Storage
+        </a>
+    </div>
 </div>
 </body>
 </html>

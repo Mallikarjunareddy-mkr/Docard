@@ -159,25 +159,24 @@ function renderFiles() {
     }
 }
 
-// Floating + / Edit button
-function toggleFab(){ 
-    const menu=document.getElementById('fabMenu'); 
-    menu.style.display = menu.style.display==='flex'?'none':'flex'; 
-}
-
 // FAB action
 function fabAction(){
     const fabBtn = document.getElementById('fabBtn');
+    const fabMenu = document.getElementById('fabMenu');
+    const fileOps = document.getElementById('fileOperations');
+
     if(selectedItems.length > 0){
-        // Edit mode: show file/folder operation menu near FAB
-        const fileOps = document.getElementById('fileOperations');
+        // Edit mode: show operations near FAB
         fileOps.style.display = 'flex';
         const rect = fabBtn.getBoundingClientRect();
         fileOps.style.top = (window.scrollY + rect.top - fileOps.offsetHeight - 5) + 'px';
         fileOps.style.left = (window.scrollX + rect.left) + 'px';
+        // Hide create/upload menu if visible
+        fabMenu.style.display = 'none';
     } else {
         // Normal + mode: toggle create/upload menu
-        toggleFab();
+        fabMenu.style.display = fabMenu.style.display==='flex'?'none':'flex';
+        fileOps.style.display = 'none';
     }
 }
 
@@ -185,6 +184,12 @@ function fabAction(){
 function updateFabIcon(){
     const fabBtn = document.getElementById('fabBtn');
     fabBtn.innerText = selectedItems.length > 0 ? '✎' : '+';
+}
+
+// Floating + menu
+function toggleFab(){ 
+    const menu=document.getElementById('fabMenu'); 
+    menu.style.display = menu.style.display==='flex'?'none':'flex'; 
 }
 
 // Create folder
@@ -216,7 +221,6 @@ function toggleSelect(checkbox,name,isFolder){
     if(checkbox.checked) selectedItems.push(item);
     else selectedItems = selectedItems.filter(i => i.name !== name || i.isFolder !== isFolder);
     updateFabIcon();
-    toggleFileOperations(false); // hide operations until FAB clicked
 }
 
 // File operations

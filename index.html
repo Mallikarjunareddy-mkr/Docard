@@ -20,7 +20,7 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
 .folder span:first-child, .file span:first-child { display:flex; align-items:center; }
 .folder span:first-child::before { content:"📁"; margin-right:8px; }
 .file span:first-child::before { content:"📄"; margin-right:8px; }
-.fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); }
+.fab { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:#fff; width:60px; height:60px; border-radius:50%; font-size:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:0.2s; }
 #fabMenu { position:fixed; bottom:100px; right:30px; background:#fff; border:1px solid #ccc; border-radius:5px; display:none; flex-direction:column; }
 #fabMenu button { padding:10px 20px; border:none; background:none; cursor:pointer; text-align:left; }
 #fabMenu button:hover { background:#f0f0f0; }
@@ -28,7 +28,7 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
 /* File/Folder operation drop-down style */
 #fileOperations {
     display: none;
-    position: absolute; /* dynamic near selected item */
+    position: absolute;
     background: #fff;
     border: 1px solid #ccc;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -72,7 +72,7 @@ header { padding:10px; background:#f0f0f0; font-weight:bold; display:flex; flex-
         <button onclick="cancelSelection()">Cancel</button>
     </div>
     <div id="fileArea"></div>
-    <div class="fab" onclick="toggleFab()">+</div>
+    <div class="fab" id="fabBtn" onclick="fabAction()">+</div>
     <div id="fabMenu">
         <button onclick="createFolder()">Create Folder</button>
         <button onclick="uploadFile()">Upload File</button>
@@ -142,6 +142,7 @@ function renderFiles() {
     fileArea.innerHTML = '';
     const folderObj = getCurrentFolder();
     selectedItems = [];
+    updateFabIcon();
     toggleFileOperations(false);
 
     for(let name in folderObj){
@@ -158,8 +159,33 @@ function renderFiles() {
     }
 }
 
-// Floating + button
-function toggleFab(){ const menu=document.getElementById('fabMenu'); menu.style.display = menu.style.display==='flex'?'none':'flex'; }
+// Floating + / Edit button
+function toggleFab(){ 
+    const menu=document.getElementById('fabMenu'); 
+    menu.style.display = menu.style.display==='flex'?'none':'flex'; 
+}
+
+// FAB action
+function fabAction(){
+    const fabBtn = document.getElementById('fabBtn');
+    if(selectedItems.length > 0){
+        // Edit mode: show file/folder operation menu near FAB
+        const fileOps = document.getElementById('fileOperations');
+        fileOps.style.display = 'flex';
+        const rect = fabBtn.getBoundingClientRect();
+        fileOps.style.top = (window.scrollY + rect.top - fileOps.offsetHeight - 5) + 'px';
+        fileOps.style.left = (window.scrollX + rect.left) + 'px';
+    } else {
+        // Normal + mode: toggle create/upload menu
+        toggleFab();
+    }
+}
+
+// Update FAB icon
+function updateFabIcon(){
+    const fabBtn = document.getElementById('fabBtn');
+    fabBtn.innerText = selectedItems.length > 0 ? '✎' : '+';
+}
 
 // Create folder
 function createFolder(){
@@ -188,20 +214,12 @@ function handleFileUpload(event){
 function toggleSelect(checkbox,name,isFolder){
     const item = {name, isFolder};
     if(checkbox.checked) selectedItems.push(item);
-    else selectedItems = selectedItems.filter(i=>i.name!==name || i.isFolder!==isFolder);
-
-    const fileOps = document.getElementById('fileOperations');
-    if(selectedItems.length>0){
-        fileOps.style.display = 'flex';
-        const rect = document.querySelector('#fileArea input[type=checkbox]:checked').getBoundingClientRect();
-        fileOps.style.top = (window.scrollY + rect.bottom + 2) + 'px';
-        fileOps.style.left = (window.scrollX + rect.left) + 'px';
-    } else {
-        fileOps.style.display = 'none';
-    }
+    else selectedItems = selectedItems.filter(i => i.name !== name || i.isFolder !== isFolder);
+    updateFabIcon();
+    toggleFileOperations(false); // hide operations until FAB clicked
 }
 
-// Operations
+// File operations
 function toggleFileOperations(show){ document.getElementById('fileOperations').style.display = show?'flex':'none'; }
 function downloadSelected(){
     selectedItems.forEach(i=>{
@@ -242,6 +260,7 @@ function renameSelected(){
 function cancelSelection(){
     selectedItems=[];
     document.querySelectorAll('#fileArea input[type=checkbox]').forEach(cb=>cb.checked=false);
+    updateFabIcon();
     toggleFileOperations(false);
 }
 
